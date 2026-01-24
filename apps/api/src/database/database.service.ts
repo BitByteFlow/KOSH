@@ -1,14 +1,15 @@
 /* eslint-disable prettier/prettier */
 import { Global, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../../../../packages/db/generated/prisma';
+import { PrismaClient } from './../../../../packages/db/generated/prisma/index';
+
 
 @Global()
 @Injectable()
 export class DatabaseService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
     constructor() {
         const adapter = new PrismaPg({
-            connectionString: process.env.DATABASE_URL,
+            connectionString: 'postgresql://neondb_owner:npg_brWn9ifgC4Yk@ep-divine-firefly-ahldgyrw-pooler.c-3.us-east-1.aws.neon.tech/kosh_new?sslmode=require&channel_binding=require',
         })
 
         super({
@@ -34,7 +35,7 @@ export class DatabaseService extends PrismaClient implements OnModuleInit, OnMod
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return Promise.all(models.map((modelKey)=>{
             if(typeof modelKey === 'string'){
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return,  @typescript-eslint/no-unsafe-member-access
                 return this[modelKey].deleteMany()
             }
         }))
