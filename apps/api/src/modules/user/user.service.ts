@@ -13,18 +13,15 @@ export class UserService {
 
         const user = await this.database.user.findUnique({
             where: {
-
                 id: id
-            }
-            ,
-            select: {
-                id: true,
-                username: true,
-                email: true
+            },
+            select:{
+                id:true,
+                username:true,
+                email:true
             }
         }
         )
-
         if (!user) {
             throw new UnauthorizedException('User not found');
         }

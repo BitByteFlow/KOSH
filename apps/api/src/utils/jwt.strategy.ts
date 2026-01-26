@@ -24,24 +24,13 @@ export class JWTStrategy extends PassportStrategy(Strategy) {
             where: {
                 id: user_id
             }
-            ,
-            select: {
-                id: true,
-                username: true,
-                email: true
-            }
         }
         )
-
         if (!user) {
             throw new UnauthorizedException('User not found');
         }
 
-        return {
-            id:user.id,
-            username:user.username,
-            email:user.email
-        }
+        return user;
 
 
     }

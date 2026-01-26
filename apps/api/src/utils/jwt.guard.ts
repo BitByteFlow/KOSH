@@ -13,8 +13,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     handleRequest(err: any, user: any, info: any):any {
-        // If token is invalid or expired
-        // console.log(user)
+        
         if (err || !user) {
             if (info?.name === 'TokenExpiredError') {
                 throw new UnauthorizedException('Token expired. Please login again.');
@@ -25,7 +24,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
             throw new UnauthorizedException('Please login to continue.');
         }
 
-        // user now contains: { id, username, email }
         return user;
     }
 }

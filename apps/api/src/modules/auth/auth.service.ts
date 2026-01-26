@@ -36,19 +36,12 @@ export class AuthService {
 
         }
 
-
-
         const user = await this.database.user.create({
             data: {
                 googleId: authPayLoad.googleId,
                 email: authPayLoad.email,
                 image: authPayLoad.image,
                 username: authPayLoad.username,
-            },
-            select: {
-                id: true,
-                email: true,
-                username: true,
             }
         })
 
@@ -59,7 +52,6 @@ export class AuthService {
         });
 
         return {
-            id: user.id,
             token: token
         }
 
@@ -80,15 +72,10 @@ export class AuthService {
                         }
                     },
                 ]
-            },
-            select:{
-                id:true,
-                email:true,
-                username:true
             }
+            
         })
 
-        console.log(existinguser)
 
         if (!existinguser) {
 
@@ -104,7 +91,6 @@ export class AuthService {
         });
 
         return {
-            id: existinguser.id,
             token: token
         }
     }
