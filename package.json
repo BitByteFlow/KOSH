@@ -22,7 +22,11 @@
     "packages/*"
   ],
   "dependencies": {
+<<<<<<< HEAD
     "@prisma/client": "^7.3.0",
     "prisma": "^7.3.0"
+=======
+    "lucide-react": "^0.562.0"
+>>>>>>> frontend-dashboard
   }
 }
