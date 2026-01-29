@@ -13,7 +13,7 @@ export class AuthController {
     @Post()
     async createUser(@Body() authPayLoad:CreateUserDto):Promise<AuthResponseDto>{
 
-        const response = await this.authService.createUser(authPayLoad);
+        const response = await this.authService.createUser(authPayLoad.email,authPayLoad.googleId,authPayLoad.image,authPayLoad.username);
 
         return response;
 
@@ -22,7 +22,7 @@ export class AuthController {
     @Get()
     async getUser(@Body() authPayLoad:LoginRequestDto):Promise<AuthResponseDto>{
         console.log(authPayLoad)
-        const response = await this.authService.getUser(authPayLoad);
+        const response = await this.authService.getUser(authPayLoad.email,authPayLoad.googleId);
         return response;
     }
 

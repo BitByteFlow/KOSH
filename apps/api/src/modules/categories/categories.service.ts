@@ -1,0 +1,146 @@
+/* eslint-disable prettier/prettier */
+import { ConflictException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { error } from "console";
+import { DatabaseService } from "src/database/database.service";
+import { CategoryResponseDto } from "./dto/CategoryResponseDto";
+
+
+@Injectable()
+export class CategoryService {
+    constructor(private readonly database: DatabaseService) { }
+
+    async createCategories(name: string, userId: string): Promise<CategoryResponseDto> {
+        try {
+            console.log(name)
+            const exists = await this.database.category.findFirst({
+                where: {
+                    name: name,
+                    userId: userId
+                }
+            })
+
+            if (exists) {
+                throw new ConflictException({
+                    status: "error",
+                    message: `Category with ${name} name already exists`,
+                    error: 'Internal Server Error, the category already exists for this user.'
+                })
+
+            }
+
+            await this.database.category.create({
+                data: {
+                    name: name,
+                    userId: userId
+                }
+            })
+
+            return {
+                status: "success",
+                message: `New Category ${name} created! `,
+            }
+
+        } catch (error) {
+            console.log(error)
+            if (error instanceof ConflictException) {
+                throw error;
+            }
+            throw new InternalServerErrorException(
+                {
+                    status: "error",
+                    message: "Failed to create Category",
+                    error: `Internal Server Error ${error}`
+                })
+        }
+    }
+
+    async getCategories(userId: string): Promise<any> {
+        const categories = await this.database.category.findMany({
+            where: {
+                userId: userId
+            },
+            select: {
+                id: true,
+                name: true
+            }
+        })
+
+        if (!categories) {
+            throw new ConflictException({
+                status: "failed",
+                message: "No categories yet",
+                error: "No categories data to retrieve"
+            })
+        }
+
+
+        return {
+            status: "success",
+            message: "Categories retrieved successfully",
+            data: {
+                categories
+            }
+        }
+    }
+
+    async deleteCategories(id: string, userId: string): Promise<CategoryResponseDto> {
+
+        const exists = await this.database.category.findUnique({
+            where: {
+                id: id,
+            }
+        })
+        console.log(exists)
+        if (!exists) {
+            throw new ConflictException({
+                status: "error",
+                message: "Category with this id doesn't exist!!",
+                error: error
+            })
+        }
+
+        await this.database.category.delete({
+            where: {
+                id: id,
+                userId: userId
+            }
+        })
+
+        return {
+            status: "success",
+            message: "Deleted successfully!"
+        }
+    }
+
+    async updateCategories(id: string, userId: string, name: string): Promise<CategoryResponseDto> {
+
+        const exist = await this.database.category.findUnique({
+            where: {
+                id: id
+            }
+        })
+
+        if (!exist) {
+            throw new ConflictException({
+                status: "error",
+                message: "Category with this Id doesn't exist!",
+                error: "Category doesn't exist"
+            })
+        }
+
+        await this.database.category.update({
+            where: {
+                id: id
+            },
+            data:{
+                name:name
+            }
+        })
+
+        return {
+            status:"success",
+            message:"Category Updated"
+        }
+    }
+}
+

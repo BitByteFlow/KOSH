@@ -1,10 +1,8 @@
-import { LoginRequestDto } from './dto/LoginRequestDto';
 /* eslint-disable prettier/prettier */
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { DatabaseService } from 'src/database/database.service';
 import { AuthResponseDto } from './dto/AuthResponseDto';
-import { CreateUserDto } from './dto/CreateUserDto';
 
 @Injectable()
 export class AuthService {
@@ -14,17 +12,17 @@ export class AuthService {
     ) { }
 
 
-    async createUser(authPayLoad: CreateUserDto): Promise<AuthResponseDto> {
+    async createUser(email: string, googleId:string, image:string, username:string): Promise<AuthResponseDto> {
 
 
         const existinguser = await this.database.user.findFirst({
             where: {
                 OR: [
-                    { email: authPayLoad.email },
+                    { email: email },
                     {
                         googleId: {
                             not: null,
-                            equals: authPayLoad.googleId
+                            equals: googleId
                         }
                     },
                 ]
@@ -38,10 +36,10 @@ export class AuthService {
 
         const user = await this.database.user.create({
             data: {
-                googleId: authPayLoad.googleId,
-                email: authPayLoad.email,
-                image: authPayLoad.image,
-                username: authPayLoad.username,
+                googleId: googleId,
+                email: email,
+                image: image,
+                username: username,
             }
         })
 
@@ -57,18 +55,17 @@ export class AuthService {
 
     }
 
-    async getUser(authPayLoad: LoginRequestDto): Promise<AuthResponseDto> {
+    async getUser(email: string, googleId:string): Promise<AuthResponseDto> {
 
-        console.log(authPayLoad)
 
         const existinguser = await this.database.user.findFirst({
             where: {
                 OR: [
-                    { email: authPayLoad.email },
+                    { email: email },
                     {
                         googleId: {
                             not: null,
-                            equals: authPayLoad.googleId
+                            equals: googleId
                         }
                     },
                 ]
