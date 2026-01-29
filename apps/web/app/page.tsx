@@ -1,7 +1,7 @@
 import Image, { type ImageProps } from "next/image";
 import { Button } from "@repo/ui/button";
 import styles from "./page.module.css";
-import { Ellipsis,Bell} from "lucide-react";
+import { Ellipsis, Bell } from "lucide-react";
 
 type Props = Omit<ImageProps, "src"> & {
 	srcLight: string;
@@ -13,25 +13,20 @@ const ThemeImage = (props: Props) => {
 
 	return (
 		<>
-			<Image {...rest} src={srcLight} className="imgLight" />
-			<Image {...rest} src={srcDark} className="imgDark" />
+			<Image
+				{...rest}
+				src={srcLight}
+				className="imgLight"
+			/>
+			<Image
+				{...rest}
+				src={srcDark}
+				className="imgDark"
+			/>
 		</>
 	);
 };
 
 export default function Home() {
-	return (
-		<div>
-			<div className={styles.topBar}>
-				<p>Dashboard</p>
-        {/*right side icons  */}
-        <div className={styles.righttopBar}>
-          <Ellipsis />
-          <Bell />
-          <Button appName={""} >In store</Button>
-        </div>
-			</div>
-			<main className={styles.main}></main>
-		</div>
-	);
+	return <div></div>;
 }
