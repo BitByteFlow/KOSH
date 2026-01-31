@@ -15,7 +15,7 @@
 		"components": "@/components",
 		"utils": "@kosh/ui/lib/utils",
 		"ui": "@kosh/ui/components",
-		"hooks": "@kosh/hooks"
+		"hooks": "@kosh/ui/hooks"
 	},
 	"registries": {}
 }

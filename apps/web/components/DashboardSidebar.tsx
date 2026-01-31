@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
+
 import {
 	LayoutGrid,
 	Box,
@@ -27,29 +29,34 @@ import {
 	SidebarGroupLabel,
 	SidebarGroupContent,
 	useSidebar,
-} from "@/components/ui/sidebar";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+} from "@kosh/ui/components/sidebar";
+import { Input } from "@kosh/ui/components/input";
+import {
+	Avatar,
+	AvatarFallback,
+	AvatarImage,
+} from "@kosh/ui/components/avatar";
+import Link from "next/link";
 const menuItems = [
-	{ title: "Dashboard", icon: LayoutGrid, url: "#" },
-	{ title: "Catalog", icon: Box, url: "#" },
-	{ title: "Inventory", icon: Layers, url: "#" },
-	{ title: "Reports", icon: BarChart3, url: "#" },
-	{ title: "Settings", icon: Settings, url: "#" },
+	{ title: "Dashboard", icon: LayoutGrid, url: "/dashboard" },
+	{ title: "Catalog", icon: Box, url: "/catalog" },
+	{ title: "Inventory", icon: Layers, url: "/inventory" },
+	{ title: "Reports", icon: BarChart3, url: "/reports" },
+	{ title: "Settings", icon: Settings, url: "/settings" },
 ];
 
 const supportItems = [
-	{ title: "User Guide", icon: BookOpen, url: "#" },
-	{ title: "FAQ", icon: HelpCircle, url: "#", active: true },
+	{ title: "User Guide", icon: BookOpen, url: "/guide" },
+	{ title: "FAQ", icon: HelpCircle, url: "/faq" },
 ];
 
 const DashboardSidebar = () => {
 	const { toggleSidebar } = useSidebar();
+	const pathname = usePathname();
 
 	return (
-		<Sidebar className="border-r border-gray-200 bg-white">
-			<SidebarHeader className="p-6">
+		<Sidebar className="border-r border-gray-200 bg-white flex-col w-full h-screen">
+			<SidebarHeader>
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
 						<div className="h-8 w-8 rounded-lg flex items-center justify-center bg-gray-900 text-white">
@@ -61,81 +68,101 @@ const DashboardSidebar = () => {
 					</div>
 					<button
 						onClick={toggleSidebar}
-						className="transition-colors text-gray-400 hover:text-gray-600 lg:flex hidden"
+						className="transition-colors text-gray-400 hover:text-gray-600 lg:flex"
 					>
 						<PanelLeft className="h-5 w-5" />
 					</button>
 				</div>
 
-				<div className="mt-6 relative group">
+				<div className="mt-6 relative group ">
 					<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-gray-600 transition-colors" />
 					<Input
 						placeholder="Search"
-						className="pl-9 bg-gray-50 border-none focus-visible:ring-1 focus-visible:ring-gray-200 placeholder:text-gray-400"
+						className="pl-9 py-2 bg-gray-50 border-none focus-visible:ring-1 focus-visible:ring-gray-200 placeholder:text-gray-400 rounded-md"
 					/>
 				</div>
 			</SidebarHeader>
 
-			<SidebarContent className="px-4 custom-scrollbar">
+			<SidebarContent className="custom-scrollbar">
 				<SidebarGroup>
 					<SidebarGroupLabel className="text-xs font-medium uppercase tracking-wider text-gray-400 px-2">
 						Menu
 					</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
-							{menuItems.map((item) => (
-								<SidebarMenuItem key={item.title}>
-									<SidebarMenuButton
-										asChild
-										className="hover:bg-gray-50 group"
-									>
-										<a
-											href={item.url}
-											className="flex items-center gap-3 py-2.5"
+							{menuItems.map((item) => {
+								const isActive = pathname.startsWith(item.url);
+								return (
+									<SidebarMenuItem key={item.title}>
+										<SidebarMenuButton
+											asChild
+											className="mt-2"
 										>
-											<item.icon className="h-5 w-5 text-gray-500 group-hover:text-gray-900 group-hover:scale-105 transition-all" />
-											<span className="text-base font-medium text-gray-500 group-hover:text-gray-900">
-												{item.title}
-											</span>
-										</a>
-									</SidebarMenuButton>
-								</SidebarMenuItem>
-							))}
+											<Link
+												href={item.url}
+												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-colors ${
+													isActive
+														? "bg-gray-50 text-gray-900"
+														: "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+												}`}
+											>
+												<item.icon
+													className={`h-5 w-5 transition-transform ${
+														isActive
+															? "text-gray-900"
+															: "text-gray-500 hover:scale-105"
+													}`}
+												/>
+												<span className="text-base font-medium">
+													{item.title}
+												</span>
+											</Link>
+										</SidebarMenuButton>
+									</SidebarMenuItem>
+								);
+							})}
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
 
-				<SidebarGroup className="mt-4">
+				<SidebarGroup>
 					<SidebarGroupLabel className="text-xs font-medium uppercase tracking-wider text-gray-400 px-2">
 						Help & Support
 					</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
-							{supportItems.map((item) => (
-								<SidebarMenuItem key={item.title}>
-									<SidebarMenuButton
-										asChild
-										isActive={item.active}
-										className={
-											item.active
-												? "bg-gray-50 text-gray-900"
-												: "hover:bg-gray-50 text-gray-500"
-										}
-									>
-										<a
-											href={item.url}
-											className="flex items-center gap-3 py-2.5"
+							{supportItems.map((item) => {
+								const isActive = pathname.startsWith(item.url);
+								return (
+									<SidebarMenuItem key={item.title}>
+										<SidebarMenuButton
+											asChild
+											isActive={isActive}
+											className="mt-2"
 										>
-											<item.icon
-												className={`h-5 w-5 ${item.active ? "text-gray-900" : "text-gray-500 group-hover:text-gray-900"}`}
-											/>
-											<span className="text-base font-medium">
-												{item.title}
-											</span>
-										</a>
-									</SidebarMenuButton>
-								</SidebarMenuItem>
-							))}
+											<Link
+												href={item.url}
+												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-colors ${
+													isActive
+														? "bg-gray-50 text-gray-900"
+														: "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+												}`}
+											>
+												<item.icon
+													className={`h-5 w-5 transition-transform ${
+														isActive
+															? "text-gray-900"
+															: "text-gray-500 hover:scale-105"
+													}`}
+												/>
+												<span className="text-base font-medium">
+													{item.title}
+												</span>
+											</Link>
+										</SidebarMenuButton>
+									</SidebarMenuItem>
+								);
+							})}
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
