@@ -4,6 +4,15 @@ import { Card } from "@kosh/ui/components/card";
 import { Button } from "@kosh/ui/components/button";
 import { Filter } from "lucide-react";
 
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@kosh/ui/components/table";
+
 interface Transaction {
 	id: string;
 	date: string;
@@ -25,91 +34,66 @@ interface TransactionTableProps {
 
 export function TransactionTable({ transactions }: TransactionTableProps) {
 	return (
-		<Card className="border border-border p-0 overflow-hidden">
-			<div className="flex items-center justify-between p-6 border-b border-border">
+		<Card className="border border-border gap-2 p-6 overflow-hidden rounded-lg shadow-md">
+			<div className="flex items-center justify-between py-2 border-b border-border">
 				<h2 className="text-lg font-bold">Recent Transactions</h2>
-				<div className="flex items-center gap-2">
-					<Button
-						variant="outline"
-						size="sm"
-						className="gap-2 bg-transparent"
-					>
-						<Filter className="w-4 h-4" />
-						Filter
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-					>
-						Monthly
-					</Button>
+				<div>
+					<Filter className="w-4 h-4" />
 				</div>
 			</div>
 
 			<div className="overflow-x-auto">
-				<table className="w-full text-sm">
-					<thead>
-						<tr className="border-b border-border bg-muted/50">
-							<th className="text-left px-6 py-3 font-semibold text-muted-foreground">
+				<Table>
+					<TableHeader>
+						<TableRow className="border-bottom border-slate-200 shadow-sm rounded-md">
+							<TableHead className="text-left w-45 text-muted-foreground">
 								Transaction Date
-							</th>
-							<th className="text-left px-6 py-3 font-semibold text-muted-foreground">
+							</TableHead>
+							<TableHead className="text-left text-muted-foreground">
 								Customer Name
-							</th>
-							<th className="text-left px-6 py-3 font-semibold text-muted-foreground">
+							</TableHead>
+							<TableHead className="text-left text-muted-foreground">
 								Product Name
-							</th>
-							<th className="text-left px-6 py-3 font-semibold text-muted-foreground">
+							</TableHead>
+							<TableHead className="text-left text-muted-foreground">
 								Price
-							</th>
-							<th className="text-left px-6 py-3 font-semibold text-muted-foreground">
+							</TableHead>
+							<TableHead className="text-left text-muted-foreground">
 								Quantity
-							</th>
-							<th className="text-left px-6 py-3 font-semibold text-muted-foreground">
+							</TableHead>
+							<TableHead className="text-left text-muted-foreground">
 								Total Price
-							</th>
-							<th className="text-left px-6 py-3 font-semibold text-muted-foreground">
+							</TableHead>
+							<TableHead className="text-left text-muted-foreground">
 								Cashier
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						{transactions.map((transaction, i) => (
-							<tr
+							</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody className="gap-4 [&_tr_td]:py-8">
+						{transactions.map((transaction) => (
+							<TableRow
 								key={transaction.id}
-								className={`border-b border-border ${i === 0 ? "bg-red-50/50 dark:bg-red-950/20" : ""}`}
+								className="border-bottom border-gray-200 shadow-sm rounded-md"
 							>
-								<td className="px-6 py-4">{transaction.date}</td>
-								<td className="px-6 py-4">
-									<div className="flex items-center gap-2">
-										<div
-											className={`w-6 h-6 ${transaction.bg} rounded text-xs font-medium flex items-center justify-center text-white`}
-										>
-											{transaction.initials}
-										</div>
-										<span className="font-medium">
-											{transaction.customerName}
-										</span>
-									</div>
-								</td>
-								<td className="px-6 py-4">{transaction.productName}</td>
-								<td className="px-6 py-4">${transaction.price}</td>
-								<td className="px-6 py-4">{transaction.quantity}</td>
-								<td className="px-6 py-4 font-medium">${transaction.total}</td>
-								<td className="px-6 py-4">
-									<div className="flex items-center gap-2">
-										<div
-											className={`w-6 h-6 ${transaction.cashierBg} rounded text-xs font-medium flex items-center justify-center text-white`}
-										>
-											{transaction.cashierInitials}
-										</div>
-										<span>{transaction.cashier}</span>
-									</div>
-								</td>
-							</tr>
+								<TableCell>{transaction.date}</TableCell>
+								<TableCell>
+									<span className="font-medium">
+										{transaction.customerName}
+									</span>
+								</TableCell>
+								<TableCell>{transaction.productName}</TableCell>
+								<TableCell>${transaction.price.toFixed(2)}</TableCell>
+								<TableCell>{transaction.quantity}</TableCell>
+								<TableCell className="font-medium">
+									${transaction.total.toFixed(2)}
+								</TableCell>
+								<TableCell>
+									<span>{transaction.cashier}</span>
+								</TableCell>
+							</TableRow>
 						))}
-					</tbody>
-				</table>
+					</TableBody>
+				</Table>
 			</div>
 		</Card>
 	);

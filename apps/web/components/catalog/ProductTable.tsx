@@ -1,17 +1,26 @@
 "use client";
 
+import { useState } from "react";
 import { Card } from "@kosh/ui/components/card";
 import { Input } from "@kosh/ui/components/input";
 import { Button } from "@kosh/ui/components/button";
+
 import {
-	MoreVertical,
-	Plus,
-	Download,
-	Filter,
-	Eye,
-	EyeOff,
-} from "lucide-react";
-import { Checkbox } from "@kosh/ui/components/checkbox";
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@kosh/ui/components/table";
+import { MoreVertical, Filter, Download } from "lucide-react";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@kosh/ui/components/tooltip";
+
+import { TablePagination } from "@/components/Pagination";
 
 interface Product {
 	id: string;
@@ -34,147 +43,122 @@ const statusStyles = {
 };
 
 export function ProductTable({ products }: ProductTableProps) {
+	const [page, setPage] = useState(1);
+	const pageSize = 10;
+
+	const start = (page - 1) * pageSize;
+	const end = start + pageSize;
+	const paginatedProducts = products.slice(start, end);
+
 	return (
-		<Card className="border border-border p-0 overflow-hidden">
-			<div className="flex items-center justify-between p-6 border-b border-border">
-				<div className="flex items-center gap-2">
-					<h2 className="text-xl font-bold mb-6">Product Management</h2>
-				</div>
+		<Card className="border border-border p-0 px-6 overflow-hidden rounded-lg shadow-md">
+			<div className="flex items-center justify-between py-6 border-b border-border">
+				<h2 className="text-xl font-bold">Product Catalog</h2>
 
 				<div className="flex items-center gap-3">
 					<Input
-						type="text"
 						placeholder="Search"
-						className="px-3 py-2 border border-input rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+						className="w-56"
 					/>
+
 					<Button
 						variant="outline"
 						size="sm"
-						className="gap-2 bg-transparent flex"
+						className="gap-2"
 					>
 						<Filter className="w-4 h-4" />
 						Filter
 					</Button>
-					<Button
-						size="sm"
-						className="gap-2 bg-blue-600 hover:bg-blue-700 text-white flex"
-					>
-						<Download className="w-4 h-4" />
-						<span>Import Barcode</span>
-					</Button>
+
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								size="sm"
+								className="gap-2 bg-blue-600 text-white hover:cursor-pointer"
+							>
+								<Download className="w-4 h-4" />
+								Import Barcode
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent className="py-2">
+							Select products for barcode
+						</TooltipContent>
+					</Tooltip>
 				</div>
 			</div>
 
-			{/* Table */}
 			<div className="overflow-x-auto">
-				<table className="w-full text-sm">
-					<thead>
-						<tr className="border-b border-border">
-							<th className="text-left px-6 py-3">
-								<Checkbox />
-							</th>
-							<th className="text-left px-6 py-3 font-semibold text-muted-foreground">
-								Product ID
-							</th>
-							<th className="text-left px-6 py-3 font-semibold text-muted-foreground">
-								Name Product
-							</th>
-							<th className="text-left px-6 py-3 font-semibold text-muted-foreground">
-								Category
-							</th>
-							<th className="text-left px-6 py-3 font-semibold text-muted-foreground">
-								Stock
-							</th>
-							<th className="text-left px-6 py-3 font-semibold text-muted-foreground">
-								Barcode
-							</th>
-							<th className="text-left px-6 py-3 font-semibold text-muted-foreground">
-								Status
-							</th>
-							<th className="text-left px-6 py-3 font-semibold text-muted-foreground">
-								Actions
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						{products.map((product, i) => (
-							<tr
+				<Table>
+					<TableHeader>
+						<TableRow className="border-border">
+							<TableHead className="w-12">
+								<Input
+									type="checkbox"
+									className="w-4 h-4"
+								/>
+							</TableHead>
+							<TableHead>Product ID</TableHead>
+							<TableHead>Name</TableHead>
+							<TableHead>Category</TableHead>
+							<TableHead>Stock</TableHead>
+							<TableHead>Barcode</TableHead>
+							<TableHead>Status</TableHead>
+							{/* TODO: CHANGE ACTION WITH SOMETHING ELSE */}
+							<TableHead className="text-right">Actions</TableHead>
+						</TableRow>
+					</TableHeader>
+
+					<TableBody className="[&_td]:py-6">
+						{paginatedProducts.map((product) => (
+							<TableRow
 								key={product.id}
-								className={`border-b border-border ${i === 4 ? "bg-blue-50/30 dark:bg-blue-950/10" : ""}`}
+								className="border-border"
 							>
-								<td className="px-6 py-4">
-									<Checkbox />
-								</td>
-								<td className="px-6 py-4 font-medium">{product.sku}</td>
-								<td className="px-6 py-4 text-blue-600 hover:underline cursor-pointer">
+								<TableCell>
+									<Input
+										type="checkbox"
+										className="w-4 h-4"
+									/>
+								</TableCell>
+								<TableCell className="font-medium">{product.sku}</TableCell>
+								<TableCell className="text-blue-600 hover:underline cursor-pointer">
 									{product.name}
-								</td>
-								<td className="px-6 py-4">{product.category}</td>
-								<td className="px-6 py-4">{product.stock}</td>
-								<td className="px-6 py-4 font-mono text-xs">
+								</TableCell>
+								<TableCell>{product.category}</TableCell>
+								<TableCell>{product.stock}</TableCell>
+								<TableCell className="font-mono text-xs">
 									{product.barcode}
-								</td>
-								<td className="px-6 py-4">
+								</TableCell>
+								<TableCell>
 									<span
-										className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${statusStyles[product.status]}`}
+										className={`px-2 py-1 rounded-full text-xs font-medium ${statusStyles[product.status]}`}
 									>
 										{product.status}
 									</span>
-								</td>
-								<td className="px-6 py-4">
+								</TableCell>
+								<TableCell className="text-right">
 									<Button
 										variant="ghost"
 										size="icon"
-										className="w-6 h-6"
 									>
 										<MoreVertical className="w-4 h-4" />
 									</Button>
-								</td>
-							</tr>
+								</TableCell>
+							</TableRow>
 						))}
-					</tbody>
-				</table>
+					</TableBody>
+				</Table>
 			</div>
 
 			{/* Pagination */}
-			<div className="flex items-center justify-between p-6 border-t border-border">
-				<div className="text-sm text-muted-foreground">
-					Show{" "}
-					<select className="mx-2 px-2 py-1 border border-input rounded bg-background text-sm">
-						<option>12</option>
-						<option>24</option>
-						<option>50</option>
-					</select>
-					per page
-				</div>
-				<div className="text-sm text-muted-foreground">1-10 of 52</div>
-				<div className="flex items-center gap-2">
-					<Button
-						variant="outline"
-						size="sm"
-					>
-						←
-					</Button>
-					<div className="flex items-center gap-1">
-						{[1, 2, 3, 4, 5].map((page) => (
-							<Button
-								key={page}
-								variant={page === 2 ? "default" : "outline"}
-								size="sm"
-								className="w-8 h-8"
-							>
-								{page}
-							</Button>
-						))}
-					</div>
-					<Button
-						variant="outline"
-						size="sm"
-					>
-						→
-					</Button>
-				</div>
-			</div>
+			<TablePagination
+				page={page}
+				totalPages={Math.ceil(products.length / pageSize)}
+				onPageChange={setPage}
+				from={start + 1}
+				to={Math.min(end, products.length)}
+				total={products.length}
+			/>
 		</Card>
 	);
 }
