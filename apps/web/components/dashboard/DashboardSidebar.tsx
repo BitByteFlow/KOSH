@@ -46,12 +46,12 @@ const menuItems = [
 	{ title: "Dashboard", icon: LayoutGrid, url: "/dashboard" },
 	{ title: "Catalog", icon: Box, url: "/catalog" },
 	{ title: "Inventory", icon: Layers, url: "/inventory" },
-	{ title: "Reports", icon: BarChart3, url: "/reports" },
+	{ title: "Reports & Analytics", icon: BarChart3, url: "/reports-analytics" },
 	{ title: "Settings", icon: Settings, url: "/settings" },
 ];
 
 const supportItems = [
-	{ title: "User Guide", icon: BookOpen, url: "/guide" },
+	{ title: "User Guide", icon: BookOpen, url: "/user-guide" },
 	{ title: "FAQ", icon: HelpCircle, url: "/faq" },
 ];
 
