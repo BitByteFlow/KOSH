@@ -3,8 +3,18 @@
 import { useState } from "react";
 import { ChevronDown, MoreVertical } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
+import { Checkbox } from "@kosh/ui/components/checkbox";
 import { StatusBadge } from "./StatusBadge";
 import { VariantRow } from "./VariantRow";
+
+import {
+	TableRow,
+	TableCell,
+	Table,
+	TableHeader,
+	TableHead,
+	TableBody,
+} from "@kosh/ui/components/table";
 
 interface Variant {
 	id: string;
@@ -28,7 +38,7 @@ interface InventoryItemProps {
 	onEditVariant?: (variantId: string) => void;
 }
 
-export function InventoryItem({
+const InventoryItem = ({
 	id,
 	productName,
 	category,
@@ -38,95 +48,96 @@ export function InventoryItem({
 	variants,
 	onEdit,
 	onEditVariant,
-}: InventoryItemProps) {
+}: InventoryItemProps) => {
 	const [isExpanded, setIsExpanded] = useState(false);
 
-	const getStatusBadge = () => {
-		const statusConfig = {
-			active: { label: "Active", status: "active" as const },
-			inactive: { label: "Inactive", status: "inactive" as const },
-			"out-of-stock": {
-				label: "Out of Stock",
-				status: "out-of-stock" as const,
-			},
-		};
-		return statusConfig[status];
-	};
-
-	const statusConfig = getStatusBadge();
+	const statusConfig = {
+		active: "Active",
+		inactive: "Inactive",
+		"out-of-stock": "Out of Stock",
+	}[status];
 
 	return (
 		<>
-			<tr className="border-t border-gray-200 hover:bg-gray-50 transition-colors">
-				<td className="px-6 py-4">
-					<input
-						type="checkbox"
-						className="w-4 h-4 rounded border-gray-300"
-					/>
-				</td>
-				<td className="px-6 py-4">
+			<TableRow className="hover:bg-muted/50 transition-colors border-b-border [&_td:first-child]:pl-6 [&_td:last-child]:pr-6 [&_td]:py-5">
+				<TableCell className="w-12">
+					<Checkbox />
+				</TableCell>
+
+				<TableCell>
 					<button
 						onClick={() => setIsExpanded(!isExpanded)}
-						className="flex items-center gap-2 text-left hover:text-blue-600 transition-colors"
+						className="flex items-center gap-3 text-left w-full"
 					>
 						<ChevronDown
-							className={`w-5 h-5 transition-transform duration-200 ${
+							className={`w-4 h-4 transition-transform text-muted-foreground ${
 								isExpanded ? "rotate-180" : ""
 							}`}
 						/>
 						<div>
-							<h3 className="font-medium text-gray-900">{productName}</h3>
-							<p className="text-sm text-gray-500">{variantCount} Variants</p>
+							<p className="font-medium">{productName}</p>
+							<p className="text-sm text-muted-foreground">
+								{variantCount} Variants
+							</p>
 						</div>
 					</button>
-				</td>
-				<td className="px-6 py-4">
-					<span className="text-sm text-gray-600">{category}</span>
-				</td>
-				<td className="px-6 py-4">
-					<span className="text-sm font-medium text-gray-900">
-						{totalStock}
-					</span>
-				</td>
-				<td className="px-6 py-4">
-					<StatusBadge status={status}>{statusConfig.label}</StatusBadge>
-				</td>
-				<td className="px-6 py-4 text-right">
+				</TableCell>
+
+				<TableCell className="text-sm text-muted-foreground">
+					{category}
+				</TableCell>
+
+				<TableCell className="font-medium">{totalStock}</TableCell>
+
+				<TableCell>
+					<StatusBadge status={status}>{statusConfig}</StatusBadge>
+				</TableCell>
+
+				<TableCell className="text-right">
 					<Button
 						variant="ghost"
-						size="sm"
-						className="p-0 w-8 h-8 hover:bg-gray-100"
+						size="icon"
+						className="w-8 h-8"
 					>
-						<MoreVertical className="w-4 h-4 text-gray-500" />
+						<MoreVertical className="w-4 h-4 text-muted-foreground" />
 					</Button>
-				</td>
-			</tr>
+				</TableCell>
+			</TableRow>
 
 			{isExpanded && (
-				<>
-					<tr className="bg-gray-50">
-						<td
-							colSpan={6}
-							className="px-6 py-3"
-						>
-							<div className="text-xs font-semibold text-gray-600 uppercase tracking-wide flex gap-12">
-								<span>ATTRIBUTES</span>
-								<span className="ml-20">SKU / BARCODE</span>
-								<span className="ml-20">PRICE</span>
-								<span className="ml-20">STOCK</span>
-								<span className="ml-32">ACTION</span>
-							</div>
-						</td>
-					</tr>
-					{variants.map((variant) => (
-						<VariantRow
-							key={variant.id}
-							variant={variant}
-							onEdit={onEditVariant}
-						/>
-					))}
-				</>
+				<TableRow className="border-none bg-transparent hover:bg-transparent">
+					<TableCell
+						colSpan={6}
+						className="p-0"
+					>
+						<div className="p-4 bg-muted/20">
+							<Table>
+								<TableHeader>
+									<TableRow className="border-border">
+										<TableHead className="w-12 pl-6" />
+										<TableHead>Attributes</TableHead>
+										<TableHead>SKU / Barcode</TableHead>
+										<TableHead>Price</TableHead>
+										<TableHead>Stock</TableHead>
+										<TableHead className="text-right pr-6">Actions</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{variants.map((variant) => (
+										<VariantRow
+											key={variant.id}
+											variant={variant}
+											onEdit={onEditVariant}
+										/>
+									))}
+								</TableBody>
+							</Table>
+						</div>
+					</TableCell>
+				</TableRow>
 			)}
 		</>
 	);
-}
+};
+
+export default InventoryItem;

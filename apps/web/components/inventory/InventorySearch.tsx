@@ -1,4 +1,4 @@
-import { Search, Download, ChevronDown } from "lucide-react";
+import { Search, Download, ChevronDown, Plus } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
 
 interface InventorySearchProps {
@@ -26,6 +26,14 @@ export function InventorySearch({
 						className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 					/>
 				</div>
+
+				<Button className="flex items-center gap-2 px-2">
+						<Plus
+							className="w-4 h-4"
+						color="white"
+					/>
+					<span className="text-white">Add Product</span>
+				</Button>
 				<Button
 					variant="outline"
 					size="sm"

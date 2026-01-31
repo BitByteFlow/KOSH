@@ -1,5 +1,6 @@
 import { Edit } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
+import { TableRow, TableCell } from "@kosh/ui/components/table";
 
 interface Variant {
 	id: string;
@@ -20,57 +21,57 @@ export function VariantRow({ variant, onEdit }: VariantRowProps) {
 	const attributeEntries = Object.entries(variant.attributes);
 
 	return (
-		<tr className="border-t border-gray-100 hover:bg-gray-50 transition-colors">
-			<td className="px-6 py-3"></td>
-			<td className="px-6 py-3">
-				<div className="space-y-1">
+		<TableRow className="border-none hover:bg-muted/40">
+			<TableCell className="w-12 pl-6" />
+			<TableCell>
+				<div className="flex flex-wrap gap-x-4 gap-y-1">
 					{attributeEntries.map(([key, value]) => (
 						<div
 							key={key}
 							className="text-sm"
 						>
-							<span className="text-gray-500">{key}:</span>
-							<span className="ml-2 bg-gray-100 px-2 py-1 rounded text-xs font-medium text-gray-700">
-								{value}
-							</span>
+							<span className="text-muted-foreground">{key}: </span>
+							<span className="font-medium">{value}</span>
 						</div>
 					))}
 				</div>
-			</td>
-			<td className="px-6 py-3">
-				<div className="text-sm text-gray-600">
-					<div className="font-mono text-xs">{variant.sku}</div>
-					<div className="text-xs text-gray-400 mt-1">{variant.barcode}</div>
+			</TableCell>
+			<TableCell>
+				<div className="text-sm text-muted-foreground">
+					<div className="font-mono text-xs">{variant.sku || "N/A"}</div>
+					<div className="text-xs mt-1">{variant.barcode || "N/A"}</div>
 				</div>
-			</td>
-			<td className="px-6 py-3">
-				<span className="text-sm font-medium text-gray-900">
-					${variant.price.toFixed(2)}
-				</span>
-			</td>
-			<td className="px-6 py-3">
-				<div className="flex items-center gap-1">
+			</TableCell>
+			<TableCell className="font-medium">
+				Rs. {variant.price.toFixed(2)}
+			</TableCell>
+			<TableCell>
+				<div className="flex items-center gap-2">
 					{variant.lowStock && (
-						<div className="w-2 h-2 rounded-full bg-orange-500"></div>
+						<span className="relative flex h-2 w-2">
+							<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+							<span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500" />
+						</span>
 					)}
 					<span
-						className={`text-sm font-medium ${variant.lowStock ? "text-orange-600" : "text-gray-900"}`}
+						className={`font-medium ${
+							variant.lowStock ? "text-orange-500" : ""
+						}`}
 					>
-						{variant.stock}
+						{variant.stock} in stock
 					</span>
 				</div>
-			</td>
-			<td className="px-6 py-3 text-right">
+			</TableCell>
+			<TableCell className="text-right pr-6">
 				<Button
 					variant="ghost"
 					size="sm"
 					onClick={() => onEdit?.(variant.id)}
-					className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
 				>
-					<Edit className="w-4 h-4 mr-1" />
+					<Edit className="w-4 h-4 mr-2" />
 					Edit
 				</Button>
-			</td>
-		</tr>
+			</TableCell>
+		</TableRow>
 	);
 }
