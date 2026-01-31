@@ -1,21 +1,21 @@
 {
-  "name": "db",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
-  "devDependencies": {
-    "@types/bun": "latest",
-    "@types/node": "^25.0.8",
-    "@types/pg": "^8.16.0",
-    "prisma": "^7.2.0"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {
-    "@prisma/adapter-pg": "^7.2.0",
-    "@prisma/client": "^7.2.0",
-    "dotenv": "^17.2.3",
-    "pg": "^8.16.3"
-  }
+	"name": "db",
+	"module": "index.ts",
+	"type": "module",
+	"private": true,
+	"devDependencies": {
+		"@types/bun": "latest",
+		"@types/node": "^25.0.8",
+		"@types/pg": "^8.16.0",
+		"prisma": "^7.2.0"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"dependencies": {
+		"@prisma/adapter-pg": "^7.2.0",
+		"@prisma/client": "^7.2.0",
+		"dotenv": "^17.2.3",
+		"pg": "^8.16.3"
+	}
 }
