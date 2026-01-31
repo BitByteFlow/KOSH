@@ -8,7 +8,9 @@ import {
 	Wallet,
 	CreditCard,
 	Calendar,
+	LucideIcon,
 } from "lucide-react";
+import { MetricCardProps } from "@/types/dashboard";
 
 const mockTransactions = [
 	{
@@ -55,48 +57,58 @@ const mockTransactions = [
 	},
 ];
 
+const metricCardValues: MetricCardProps[] = [
+	{
+		label: "Sales Today",
+		value: "5200",
+		change: { value: 8, label: "vs yesterday", positive: true },
+		icon: DollarSign,
+	},
+	{
+		label: "Orders",
+		value: "72",
+		icon: ShoppingCart,
+		sublabel: "3 pending",
+	},
+	{
+		label: "Cash in Hand",
+		value: "28,300",
+		sublabel: "Drawer balance",
+		icon: Wallet,
+	},
+	{
+		label: "Credit Given",
+		value: "12,500",
+		sublabel: "Given today",
+		icon: CreditCard,
+	},
+];
+
 const Dashboard = () => {
 	return (
 		<section className="flex-1 overflow-y-auto p-8">
 			<div className="space-y-8">
 				<section>
 					<div className="mb-6">
-						<h2 className="text-xl font-bold">Comprehensive Sales Metrics</h2>
+						<h2 className="text-xl font-bold">Today's Sales Metrics</h2>
 						<p className="text-sm text-muted-foreground">
 							Operational insights to track daily performance and cash flow.
 						</p>
 					</div>
 
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-						<MetricCard
-							label="Sales Today"
-							value="Rs. 5,200"
-							change={{ value: 8, label: "vs yesterday", positive: true }}
-							icon={DollarSign}
-						/>
-						<MetricCard
-							label="Orders"
-							value="72"
-							change={{ value: 3, label: "pending", positive: false }}
-							icon={ShoppingCart}
-							sublabel="3 pending"
-						/>
-						<MetricCard
-							label="Cash in Hand"
-							value="Rs. 28,300"
-							sublabel="Drawer balance"
-							icon={Wallet}
-						/>
-						<MetricCard
-							label="Credit Given"
-							value="Rs. 12,500"
-							sublabel="Given today"
-							icon={CreditCard}
-						/>
+						{metricCardValues.map((item) => (
+							<MetricCard
+								label={item.label}
+								value={item.value}
+								change={item.change}
+								icon={item.icon}
+								key={item.label}
+								sublabel={item.sublabel}
+							/>
+						))}
 					</div>
 				</section>
-
-				{/* Transactions Section */}
 				<section>
 					<TransactionTable transactions={mockTransactions} />
 				</section>
