@@ -1,5 +1,5 @@
 {
-  "extends": "@repo/typescript-config/react-library.json",
+  "extends": "@kosh/typescript-config/react-library.json",
   "compilerOptions": {
     "resolveJsonModule": true,
     "baseUrl": "./src",
