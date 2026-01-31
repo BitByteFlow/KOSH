@@ -41,105 +41,127 @@ export class CategoryService {
             }
 
         } catch (error) {
-            console.log(error)
             if (error instanceof ConflictException) {
                 throw error;
             }
-            throw new InternalServerErrorException(
-                {
-                    status: "error",
-                    message: "Failed to create Category",
-                    error: `Internal Server Error ${error}`
-                })
+            throw new InternalServerErrorException("Failed to Create New Category")
         }
     }
 
     async getCategories(userId: string): Promise<any> {
-        const categories = await this.database.category.findMany({
-            where: {
-                userId: userId
-            },
-            select: {
-                id: true,
-                name: true
-            }
-        })
-
-        if (!categories) {
-            throw new ConflictException({
-                status: "failed",
-                message: "No categories yet",
-                error: "No categories data to retrieve"
+        try {
+            const categories = await this.database.category.findMany({
+                where: {
+                    userId: userId
+                },
+                select: {
+                    id: true,
+                    name: true
+                }
             })
-        }
 
-
-        return {
-            status: "success",
-            message: "Categories retrieved successfully",
-            data: {
-                categories
+            if (!categories) {
+                throw new ConflictException({
+                    status: "failed",
+                    message: "No categories yet",
+                    error: "No categories data to retrieve"
+                })
             }
+
+
+            return {
+                status: "success",
+                message: "Categories retrieved successfully",
+                data: {
+                    categories
+                }
+            }
+
+        } catch (error) {
+            if (error instanceof ConflictException) {
+                throw error
+            }
+            throw new InternalServerErrorException("Failed to get categories")
+
+
         }
     }
 
     async deleteCategories(id: string, userId: string): Promise<CategoryResponseDto> {
 
-        const exists = await this.database.category.findUnique({
-            where: {
-                id: id,
-            }
-        })
-        console.log(exists)
-        if (!exists) {
-            throw new ConflictException({
-                status: "error",
-                message: "Category with this id doesn't exist!!",
-                error: error
+        try {
+            const exists = await this.database.category.findUnique({
+                where: {
+                    id: id,
+                }
             })
-        }
-
-        await this.database.category.delete({
-            where: {
-                id: id,
-                userId: userId
+            console.log(exists)
+            if (!exists) {
+                throw new ConflictException({
+                    status: "error",
+                    message: "Category with this id doesn't exist!!",
+                    error: error
+                })
             }
-        })
 
-        return {
-            status: "success",
-            message: "Deleted successfully!"
+            await this.database.category.delete({
+                where: {
+                    id: id,
+                    userId: userId
+                }
+            })
+
+            return {
+                status: "success",
+                message: "Deleted successfully!"
+            }
+
+        } catch (error) {
+            if (error instanceof ConflictException) {
+                throw error
+            }
+            throw new InternalServerErrorException("Failed to delete categories")
+
         }
     }
 
     async updateCategories(id: string, userId: string, name: string): Promise<CategoryResponseDto> {
 
-        const exist = await this.database.category.findUnique({
-            where: {
-                id: id
-            }
-        })
-
-        if (!exist) {
-            throw new ConflictException({
-                status: "error",
-                message: "Category with this Id doesn't exist!",
-                error: "Category doesn't exist"
+        try {
+            const exist = await this.database.category.findUnique({
+                where: {
+                    id: id
+                }
             })
-        }
 
-        await this.database.category.update({
-            where: {
-                id: id
-            },
-            data:{
-                name:name
+            if (!exist) {
+                throw new ConflictException({
+                    status: "error",
+                    message: "Category with this Id doesn't exist!",
+                    error: "Category doesn't exist"
+                })
             }
-        })
 
-        return {
-            status:"success",
-            message:"Category Updated"
+            await this.database.category.update({
+                where: {
+                    id: id
+                },
+                data: {
+                    name: name
+                }
+            })
+
+            return {
+                status: "success",
+                message: "Category Updated"
+            }
+
+        } catch (error) {
+            if (error instanceof ConflictException) {
+                throw error
+            }
+            throw new InternalServerErrorException("Failed to update categories")
+
         }
     }
 }

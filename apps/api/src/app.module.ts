@@ -6,11 +6,12 @@ import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CategoryModule } from './modules/categories/categories.module';
+import { ProductModule } from './modules/product/product.module';
 import { UserModule } from './modules/user/user.module';
 import { JWTStrategy } from './utils/jwt.strategy';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, UserModule, PassportModule, CategoryModule],
+  imports: [DatabaseModule, AuthModule, UserModule, PassportModule, CategoryModule,ProductModule],
   controllers: [AppController],
   providers: [AppService, JWTStrategy],
 })
