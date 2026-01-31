@@ -1,13 +1,6 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
-
-interface AnalyticsMetricCardProps {
-	label: string;
-	value: string;
-	trend?: number;
-	trendLabel?: string;
-	subtitle?: string;
-	isPositive?: boolean;
-}
+import { cn } from "@/lib/utils";
+import { AnalyticsMetricCardProps } from "@/types/reports";
 
 export function AnalyticsMetricCard({
 	label,
@@ -17,30 +10,28 @@ export function AnalyticsMetricCard({
 	subtitle,
 	isPositive = true,
 }: AnalyticsMetricCardProps) {
+	const trendColor = isPositive ? "text-green-600" : "text-red-600";
+
 	return (
-		<div className="rounded-lg border border-border bg-card p-6">
+		<div className="rounded-lg shadow-md border border-border bg-card p-4">
 			<div className="flex items-start justify-between">
 				<div>
-					<p className="text-sm font-medium text-muted-foreground">{label}</p>
-					<p className="mt-2 text-2xl font-bold text-foreground">{value}</p>
+					<p className="text-sm font-medium uppercase text-muted-foreground">
+						{label}
+					</p>
+					<p className="mt-3 text-2xl font-bold text-foreground">{value}</p>
 					{subtitle && (
 						<p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
 					)}
 				</div>
 				{trend !== undefined && (
-					<div
-						className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium ${
-							isPositive
-								? "bg-green-100 text-green-700"
-								: "bg-red-100 text-red-700"
-						}`}
-					>
+					<div className={cn("flex items-center gap-1 text-sm", trendColor)}>
 						{isPositive ? (
 							<ArrowUp className="h-4 w-4" />
 						) : (
 							<ArrowDown className="h-4 w-4" />
 						)}
-						{trend}%
+						<span className="font-semibold">{trend}%</span>
 					</div>
 				)}
 			</div>

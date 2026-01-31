@@ -10,11 +10,12 @@ export function ReportTabs({ tabs, onTabChange }: ReportTabsProps) {
 
 	const handleTabClick = (tab: string) => {
 		setActiveTab(tab);
+
 		onTabChange(tab);
 	};
 
 	return (
-		<div className="border-b border-border">
+		<div className="border-b-border">
 			<div className="flex gap-8">
 				{tabs.map((tab) => (
 					<button

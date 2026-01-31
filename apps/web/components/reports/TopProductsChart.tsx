@@ -1,12 +1,4 @@
-import {
-	BarChart,
-	Bar,
-	CartesianGrid,
-	ResponsiveContainer,
-	Tooltip,
-	XAxis,
-	YAxis,
-} from "recharts";
+import { Button } from "@kosh/ui/components/button";
 
 interface TopProduct {
 	name: string;
@@ -19,29 +11,34 @@ interface TopProductsChartProps {
 }
 
 export function TopProductsChart({ data }: TopProductsChartProps) {
+	const maxRevenue = Math.max(...data.map((d) => d.value));
+
 	return (
-		<div className="rounded-lg border border-border bg-card p-6">
+		<div className="rounded-lg shadow-md border border-border bg-card p-6">
 			<div className="mb-6 flex items-center justify-between">
 				<h3 className="text-lg font-semibold text-foreground">Top Products</h3>
-				<button className="text-sm font-medium text-primary hover:underline">
+				<Button
+					variant="link"
+					className="text-sm"
+				>
 					View All
-				</button>
+				</Button>
 			</div>
 			<div className="space-y-4">
 				{data.map((product, index) => (
 					<div
 						key={index}
-						className="flex items-center justify-between"
+						className="flex items-center justify-between gap-4"
 					>
-						<span className="text-sm font-medium text-foreground">
+						<span className="flex-1 truncate text-sm font-medium text-foreground">
 							{product.name}
 						</span>
-						<div className="flex items-center gap-4">
-							<div className="h-2 w-48 rounded-full bg-gray-200">
+						<div className="flex w-3/5 items-center gap-4">
+							<div className="h-2 flex-1 rounded-full bg-muted">
 								<div
-									className="h-full rounded-full bg-gray-800"
+									className="h-full rounded-full bg-primary"
 									style={{
-										width: `${(product.value / Math.max(...data.map((d) => d.value))) * 100}%`,
+										width: `${(product.value / maxRevenue) * 100}%`,
 									}}
 								/>
 							</div>

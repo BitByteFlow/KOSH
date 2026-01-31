@@ -1,3 +1,5 @@
+"use client";
+
 import {
 	Area,
 	AreaChart,
@@ -17,7 +19,7 @@ interface SalesTrendChartProps {
 
 export function SalesTrendChart({ data }: SalesTrendChartProps) {
 	return (
-		<div className="rounded-lg border border-border bg-card p-6">
+		<div className="rounded-lg shadow-md border border-border bg-card p-6">
 			<h3 className="mb-6 text-lg font-semibold text-foreground">
 				Sales Trend
 			</h3>
@@ -57,15 +59,20 @@ export function SalesTrendChart({ data }: SalesTrendChartProps) {
 						dataKey="week"
 						stroke="#9ca3af"
 						style={{ fontSize: "12px" }}
+						tickLine={false}
+						axisLine={false}
 					/>
 					<YAxis
 						stroke="#9ca3af"
 						style={{ fontSize: "12px" }}
+						tickLine={false}
+						axisLine={false}
+						tickFormatter={(value) => `Rs. ${value / 1000}k`}
 					/>
 					<Tooltip
 						contentStyle={{
 							backgroundColor: "#fff",
-							border: "1px solid #e5e7eb",
+							borderColor: "#e5e7eb",
 							borderRadius: "8px",
 						}}
 					/>

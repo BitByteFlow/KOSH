@@ -89,7 +89,7 @@ export function ProductTable({ products }: ProductTableProps) {
 
 			<div className="overflow-x-auto">
 				<Table>
-					<TableHeader>
+					<TableHeader className="bg-gray-100">
 						<TableRow className="border-border">
 							<TableHead className="w-12">
 								<Input
