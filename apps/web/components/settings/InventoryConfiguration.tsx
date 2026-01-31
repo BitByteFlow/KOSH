@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SettingsSection } from "./SettingSeciton";
+import { SettingsSection } from "./SettingSection";
 import { SettingsToggle } from "./SettingsToggle";
 import { FormField } from "./FormField";
 
