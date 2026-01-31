@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 
-const nextConfig = {};
+const nextConfig = {
+	transpilePackages: ["@kosh/ui"],
+};
 
 export default nextConfig;

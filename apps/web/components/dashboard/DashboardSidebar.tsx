@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { usePathname } from "next/navigation";
-
 import {
 	LayoutGrid,
 	Box,
@@ -29,8 +28,14 @@ import {
 	SidebarGroupLabel,
 	SidebarGroupContent,
 	useSidebar,
+	SidebarTrigger,
 } from "@kosh/ui/components/sidebar";
 import { Input } from "@kosh/ui/components/input";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@kosh/ui/components/collapsible";
 import {
 	Avatar,
 	AvatarFallback,
@@ -51,11 +56,14 @@ const supportItems = [
 ];
 
 const DashboardSidebar = () => {
-	const { toggleSidebar } = useSidebar();
 	const pathname = usePathname();
 
 	return (
-		<Sidebar className="border-r border-gray-200 bg-white flex-col w-full h-screen">
+		<Sidebar
+			className="border-r border-gray-200 bg-white flex-col h-screen"
+			collapsible="icon"
+			side="left"
+		>
 			<SidebarHeader>
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
@@ -66,12 +74,7 @@ const DashboardSidebar = () => {
 							KOSH
 						</span>
 					</div>
-					<button
-						onClick={toggleSidebar}
-						className="transition-colors text-gray-400 hover:text-gray-600 lg:flex"
-					>
-						<PanelLeft className="h-5 w-5" />
-					</button>
+					<SidebarTrigger className="hover:cursor-pointer transition-colors text-gray-400 hover:text-gray-600 " />
 				</div>
 
 				<div className="mt-6 relative group ">
@@ -94,10 +97,14 @@ const DashboardSidebar = () => {
 								const isActive = pathname.startsWith(item.url);
 								return (
 									<SidebarMenuItem key={item.title}>
-										<SidebarMenuButton
-											asChild
-											className="mt-2"
-										>
+										<SidebarMenuButton className="mt-2">
+											<item.icon
+												className={`h-5 w-5 transition-transform ${
+													isActive
+														? "text-gray-900"
+														: "text-gray-500 hover:scale-105"
+												}`}
+											/>
 											<Link
 												href={item.url}
 												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-colors ${
@@ -106,13 +113,6 @@ const DashboardSidebar = () => {
 														: "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
 												}`}
 											>
-												<item.icon
-													className={`h-5 w-5 transition-transform ${
-														isActive
-															? "text-gray-900"
-															: "text-gray-500 hover:scale-105"
-													}`}
-												/>
 												<span className="text-base font-medium">
 													{item.title}
 												</span>
@@ -136,10 +136,16 @@ const DashboardSidebar = () => {
 								return (
 									<SidebarMenuItem key={item.title}>
 										<SidebarMenuButton
-											asChild
 											isActive={isActive}
 											className="mt-2"
 										>
+											<item.icon
+												className={`h-5 w-5 transition-transform ${
+													isActive
+														? "text-gray-900"
+														: "text-gray-500 hover:scale-105"
+												}`}
+											/>
 											<Link
 												href={item.url}
 												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-colors ${
@@ -148,13 +154,6 @@ const DashboardSidebar = () => {
 														: "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
 												}`}
 											>
-												<item.icon
-													className={`h-5 w-5 transition-transform ${
-														isActive
-															? "text-gray-900"
-															: "text-gray-500 hover:scale-105"
-													}`}
-												/>
 												<span className="text-base font-medium">
 													{item.title}
 												</span>
