@@ -6,6 +6,7 @@ import { Button } from "@kosh/ui/components/button";
 import { Checkbox } from "@kosh/ui/components/checkbox";
 import { StatusBadge } from "./StatusBadge";
 import { VariantRow } from "./VariantRow";
+import { EditVariantSheet } from "./EditVariantSheet";
 
 import {
 	TableRow,
@@ -36,6 +37,7 @@ interface InventoryItemProps {
 	variants: Variant[];
 	onEdit?: (productId: string) => void;
 	onEditVariant?: (variantId: string) => void;
+	onUpdateVariant?: (variant: any) => Promise<void>;
 }
 
 const InventoryItem = ({
@@ -48,8 +50,28 @@ const InventoryItem = ({
 	variants,
 	onEdit,
 	onEditVariant,
+	onUpdateVariant,
 }: InventoryItemProps) => {
 	const [isExpanded, setIsExpanded] = useState(false);
+	const [editingVariant, setEditingVariant] = useState<Variant | null>(null);
+	const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+	const handleEditVariant = (variantId: string) => {
+		const variant = variants.find((v) => v.id === variantId);
+		if (variant) {
+			setEditingVariant(variant);
+			setIsSheetOpen(true);
+		}
+	};
+
+	const handleSaveVariant = async (updatedVariant: any) => {
+		console.log("Saving variant:", updatedVariant);
+
+		await onUpdateVariant?.(updatedVariant);
+		await new Promise(resolve => setTimeout(resolve, 500));
+		setIsSheetOpen(false);
+		setEditingVariant(null);
+	};
 
 	const statusConfig = {
 		active: "Active",
@@ -70,9 +92,8 @@ const InventoryItem = ({
 						className="flex items-center gap-3 text-left w-full"
 					>
 						<ChevronDown
-							className={`w-4 h-4 transition-transform text-muted-foreground ${
-								isExpanded ? "rotate-180" : ""
-							}`}
+							className={`w-4 h-4 transition-transform text-muted-foreground ${isExpanded ? "rotate-180" : ""
+								}`}
 						/>
 						<div>
 							<p className="font-medium">{productName}</p>
@@ -127,7 +148,7 @@ const InventoryItem = ({
 										<VariantRow
 											key={variant.id}
 											variant={variant}
-											onEdit={onEditVariant}
+											onEdit={handleEditVariant}
 										/>
 									))}
 								</TableBody>
@@ -136,6 +157,13 @@ const InventoryItem = ({
 					</TableCell>
 				</TableRow>
 			)}
+
+			<EditVariantSheet
+				open={isSheetOpen}
+				onOpenChange={setIsSheetOpen}
+				variant={editingVariant || undefined}
+				onSave={handleSaveVariant}
+			/>
 		</>
 	);
 };
