@@ -1,6 +1,7 @@
 import { Search, Download, ChevronDown } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
 import { AddProductModal } from "./AddProductModal";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@kosh/ui/components/tooltip";
 
 interface InventorySearchProps {
 	onSearch?: (query: string) => void;
@@ -50,15 +51,24 @@ export function InventorySearch({
 					<ChevronDown className="w-4 h-4" />
 				</Button>
 
-				{/* <Button
+				<Button
 					variant="outline"
 					size="sm"
 					onClick={onExport}
 					className="flex items-center gap-2 bg-transparent"
 				>
-					<Download className="w-4 h-4" />
-					Export
-				</Button> */}
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<div className="flex items-center gap-2 justify-center">
+								<Download className="w-4 h-4" />
+								Import Barcode
+							</div>
+						</TooltipTrigger>
+						<TooltipContent>
+							Select products for barcode
+						</TooltipContent>
+					</Tooltip>
+				</Button>
 			</div>
 		</div>
 	);
