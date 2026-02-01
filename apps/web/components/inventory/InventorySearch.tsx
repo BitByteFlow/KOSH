@@ -1,6 +1,6 @@
-import { Search, Download, ChevronDown } from "lucide-react";
+import { Search, Download, ChevronDown, Plus } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
-import { AddProductModal } from "./AddProductModal";
+import { ProductSheet } from "./ProductSheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@kosh/ui/components/tooltip";
 
 interface InventorySearchProps {
@@ -30,7 +30,14 @@ export function InventorySearch({
 					/>
 				</div>
 
-				<AddProductModal />
+				<ProductSheet
+					trigger={
+						<Button className="flex items-center gap-2 px-2">
+							<Plus className="w-4 h-4" />
+							<span className="text-white">Add Product</span>
+						</Button>
+					}
+				/>
 				<Button
 					variant="outline"
 					size="sm"

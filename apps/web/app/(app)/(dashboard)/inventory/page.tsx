@@ -6,6 +6,9 @@ import { Button } from "@kosh/ui/components/button";
 import { InventorySearch } from "@/components/inventory/InventorySearch";
 import InventoryItem from "@/components/inventory/InventoryItem";
 import { InventoryPagination } from "@/components/inventory/InventoryPagination";
+import { ProductSheet } from "@/components/inventory/ProductSheet";
+import { ProductDetailsSheet } from "@/components/inventory/ProductDetailsSheet";
+import { ChangeCategoryDialog } from "@/components/inventory/ChangeCategoryDialog";
 import {
 	Table,
 	TableBody,
@@ -19,11 +22,41 @@ export default function InventoryPage() {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [itemsPerPage, setItemsPerPage] = useState(10);
 
+	// Action States
+	const [editingProduct, setEditingProduct] = useState<any>(null);
+	const [viewingProduct, setViewingProduct] = useState<any>(null);
+	const [categoryProduct, setCategoryProduct] = useState<any>(null);
+
 	const totalPages = Math.ceil(mockProducts.length / itemsPerPage);
 	const visibleProducts = mockProducts.slice(
 		(currentPage - 1) * itemsPerPage,
 		currentPage * itemsPerPage,
 	);
+
+	const handleEditProduct = (id: string) => {
+		const product = mockProducts.find((p) => p.id === id);
+		if (product) setEditingProduct(product);
+	};
+
+	const handleViewDetails = (id: string) => {
+		const product = mockProducts.find((p) => p.id === id);
+		if (product) setViewingProduct(product);
+	};
+
+	const handleChangeCategory = (id: string) => {
+		const product = mockProducts.find((p) => p.id === id);
+		if (product) setCategoryProduct(product);
+	};
+
+	const handleDeleteProduct = (id: string) => {
+		console.log("Deleting product:", id);
+		// Implement actual delete logic here
+	};
+
+	const handleDuplicateProduct = (id: string) => {
+		console.log("Duplicating product:", id);
+		// Implement duplicate logic here
+	};
 
 	return (
 		<div className="flex-1 flex flex-col h-screen bg-background">
@@ -72,7 +105,11 @@ export default function InventoryPage() {
 									<InventoryItem
 										key={product.id}
 										{...product}
-										onEdit={(id) => console.log("Edit product:", id)}
+										onEdit={handleEditProduct}
+										onViewDetails={handleViewDetails}
+										onChangeCategory={handleChangeCategory}
+										onDelete={handleDeleteProduct}
+										onDuplicate={handleDuplicateProduct}
 										onEditVariant={(id) => console.log("Edit variant:", id)}
 									/>
 								))}
@@ -90,6 +127,32 @@ export default function InventoryPage() {
 					/>
 				</div>
 			</div>
+
+			{/* Edit Product Sheet */}
+			<ProductSheet
+				open={!!editingProduct}
+				onOpenChange={(open) => !open && setEditingProduct(null)}
+				product={editingProduct}
+			/>
+
+			{/* View Details Sheet */}
+			<ProductDetailsSheet
+				open={!!viewingProduct}
+				onOpenChange={(open) => !open && setViewingProduct(null)}
+				product={viewingProduct}
+			/>
+
+			{/* Change Category Dialog */}
+			<ChangeCategoryDialog
+				open={!!categoryProduct}
+				onOpenChange={(open) => !open && setCategoryProduct(null)}
+				product={categoryProduct}
+				onSave={async (id, cat) => {
+					console.log("Saving category:", id, cat);
+					// Simulate API call
+					await new Promise(resolve => setTimeout(resolve, 500));
+				}}
+			/>
 		</div>
 	);
 }

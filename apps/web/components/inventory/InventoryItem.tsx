@@ -58,7 +58,6 @@ interface InventoryItemProps {
 	onViewDetails?: (productId: string) => void;
 	onDelete?: (productId: string) => void;
 	onChangeCategory?: (productId: string) => void;
-	onDuplicate?: (productId: string) => void;
 }
 
 const InventoryItem = ({
@@ -75,7 +74,6 @@ const InventoryItem = ({
 	onViewDetails,
 	onDelete,
 	onChangeCategory,
-	onDuplicate,
 }: InventoryItemProps) => {
 	const [isExpanded, setIsExpanded] = useState(false);
 	const [editingVariant, setEditingVariant] = useState<Variant | null>(null);
@@ -171,10 +169,6 @@ const InventoryItem = ({
 							<DropdownMenuItem onClick={() => onChangeCategory?.(id)}>
 								<FolderInput className="mr-2 h-4 w-4" />
 								Change Category
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => onDuplicate?.(id)}>
-								<Copy className="mr-2 h-4 w-4" />
-								Duplicate
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
