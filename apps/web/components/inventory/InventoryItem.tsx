@@ -7,6 +7,23 @@ import { Checkbox } from "@kosh/ui/components/checkbox";
 import { StatusBadge } from "./StatusBadge";
 import { VariantRow } from "./VariantRow";
 import { EditVariantSheet } from "./EditVariantSheet";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@kosh/ui/components/dropdown-menu";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@kosh/ui/components/dialog";
+import { Edit, Trash, Copy, FolderInput, Eye } from "lucide-react";
 
 import {
 	TableRow,
@@ -38,6 +55,10 @@ interface InventoryItemProps {
 	onEdit?: (productId: string) => void;
 	onEditVariant?: (variantId: string) => void;
 	onUpdateVariant?: (variant: any) => Promise<void>;
+	onViewDetails?: (productId: string) => void;
+	onDelete?: (productId: string) => void;
+	onChangeCategory?: (productId: string) => void;
+	onDuplicate?: (productId: string) => void;
 }
 
 const InventoryItem = ({
@@ -51,10 +72,15 @@ const InventoryItem = ({
 	onEdit,
 	onEditVariant,
 	onUpdateVariant,
+	onViewDetails,
+	onDelete,
+	onChangeCategory,
+	onDuplicate,
 }: InventoryItemProps) => {
 	const [isExpanded, setIsExpanded] = useState(false);
 	const [editingVariant, setEditingVariant] = useState<Variant | null>(null);
 	const [isSheetOpen, setIsSheetOpen] = useState(false);
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
 	const handleEditVariant = (variantId: string) => {
 		const variant = variants.find((v) => v.id === variantId);
@@ -71,6 +97,12 @@ const InventoryItem = ({
 		await new Promise(resolve => setTimeout(resolve, 500));
 		setIsSheetOpen(false);
 		setEditingVariant(null);
+	};
+
+	const handleDelete = async () => {
+		// Call the onDelete prop if provided
+		await onDelete?.(id);
+		setShowDeleteDialog(false);
 	};
 
 	const statusConfig = {
@@ -115,13 +147,45 @@ const InventoryItem = ({
 				</TableCell>
 
 				<TableCell className="text-right">
-					<Button
-						variant="ghost"
-						size="icon"
-						className="w-8 h-8"
-					>
-						<MoreVertical className="w-4 h-4 text-muted-foreground" />
-					</Button>
+					<DropdownMenu modal={false}>
+						<DropdownMenuTrigger asChild>
+							<Button
+								variant="ghost"
+								size="icon"
+								className="w-8 h-8"
+							>
+								<MoreVertical className="w-4 h-4 text-muted-foreground" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							<DropdownMenuLabel>Actions</DropdownMenuLabel>
+							<DropdownMenuItem onClick={() => onEdit?.(id)}>
+								<Edit className="mr-2 h-4 w-4" />
+								Edit Product
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => onViewDetails?.(id)}>
+								<Eye className="mr-2 h-4 w-4" />
+								View Details
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem onClick={() => onChangeCategory?.(id)}>
+								<FolderInput className="mr-2 h-4 w-4" />
+								Change Category
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => onDuplicate?.(id)}>
+								<Copy className="mr-2 h-4 w-4" />
+								Duplicate
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								className="text-red-600 focus:text-red-600 focus:bg-red-50"
+								onClick={() => setShowDeleteDialog(true)}
+							>
+								<Trash className="mr-2 h-4 w-4" />
+								Delete
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
 				</TableCell>
 			</TableRow>
 
@@ -164,6 +228,25 @@ const InventoryItem = ({
 				variant={editingVariant || undefined}
 				onSave={handleSaveVariant}
 			/>
+
+			<Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Delete Product?</DialogTitle>
+						<DialogDescription>
+							Are you sure you want to delete <strong>{productName}</strong>? This action cannot be undone.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+							Cancel
+						</Button>
+						<Button variant="destructive" onClick={handleDelete}>
+							Delete Product
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</>
 	);
 };
