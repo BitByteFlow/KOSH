@@ -1,0 +1,117 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
+	"root": true,
+
+	"formatter": {
+		"enabled": true,
+		"lineWidth": 100,
+		"indentStyle": "space",
+		"indentWidth": 2,
+		"lineEnding": "lf"
+	},
+
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "single",
+			"jsxQuoteStyle": "double",
+			"semicolons": "always",
+			"trailingCommas": "es5",
+			"arrowParentheses": "always"
+		}
+	},
+
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true
+		}
+	},
+
+	"files": {
+		"includes": [
+			"**/*",
+			"!!**/node_modules",
+			"!!**/.next",
+			"!!**/dist",
+			"!!**/build",
+			"!!**/*.d.ts",
+			"!!**/*.lock"
+		]
+	},
+
+	"overrides": [
+		{
+			"includes": ["**/*.tsx"],
+			"javascript": {
+				"jsxRuntime": "transparent"
+			}
+		},
+
+		{
+			"includes": ["apps/api/**/*.{ts,tsx}"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noProcessEnv": "off"
+					}
+				}
+			}
+		},
+
+		{
+			"includes": ["apps/web/**/*.{ts,tsx}"],
+			"linter": {
+				"domains": {
+					"react": "recommended",
+					"next": "recommended"
+				}
+			}
+		},
+
+		{
+			"includes": ["packages/db/**/*.{ts,tsx}"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["apps/**"],
+										"message": "db package must not import from apps."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+
+		{
+			"includes": ["packages/**/*.{ts,tsx}"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["apps/web/**"],
+										"message": "packages must not import from web app."
+									},
+									{
+										"group": ["apps/api/**"],
+										"message": "packages must not import from api app."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		}
+	]
+}

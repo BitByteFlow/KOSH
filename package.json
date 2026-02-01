@@ -4,11 +4,19 @@
 	"scripts": {
 		"build": "turbo run build",
 		"dev": "turbo run dev",
-		"lint": "turbo run lint",
-		"format": "prettier --write \"**/*.{ts,tsx,md}\"",
-		"check-types": "turbo run check-types"
+		"lint": "turbo lint",
+		"lint:fix": "turbo lint:fix",
+		"lint:report": "turbo run lint:report",
+		"format": "biome format --write .",
+		"type-check": "turbo run type-check",
+		"lint-staged": "lint-staged",
+		"prepare": "husky",
+		"postinstall": "husky install"
 	},
 	"devDependencies": {
+		"@biomejs/biome": "^2.3.13",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.2.7",
 		"prettier": "^3.7.4",
 		"turbo": "^2.7.4",
 		"typescript": "5.9.2"
