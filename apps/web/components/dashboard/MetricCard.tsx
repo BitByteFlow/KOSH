@@ -31,13 +31,17 @@ export function MetricCard({
 	sublabel,
 }: MetricCardProps) {
 	const colors =
-		colorMap[label] || ({ bg: "bg-muted", text: "text-muted-foreground" } as (typeof colorMap)[string]);
+		colorMap[label] ||
+		({
+			bg: "bg-muted",
+			text: "text-muted-foreground",
+		} as (typeof colorMap)[string]);
 	return (
 		<Card className="p-4 border border-border rounded-lg shadow-sm">
 			<div className="flex items-start justify-between">
 				<div>
 					<p className="text-sm font-medium text-muted-foreground">{label}</p>
-					<h4 className="text-2xl font-bold mt-1">Rs. {value}</h4>
+					<p className="text-2xl font-bold mt-1 text-foreground">Rs. {value}</p>
 					{sublabel && (
 						<p className="text-xs text-muted-foreground mt-1">{sublabel}</p>
 					)}
@@ -46,13 +50,13 @@ export function MetricCard({
 							<TrendingUp
 								className={cn(
 									"h-4 w-4",
-									change.positive ? "text-green-500" : "text-red-500"
+									change.positive ? "text-green-500" : "text-red-500",
 								)}
 							/>
 							<span
 								className={cn(
 									"font-medium",
-									change.positive ? "text-green-500" : "text-red-500"
+									change.positive ? "text-green-500" : "text-red-500",
 								)}
 							>
 								{change.positive ? "+" : "-"}

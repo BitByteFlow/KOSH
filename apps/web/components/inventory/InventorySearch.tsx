@@ -1,5 +1,6 @@
-import { Search, Download, ChevronDown, Plus } from "lucide-react";
+import { Search, Download, ChevronDown } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
+import { AddProductModal } from "./AddProductModal";
 
 interface InventorySearchProps {
 	onSearch?: (query: string) => void;
@@ -20,6 +21,7 @@ export function InventorySearch({
 				<div className="flex-1 relative">
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
 					<input
+						id="inventory-search"
 						type="text"
 						placeholder="Search by name, SKU, or category..."
 						onChange={(e) => onSearch?.(e.target.value)}
@@ -27,13 +29,7 @@ export function InventorySearch({
 					/>
 				</div>
 
-				<Button className="flex items-center gap-2 px-2">
-						<Plus
-							className="w-4 h-4"
-						color="white"
-					/>
-					<span className="text-white">Add Product</span>
-				</Button>
+				<AddProductModal />
 				<Button
 					variant="outline"
 					size="sm"
@@ -54,7 +50,7 @@ export function InventorySearch({
 					<ChevronDown className="w-4 h-4" />
 				</Button>
 
-				<Button
+				{/* <Button
 					variant="outline"
 					size="sm"
 					onClick={onExport}
@@ -62,7 +58,7 @@ export function InventorySearch({
 				>
 					<Download className="w-4 h-4" />
 					Export
-				</Button>
+				</Button> */}
 			</div>
 		</div>
 	);

@@ -100,10 +100,9 @@ export function ProductTable({ products }: ProductTableProps) {
 							<TableHead>Product ID</TableHead>
 							<TableHead>Name</TableHead>
 							<TableHead>Category</TableHead>
-							<TableHead>Stock</TableHead>
-							<TableHead>Barcode</TableHead>
+							<TableHead>Price</TableHead>
+							<TableHead>Variants</TableHead>
 							<TableHead>Status</TableHead>
-							{/* TODO: CHANGE ACTION WITH SOMETHING ELSE */}
 							<TableHead className="text-right">Actions</TableHead>
 						</TableRow>
 					</TableHeader>

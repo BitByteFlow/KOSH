@@ -29,6 +29,7 @@ export default function AnalyticsPage() {
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 				{analyticsMetricValues.map((metric) => (
 					<AnalyticsMetricCard
+						key={metric.label}
 						label={metric.label}
 						value={metric.value}
 						trend={metric.trend}

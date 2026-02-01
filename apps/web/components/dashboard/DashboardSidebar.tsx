@@ -27,15 +27,9 @@ import {
 	SidebarGroup,
 	SidebarGroupLabel,
 	SidebarGroupContent,
-	useSidebar,
 	SidebarTrigger,
 } from "@kosh/ui/components/sidebar";
 import { Input } from "@kosh/ui/components/input";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@kosh/ui/components/collapsible";
 import {
 	Avatar,
 	AvatarFallback,
@@ -44,7 +38,7 @@ import {
 import Link from "next/link";
 const menuItems = [
 	{ title: "Dashboard", icon: LayoutGrid, url: "/dashboard" },
-	{ title: "Catalog", icon: Box, url: "/catalog" },
+	// { title: "Catalog", icon: Box, url: "/catalog" },
 	{ title: "Inventory", icon: Layers, url: "/inventory" },
 	{ title: "Reports & Analytics", icon: BarChart3, url: "/reports-analytics" },
 	{ title: "Settings", icon: Settings, url: "/settings" },
@@ -60,7 +54,7 @@ const DashboardSidebar = () => {
 
 	return (
 		<Sidebar
-			className="border-r border-gray-200 bg-white flex-col h-screen"
+			className="border-r border-gray-200 bg-white flex-col max-h-screen"
 			collapsible="icon"
 			side="left"
 		>
@@ -99,19 +93,17 @@ const DashboardSidebar = () => {
 									<SidebarMenuItem key={item.title}>
 										<SidebarMenuButton className="mt-2">
 											<item.icon
-												className={`h-5 w-5 transition-transform ${
-													isActive
-														? "text-gray-900"
-														: "text-gray-500 hover:scale-105"
-												}`}
+												className={`h-5 w-5 transition-transform ${isActive
+													? "text-gray-900"
+													: "text-gray-500 hover:scale-105"
+													}`}
 											/>
 											<Link
 												href={item.url}
-												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-colors ${
-													isActive
-														? "bg-gray-50 text-gray-900"
-														: "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-												}`}
+												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-colors ${isActive
+													? "bg-gray-50 text-gray-900"
+													: "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+													}`}
 											>
 												<span className="text-base font-medium">
 													{item.title}
@@ -140,19 +132,17 @@ const DashboardSidebar = () => {
 											className="mt-2"
 										>
 											<item.icon
-												className={`h-5 w-5 transition-transform ${
-													isActive
-														? "text-gray-900"
-														: "text-gray-500 hover:scale-105"
-												}`}
+												className={`h-5 w-5 transition-transform ${isActive
+													? "text-gray-900"
+													: "text-gray-500 hover:scale-105"
+													}`}
 											/>
 											<Link
 												href={item.url}
-												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-colors ${
-													isActive
-														? "bg-gray-50 text-gray-900"
-														: "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-												}`}
+												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-colors ${isActive
+													? "bg-gray-50 text-gray-900"
+													: "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+													}`}
 											>
 												<span className="text-base font-medium">
 													{item.title}
