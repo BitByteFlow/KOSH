@@ -21,11 +21,10 @@ export function ReportTabs({ tabs, onTabChange }: ReportTabsProps) {
 					<button
 						key={tab}
 						onClick={() => handleTabClick(tab)}
-						className={`pb-4 text-sm font-medium transition-colors ${
-							activeTab === tab
-								? "border-b-2 border-primary text-primary"
-								: "text-muted-foreground hover:text-foreground"
-						}`}
+						className={`pb-4 text-sm font-medium transition-colors ${activeTab === tab
+							? "border-b-2 border-primary text-primary"
+							: "text-muted-foreground hover:text-foreground"
+							}`}
 					>
 						{tab}
 					</button>

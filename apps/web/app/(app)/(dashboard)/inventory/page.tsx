@@ -109,7 +109,6 @@ export default function InventoryPage() {
 										onViewDetails={handleViewDetails}
 										onChangeCategory={handleChangeCategory}
 										onDelete={handleDeleteProduct}
-										onDuplicate={handleDuplicateProduct}
 										onEditVariant={(id) => console.log("Edit variant:", id)}
 									/>
 								))}
