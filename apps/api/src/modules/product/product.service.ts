@@ -3,6 +3,7 @@
 import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
 import { CategoryResponseDto } from "../categories/dto/CategoryResponseDto";
+import { ProductFilterDto } from "./dto/ProductFilterDto.dto";
 
 @Injectable()
 export class ProductService {
@@ -234,6 +235,7 @@ export class ProductService {
         }
     }
 
+
     async addVariant(variantDetail, productId: string, userId: string,): Promise<CategoryResponseDto> {
         try {
             await this.database.$transaction(async (tsx) => {
@@ -305,7 +307,6 @@ export class ProductService {
         }
     }
 
-
     async listProductsWithVariant(userId): Promise<any> {
         try {
 
@@ -345,7 +346,7 @@ export class ProductService {
         }
     }
 
-    async updateProductVariant(updateProductVariantDto, userId:string, productVariantId:string): Promise<CategoryResponseDto> {
+    async updateProductVariant(updateProductVariantDto, userId: string, productVariantId: string): Promise<CategoryResponseDto> {
         try {
             return await this.database.$transaction(async (tsx) => {
                 const product = await tsx.product.findUnique({
@@ -378,7 +379,7 @@ export class ProductService {
             });
 
         } catch (error) {
-            if(error instanceof NotFoundException){
+            if (error instanceof NotFoundException) {
                 throw error
             }
 
@@ -386,8 +387,7 @@ export class ProductService {
         }
     }
 
-
-    async deleteProductVariant(productId:string, userId:string, productVariantId:string): Promise<CategoryResponseDto> {
+    async deleteProductVariant(productId: string, userId: string, productVariantId: string): Promise<CategoryResponseDto> {
         try {
             return await this.database.$transaction(async (tsx) => {
                 const product = await tsx.product.findUnique({
@@ -404,7 +404,7 @@ export class ProductService {
                 await tsx.productVariant.delete({
                     where: {
                         id: productVariantId,
-                        productId:productId,
+                        productId: productId,
                     }
                 });
 
@@ -415,12 +415,140 @@ export class ProductService {
             });
 
         } catch (error) {
-            if(error instanceof NotFoundException){
+            if (error instanceof NotFoundException) {
                 throw error
             }
 
             throw new InternalServerErrorException("Variant Deletion Failed", error)
         }
+    }
+
+    async listProductsWithFilters(userId: string, filterDto: ProductFilterDto): Promise<any> {
+        const {
+            page = 1,
+            limit = 10,
+            sortBy = 'createdAt',
+            sortOrder = 'desc',
+            categoryId,
+            lowStock,
+            search,
+            minPrice,
+            maxPrice,
+            includeDeleted = false
+        } = filterDto;
+
+        const skip = (page - 1) * limit;
+
+        const where: any = {
+            userId,
+        };
+
+        if (!includeDeleted) {
+            where.deletedAt = null;
+        }
+
+
+        if (categoryId) {
+            where.categoryId = categoryId;
+        }
+
+        if (search) {
+            where.name = {
+                contains: search,
+                mode: 'insensitive'
+            };
+        }
+
+
+        if (lowStock) {
+            where.variants = {
+                some: {
+                    stock: { lt: lowStock },
+                    status: 'ACTIVE'
+                }
+            };
+        }
+
+
+        if (minPrice !== undefined || maxPrice !== undefined) {
+            where.variants = {
+                ...where.variants,
+                some: {
+                    ...where.variants?.some,
+                    sellingPrice: {
+                        ...(minPrice !== undefined && { gte: minPrice }),  // "price >= minPrice"
+                        ...(maxPrice !== undefined && { lte: maxPrice })   // "price <= maxPrice"
+                    }
+                }
+            };
+        }
+
+
+        const total = await this.database.product.count({ where });
+
+
+
+        const products = await this.database.product.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: {
+                [sortBy]: sortOrder
+            },
+            include: {
+                category: {
+                    select: { name: true }
+                },
+
+                variants: {
+                    where: lowStock ? { stock: { lt: lowStock } } : undefined,
+                    select: {
+                        id: true,
+                        sku: true,
+                        stock: true,
+                        costPrice: true,
+                        sellingPrice: true,
+                        status: true
+                    }
+                },
+
+                _count: {
+                    select: {
+                        variants: true
+                    }
+                }
+            }
+        });
+
+
+        const totalPages = Math.ceil(total / limit);
+        const hasNext = page < totalPages;
+        const hasPrev = page > 1;
+
+
+        return {
+            status: 'success',
+            message: 'Product matching the filters retrieved!',
+            data: products,
+            meta: {
+
+                page,
+                limit,
+                total,
+                totalPages,
+                hasNext,
+                hasPrev,
+                lowStockThreshold: lowStock || null,
+                appliedFilters: {
+                    categoryId: categoryId || null,
+                    search: search || null,
+                    priceRange: {
+                        min: minPrice || null,
+                        max: maxPrice || null
+                    }
+                }
+            }
+        };
     }
 
     private async generateSku(categoryName: string, productName: string, sequence: number): Promise<string> {
