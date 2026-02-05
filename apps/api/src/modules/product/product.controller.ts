@@ -1,12 +1,13 @@
 import { UpdateProductVariantDto } from './dto/UpdateVariantDto.dto';
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, Query, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/utils/jwt.guard";
 import { CategoryResponseDto } from "../categories/dto/CategoryResponseDto";
 
 import { ParseUUIDPipe } from "@nestjs/common";
 import { CreateVariantDto } from "./dto/AddVariantDto.dto";
 import { CreateProductRequestDto } from "./dto/CreateProductRequestDto.dto";
+import { ProductFilterDto } from './dto/ProductFilterDto.dto';
 import { UpdateProductDto } from "./dto/UpdateProductDto.dto";
 import { ProductService } from "./product.service";
 
@@ -22,6 +23,14 @@ export class ProductController {
         const response = await this.productService.listProductsWithVariant(req.user.id)
 
         return response
+    }
+
+    @Get()
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.FOUND)
+    async listProductsWithFilter(@Req() req: any, @Query() filterDto: ProductFilterDto):Promise<any> {
+        const response = await this.productService.listProductsWithFilters(req.user.id, filterDto);
+        return response;
     }
 
     @UseGuards(JwtAuthGuard)
@@ -57,11 +66,11 @@ export class ProductController {
     @HttpCode(HttpStatus.CREATED)
     @Put('/variants/:productVariantId')
     async updateProductVariant(@Req() req: any, @Param('productVariantId', ParseUUIDPipe) productVariantId: string, @Body() updateProductVariantDto: UpdateProductVariantDto): Promise<CategoryResponseDto> {
-        const response = await this.productService.updateProductVariant( updateProductVariantDto, req.user.id, productVariantId)
+        const response = await this.productService.updateProductVariant(updateProductVariantDto, req.user.id, productVariantId)
 
         return response
     }
-    
+
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.CREATED)
     @Delete('/variants/:productVariantId')
@@ -69,7 +78,7 @@ export class ProductController {
 
         console.log(body)
 
-        const response = await this.productService.deleteProductVariant( body.productId, req.user.id, productVariantId)
+        const response = await this.productService.deleteProductVariant(body.productId, req.user.id, productVariantId)
 
         return response
     }
