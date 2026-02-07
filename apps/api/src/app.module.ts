@@ -4,14 +4,16 @@ import { PassportModule } from '@nestjs/passport';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
+import { AccountModule } from './modules/account/account.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CategoryModule } from './modules/categories/categories.module';
 import { ProductModule } from './modules/product/product.module';
+import { PurchaseModule } from './modules/purchase/purchase.module';
 import { UserModule } from './modules/user/user.module';
 import { JWTStrategy } from './utils/jwt.strategy';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, UserModule, PassportModule, CategoryModule,ProductModule],
+  imports: [DatabaseModule, AuthModule, UserModule, PassportModule, CategoryModule,ProductModule,AccountModule,PurchaseModule],
   controllers: [AppController],
   providers: [AppService, JWTStrategy],
 })

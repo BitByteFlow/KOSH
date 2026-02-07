@@ -45,7 +45,7 @@ export class ProductController {
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.CREATED)
     @Delete(':id')
-    async deleteProduct(@Req() req: any, @Param('id') productId: string): Promise<CategoryResponseDto> {
+    async deleteProduct(@Req() req: any, @Param('id',ParseUUIDPipe) productId: string): Promise<CategoryResponseDto> {
 
         const response = await this.productService.deleteProduct(productId, req.user.id)
 
@@ -86,7 +86,7 @@ export class ProductController {
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.CREATED)
     @Patch('/:productId')
-    async updateProduct(@Req() req: any, @Param('productId') productId: string, @Body() updateProductDto: UpdateProductDto): Promise<CategoryResponseDto> {
+    async updateProduct(@Req() req: any, @Param('productId',ParseUUIDPipe) productId: string, @Body() updateProductDto: UpdateProductDto): Promise<CategoryResponseDto> {
 
         const response = await this.productService.updateProduct(productId, req.user.id, updateProductDto.name, updateProductDto.categoryId)
 

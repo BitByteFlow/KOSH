@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable prettier/prettier */
 import { Global, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -14,7 +15,9 @@ export class DatabaseService extends PrismaClient implements OnModuleInit, OnMod
 
         super({
             adapter,
-            log: process.env.NODE_ENV === "development" ? ['query', 'error', 'warn'] : ['error']
+            log: process.env.NODE_ENV === "development" ? ['query', 'error', 'warn'] : ['error'],
+            transactionOptions : { maxWait: 20000, timeout: 20000 }
+
         });
     }
 
@@ -32,10 +35,8 @@ export class DatabaseService extends PrismaClient implements OnModuleInit, OnMod
         }
         const models = Reflect.ownKeys(this).filter((key) => typeof key === "string" && !key.startsWith('_'),)
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return Promise.all(models.map((modelKey)=>{
-            if(typeof modelKey === 'string'){
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-return,  @typescript-eslint/no-unsafe-member-access
+        return Promise.all(models.map((modelKey) => {
+            if (typeof modelKey === 'string') {
                 return this[modelKey].deleteMany()
             }
         }))

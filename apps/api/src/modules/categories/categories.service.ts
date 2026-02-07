@@ -130,6 +130,7 @@ export class CategoryService {
         try {
             const exist = await this.database.category.findUnique({
                 where: {
+                    userId:userId,
                     id: id
                 }
             })
