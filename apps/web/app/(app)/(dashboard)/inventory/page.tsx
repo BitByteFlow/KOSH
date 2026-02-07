@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, Plus } from "lucide-react";
-import { Button } from "@kosh/ui/components/button";
-import { InventorySearch } from "@/modules/inventory/InventorySearch";
+import { InventorySearch } from "@/modules/inventory/components/InventorySearch";
 import InventoryItem from "@/modules/inventory/components/InventoryItem";
 import { InventoryPagination } from "@/modules/inventory/components/InventoryPagination";
 import { ProductSheet } from "@/modules/inventory/components/ProductSheet";

@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { SettingsTabs } from "@/modules/settings/components/SettingsTabs";
 import { StoreInformation } from "@/modules/settings/components/StoreInformation";
-import { InventoryConfiguration } from "@/modules/settings/InventoryConfiguration";
-import { NotificationChannels } from "@/modules/settings/NotificationChannels";
-import { DangerZone } from "@/modules/settings/DangerZone";
+import { InventoryConfiguration } from "@/modules/settings/components/InventoryConfiguration";
+import { NotificationChannels } from "@/modules/settings/components/NotificationChannels";
+import { DangerZone } from "@/modules/settings/components/DangerZone";
 
 export default function SettingsPage() {
 	const [activeTab, setActiveTab] = useState("general");
