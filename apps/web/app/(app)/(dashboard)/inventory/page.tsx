@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { Bell, Plus } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
-import { InventorySearch } from "@/components/inventory/InventorySearch";
-import InventoryItem from "@/components/inventory/InventoryItem";
-import { InventoryPagination } from "@/components/inventory/InventoryPagination";
-import { ProductSheet } from "@/components/inventory/ProductSheet";
-import { ProductDetailsSheet } from "@/components/inventory/ProductDetailsSheet";
-import { ChangeCategoryDialog } from "@/components/inventory/ChangeCategoryDialog";
+import { InventorySearch } from "@/modules/inventory/InventorySearch";
+import InventoryItem from "@/modules/inventory/components/InventoryItem";
+import { InventoryPagination } from "@/modules/inventory/components/InventoryPagination";
+import { ProductSheet } from "@/modules/inventory/components/ProductSheet";
+import { ProductDetailsSheet } from "@/modules/inventory/components/ProductDetailsSheet";
+import { ChangeCategoryDialog } from "@/modules/inventory/components/ChangeCategoryDialog";
 import {
 	Table,
 	TableBody,

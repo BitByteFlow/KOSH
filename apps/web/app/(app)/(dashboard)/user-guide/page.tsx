@@ -1,11 +1,11 @@
 "use client";
 
 import { Button } from "@kosh/ui/components/button";
-import { TopicCard } from "@/components/user-guide/TopicCard";
-import { ArticleItem } from "@/components/user-guide/ArticleItem";
-import { SupportCard } from "@/components/user-guide/SupportCard";
-import { VideoTutorials } from "@/components/user-guide/VideoTutorials";
-import { SearchHeader } from "@/components/user-guide/SearchHeader";
+import { TopicCard } from "@/modules/user-guide/components/TopicCard";
+import { ArticleItem } from "@/modules/user-guide/components/ArticleItem";
+import { SupportCard } from "@/modules/user-guide/components/SupportCard";
+import { VideoTutorials } from "@/modules/user-guide/components/VideoTutorials";
+import { SearchHeader } from "@/modules/user-guide/components/SearchHeader";
 import {
 	Zap,
 	Package,

@@ -1,7 +1,7 @@
 import React from "react";
 
-import { MetricCard } from "@/components/dashboard/MetricCard";
-import { TransactionTable } from "@/components/dashboard/TransactionTable";
+import { MetricCard } from "@/modules/dashboard/components/MetricCard";
+import { TransactionTable } from "@/modules/dashboard/components/TransactionTable";
 import {
 	DollarSign,
 	ShoppingCart,

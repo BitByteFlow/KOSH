@@ -1,6 +1,6 @@
-import { FAQHero } from "@/components/faq/Hero";
-import { FAQCategory } from "@/components/faq/Category";
-import { FAQFooter } from "@/components/faq/Footer";
+import { FAQHero } from "@/modules/faq/components/Hero";
+import { FAQCategory } from "@/modules/faq/components/Category";
+import { FAQFooter } from "@/modules/faq/components/Footer";
 
 const faqData = [
 	{

@@ -1,4 +1,4 @@
-import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
+import DashboardSidebar from "@/modules/dashboard/components/DashboardSidebar";
 import SharedHeader from "@/components/SharedHeader";
 import { SidebarProvider, SidebarTrigger } from "@kosh/ui/components/sidebar";
 import React from "react";

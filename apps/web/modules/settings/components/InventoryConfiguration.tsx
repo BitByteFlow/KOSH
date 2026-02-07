@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { SettingsSection } from "./SettingSection";
 import { SettingsToggle } from "./SettingsToggle";
-import { FormField } from "./FormField";
+import { FormField } from "./components/FormField";
 
 interface InventoryConfigProps {
 	initialData?: {

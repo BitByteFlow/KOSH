@@ -4,10 +4,10 @@ import * as React from "react";
 import { usePathname } from "next/navigation";
 import {
 	LayoutGrid,
-	Box,
 	Layers,
 	BarChart3,
 	Settings,
+	ShoppingCart,
 	BookOpen,
 	HelpCircle,
 	Search,
@@ -28,6 +28,7 @@ import {
 	SidebarGroupLabel,
 	SidebarGroupContent,
 	SidebarTrigger,
+	useSidebar,
 } from "@kosh/ui/components/sidebar";
 import { Input } from "@kosh/ui/components/input";
 import {
@@ -35,10 +36,12 @@ import {
 	AvatarFallback,
 	AvatarImage,
 } from "@kosh/ui/components/avatar";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+
 const menuItems = [
 	{ title: "Dashboard", icon: LayoutGrid, url: "/dashboard" },
-	// { title: "Catalog", icon: Box, url: "/catalog" },
+	{ title: "Sales", icon: ShoppingCart, url: "/sales" },
 	{ title: "Inventory", icon: Layers, url: "/inventory" },
 	{ title: "Reports & Analytics", icon: BarChart3, url: "/reports-analytics" },
 	{ title: "Settings", icon: Settings, url: "/settings" },
@@ -51,6 +54,9 @@ const supportItems = [
 
 const DashboardSidebar = () => {
 	const pathname = usePathname();
+	const router = useRouter();
+	const { state } = useSidebar();
+	const isCollapsed = state === "collapsed";
 
 	return (
 		<Sidebar
@@ -60,18 +66,18 @@ const DashboardSidebar = () => {
 		>
 			<SidebarHeader>
 				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-2">
-						<div className="h-8 w-8 rounded-lg flex items-center justify-center bg-gray-900 text-white">
+					<div className="flex items-center gap-2 overflow-hidden transition-all duration-200 ease-linear max-w-[200px] opacity-100 group-data-[state=collapsed]:max-w-0 group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:gap-0">
+						<div className="h-8 w-8 rounded-lg flex items-center justify-center bg-gray-900 text-white shrink-0">
 							<Bolt className="h-5 w-5" />
 						</div>
-						<span className="text-xl font-semibold tracking-tight text-gray-900">
+						<span className="text-xl font-semibold tracking-tight text-gray-900 whitespace-nowrap">
 							KOSH
 						</span>
 					</div>
-					<SidebarTrigger className="hover:cursor-pointer transition-colors text-gray-400 hover:text-gray-600 " />
+					<SidebarTrigger className="hover:cursor-pointer transition-colors text-gray-400 hover:text-gray-600 ml-auto" />
 				</div>
 
-				<div className="mt-6 relative group ">
+				<div className="mt-6 relative group overflow-hidden transition-all duration-300 ease-in-out group-data-[state=collapsed]:h-0 group-data-[state=collapsed]:mt-0 group-data-[state=collapsed]:opacity-0">
 					<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-gray-600 transition-colors" />
 					<Input
 						placeholder="Search"
@@ -91,24 +97,23 @@ const DashboardSidebar = () => {
 								const isActive = pathname.startsWith(item.url);
 								return (
 									<SidebarMenuItem key={item.title}>
-										<SidebarMenuButton className="mt-2">
+										<SidebarMenuButton className="mt-2 hover:cursor-pointer" onClick={() => router.push(item.url)}>
 											<item.icon
 												className={`h-5 w-5 transition-transform ${isActive
 													? "text-gray-900"
 													: "text-gray-500 hover:scale-105"
 													}`}
 											/>
-											<Link
-												href={item.url}
-												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-colors ${isActive
+											<div
+												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-colors overflow-hidden transition-all duration-200 ease-linear opacity-100 max-w-[200px] group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0 ${isActive
 													? "bg-gray-50 text-gray-900"
 													: "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
 													}`}
 											>
-												<span className="text-base font-medium">
+												<span className="text-base font-medium whitespace-nowrap">
 													{item.title}
 												</span>
-											</Link>
+											</div>
 										</SidebarMenuButton>
 									</SidebarMenuItem>
 								);
@@ -129,7 +134,8 @@ const DashboardSidebar = () => {
 									<SidebarMenuItem key={item.title}>
 										<SidebarMenuButton
 											isActive={isActive}
-											className="mt-2"
+											className="mt-2 hover:cursor-pointer"
+											onClick={() => router.push(item.url)}
 										>
 											<item.icon
 												className={`h-5 w-5 transition-transform ${isActive
@@ -137,17 +143,16 @@ const DashboardSidebar = () => {
 													: "text-gray-500 hover:scale-105"
 													}`}
 											/>
-											<Link
-												href={item.url}
-												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-colors ${isActive
+											<div
+												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-colors overflow-hidden transition-all duration-200 ease-linear opacity-100 max-w-[200px] group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0 ${isActive
 													? "bg-gray-50 text-gray-900"
 													: "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
 													}`}
 											>
-												<span className="text-base font-medium">
+												<span className="text-base font-medium whitespace-nowrap">
 													{item.title}
 												</span>
-											</Link>
+											</div>
 										</SidebarMenuButton>
 									</SidebarMenuItem>
 								);
@@ -168,7 +173,7 @@ const DashboardSidebar = () => {
 							Bibek Tamang
 						</p>
 						<p className="text-xs text-gray-500 truncate">
-							info.madhu786@gmail.com
+							bibek.tamage@gmail.com
 						</p>
 					</div>
 					<ChevronDown className="h-4 w-4 text-gray-400" />

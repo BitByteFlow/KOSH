@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { AnalyticsMetricCard } from "@/components/reports/AnalyticsMetric";
-import { SalesTrendChart } from "@/components/reports/SalesTrendChart";
-import { TopProductsChart } from "@/components/reports/TopProductsChart";
-import { ReportTabs } from "@/components/reports/ReportTabs";
-import { AnalyticsTransactionTable } from "@/components/reports/AnalyticsTransaction";
-import { SalesReportTable } from "@/components/reports/SalesReportTable";
-import { ProductPerformanceTable } from "@/components/reports/ProductPerformanceTable";
-import { InventoryReportTable } from "@/components/reports/InventoryReportTable";
-import { DateRangeSelector } from "@/components/reports/DateRangeSelector";
+import { AnalyticsMetricCard } from "@/modules/reports/components/AnalyticsMetric";
+import { SalesTrendChart } from "@/modules/reports/components/SalesTrendChart";
+import { TopProductsChart } from "@/modules/reports/components/TopProductsChart";
+import { ReportTabs } from "@/modules/reports/components/ReportTabs";
+import { AnalyticsTransactionTable } from "@/modules/reports/components/AnalyticsTransaction";
+import { SalesReportTable } from "@/modules/reports/components/SalesReportTable";
+import { ProductPerformanceTable } from "@/modules/reports/components/ProductPerformanceTable";
+import { InventoryReportTable } from "@/modules/reports/components/InventoryReportTable";
+import { DateRangeSelector } from "@/modules/reports/components/DateRangeSelector";
 import { salesTrendData, topProducts, transactions } from "@/data/mockData";
 import { analyticsMetricValues } from "@/data/mockData";
 

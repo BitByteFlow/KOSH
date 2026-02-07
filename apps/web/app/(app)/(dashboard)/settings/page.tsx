@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { SettingsTabs } from "@/components/settings/SettingsTabs";
-import { StoreInformation } from "@/components/settings/StoreInformation";
-import { InventoryConfiguration } from "@/components/settings/InventoryConfiguration";
-import { NotificationChannels } from "@/components/settings/NotificationChannels";
-import { DangerZone } from "@/components/settings/DangerZone";
+import { SettingsTabs } from "@/modules/settings/components/SettingsTabs";
+import { StoreInformation } from "@/modules/settings/components/StoreInformation";
+import { InventoryConfiguration } from "@/modules/settings/InventoryConfiguration";
+import { NotificationChannels } from "@/modules/settings/NotificationChannels";
+import { DangerZone } from "@/modules/settings/DangerZone";
 
 export default function SettingsPage() {
 	const [activeTab, setActiveTab] = useState("general");
