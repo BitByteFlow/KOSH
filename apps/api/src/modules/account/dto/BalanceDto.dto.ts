@@ -1,13 +1,10 @@
-/* eslint-disable prettier/prettier */
+import type { Prisma } from "db";
 
-import { Decimal } from "db/generated/prisma/runtime/client"
-
-export class BalanceDto{
-
-    openingCash:Decimal
-    closingCash:Decimal
-    totalSales:Decimal
-    totalExpense:Decimal
-    totalCashIn:Decimal
-    totalCashOut:Decimal
+export class BalanceDto {
+	openingCash: Prisma.Decimal;
+	closingCash: Prisma.Decimal;
+	totalSales: Prisma.Decimal;
+	totalExpense: Prisma.Decimal;
+	totalCashIn: Prisma.Decimal;
+	totalCashOut: Prisma.Decimal;
 }

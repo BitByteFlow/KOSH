@@ -1,5 +1,4 @@
 import { LoginRequestDto } from './dto/LoginRequestDto';
-/* eslint-disable prettier/prettier */
 import { Body, Controller, Get, Post } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { AuthResponseDto } from "./dto/AuthResponseDto";

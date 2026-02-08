@@ -3,7 +3,7 @@ import { JwtAuthGuard } from "src/utils/jwt.guard";
 import { AccountService } from "./account.service";
 import { BalanceDto } from "./dto/BalanceDto.dto";
 import { CreateTransactionDto } from "./dto/CreateTransactionDto.dto";
-import type { Request } from "express";
+import type { AuthenticatedRequest } from "src/types/auth";
 
 @Controller("accounts/")
 export class AccountController {
@@ -12,8 +12,8 @@ export class AccountController {
 	@UseGuards(JwtAuthGuard)
 	@Post("transactions")
 	async createTransaction(
-		req: Request,
-		createTransactionDto: CreateTransactionDto,
+		@Req() req: AuthenticatedRequest,
+		@Body() createTransactionDto: CreateTransactionDto,
 	) {
 		const response = await this.accountService.createTransaction(
 			createTransactionDto,
@@ -24,7 +24,7 @@ export class AccountController {
 	}
 	@UseGuards(JwtAuthGuard)
 	@Get("balance")
-	async getCashBalance(@Req() req: any): Promise<BalanceDto> {
+	async getCashBalance(@Req() req: AuthenticatedRequest): Promise<BalanceDto> {
 		const response = await this.accountService.getCurrentCashBalance(
 			req.user.id,
 		);

@@ -40,6 +40,16 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 		this.pool = pool;
 	}
 
+    get user() { return this.prisma.user; }
+    get product() { return this.prisma.product; }
+    get category() { return this.prisma.category; }
+    get productVariant() { return this.prisma.productVariant; }
+    get purchase() { return this.prisma.purchase; }
+    
+    get $transaction() { return this.prisma.$transaction.bind(this.prisma); }
+    get $executeRaw() { return this.prisma.$executeRaw.bind(this.prisma); }
+    get $queryRaw() { return this.prisma.$queryRaw.bind(this.prisma); }
+
 	async onModuleInit() {
 		try {
 			await this.prisma.$executeRaw`SELECT 1`;
@@ -66,14 +76,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 		if (process.env.NODE_ENV === "production") {
 			throw new Error("DANGER: Cannot clear database in production!");
 		}
-
-		const propertyNames = Object.getOwnPropertyNames(this);
-		const modelNames = propertyNames.filter(
-			(item) => !item.startsWith("_") && !item.startsWith("$"),
-		);
-
-		return Promise.all(
-			modelNames.map((model) => (this as any)[model].deleteMany()),
-		);
+        // Or using Reflect to find models on this.prisma
+        const models = ['user', 'product', 'category', 'productVariant', 'purchase'];
+        return Promise.all(models.map(model => (this.prisma as any)[model].deleteMany()));
 	}
 }

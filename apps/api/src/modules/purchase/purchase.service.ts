@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { PaymentStatus } from 'db/generated/prisma/client';
+import { PaymentStatus } from 'db';
 import { DatabaseService } from 'src/database/database.service';
 import { CreatePurchaseDto } from './dto/CreatePurchaseDto.dto';
 import { UpdatePurchaseDto } from './dto/UpdatePurchaseDto.dto';

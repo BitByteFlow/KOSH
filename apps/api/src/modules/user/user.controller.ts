@@ -1,18 +1,20 @@
 /* eslint-disable prettier/prettier */
-import { Controller, Get, Request, UseGuards } from "@nestjs/common";
+import { Controller, Get, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/utils/jwt.guard";
 import { UserResponseDto } from "./dto/UserResponseDto";
 import { UserService } from "./user.service";
+import type { AuthenticatedRequest } from "src/types/auth";
 
 @Controller("users/")
-export class UserController{
+export class UserController {
+	constructor(private userService: UserService) {}
 
-    constructor(private userService:UserService){}
-
-    @UseGuards(JwtAuthGuard)
-    @Get('me')
-    async getCurrentUser(@Request() req):Promise<UserResponseDto>{
-        const response =  await this.userService.getCurrentUser(req.user.id)
-        return response;
-    }
+	@UseGuards(JwtAuthGuard)
+	@Get("me")
+	async getCurrentUser(
+		@Req() req: AuthenticatedRequest,
+	): Promise<UserResponseDto> {
+		const response = await this.userService.getCurrentUser(req.user.id);
+		return response;
+	}
 }

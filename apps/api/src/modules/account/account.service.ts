@@ -4,18 +4,19 @@ import {
 	Injectable,
 	InternalServerErrorException,
 } from "@nestjs/common";
-import { DatabaseService } from "src/database/database.service";
+import type { DatabaseService } from "src/database/database.service";
 
 import type { CategoryResponseDto } from "../categories/dto/CategoryResponseDto";
 import type { BalanceDto } from "./dto/BalanceDto.dto";
+import type { CreateTransactionDto } from "./dto/CreateTransactionDto.dto";
 
 @Injectable()
 export class AccountService {
 	constructor(private readonly database: DatabaseService) {}
 
 	async createTransaction(
-		createTransactionDto,
-		userId,
+		createTransactionDto: CreateTransactionDto,
+		userId: string,
 	): Promise<CategoryResponseDto> {
 		const { type, amount, note } = createTransactionDto;
 
@@ -75,7 +76,8 @@ export class AccountService {
 
 					const openingCash = yesterdayBalance?.closingCash || 0;
 
-					if (type === "WITHDRAWAL" && amount > openingCash) {
+					//TODO: CHECK NUMBER TYPE
+					if (type === "WITHDRAWAL" && amount > Number(openingCash)) {
 						throw new ConflictException("Insufficient funds for withdrawal");
 					}
 
@@ -92,7 +94,11 @@ export class AccountService {
 						},
 					});
 				} else {
-					if (type === "WITHDRAWAL" && amount > dailyBalance.closingCash) {
+					//TODO: here too
+					if (
+						type === "WITHDRAWAL" &&
+						amount > Number(dailyBalance.closingCash)
+					) {
 						throw new ConflictException("Insufficient funds for withdrawal");
 					}
 				}
@@ -160,7 +166,7 @@ export class AccountService {
 			});
 	}
 
-	async getCurrentCashBalance(userId): Promise<BalanceDto> {
+	async getCurrentCashBalance(userId: string): Promise<BalanceDto> {
 		try {
 			const today = new Date();
 			today.setHours(0, 0, 0, 0);
