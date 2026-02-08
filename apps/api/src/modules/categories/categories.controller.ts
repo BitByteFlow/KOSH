@@ -52,10 +52,7 @@ export class CategoriesController {
 		@Req() req: AuthenticatedRequest,
 		@Param("id") id: string,
 	): Promise<CategoryResponseDto> {
-		const response = await this.categoryService.deleteCategories(
-			id,
-			req.user.id,
-		);
+		const response = await this.categoryService.deleteCategory(id, req.user.id);
 		return response;
 	}
 	@UseGuards(JwtAuthGuard)
@@ -66,7 +63,7 @@ export class CategoriesController {
 		@Param("id") id: string,
 		@Body() createCategory: CreateCategoryDto,
 	): Promise<CategoryResponseDto> {
-		const response = await this.categoryService.updateCategories(
+		const response = await this.categoryService.updateCategory(
 			id,
 			req.user.id,
 			createCategory.name,

@@ -11,7 +11,7 @@ export class CategoryService {
     async createCategories(name: string, userId: string): Promise<CategoryResponseDto> {
         try {
             console.log(name)
-            const exists = await this.database.category.findFirst({
+            const exists = await this.database.prisma.category.findFirst({
                 where: {
                     name: name,
                     userId: userId
@@ -86,7 +86,7 @@ export class CategoryService {
         }
     }
 
-    async deleteCategories(id: string, userId: string): Promise<CategoryResponseDto> {
+    async deleteCategory(id: string, userId: string): Promise<CategoryResponseDto> {
 
         try {
             const exists = await this.database.category.findUnique({
@@ -124,7 +124,7 @@ export class CategoryService {
         }
     }
 
-    async updateCategories(id: string, userId: string, name: string): Promise<CategoryResponseDto> {
+    async updateCategory(id: string, userId: string, name: string): Promise<CategoryResponseDto> {
 
         try {
             const exist = await this.database.category.findUnique({

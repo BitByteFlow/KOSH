@@ -8,14 +8,10 @@ import { CreateUserDto } from "./dto/CreateUserDto";
 export class AuthController {
     constructor(private authService:AuthService){}
 
-
     @Post()
     async createUser(@Body() authPayLoad:CreateUserDto):Promise<AuthResponseDto>{
-
         const response = await this.authService.createUser(authPayLoad.email,authPayLoad.googleId,authPayLoad.image,authPayLoad.username);
-
         return response;
-
     }
 
     @Get()

@@ -1,8 +1,6 @@
 import { IsEmail, IsNotEmpty } from "class-validator";
 
 export class CreateUserDto {
-
-
     @IsNotEmpty({message:"Google Id cannot be empty!"})
     googleId: string;
 
