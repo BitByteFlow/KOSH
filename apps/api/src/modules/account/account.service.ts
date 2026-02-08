@@ -14,6 +14,17 @@ import type { CreateTransactionDto } from "./dto/CreateTransactionDto.dto";
 export class AccountService {
 	constructor(private readonly database: DatabaseService) {}
 
+	/**
+	 * Creates a transaction and updates the daily balance accordingly.
+	 * Handles both cash-in (INITIAL_CAPITAL, ADDITIONAL_CAPITAL, SALE_INCOME, CREDIT_RECEIVED)
+	 * and cash-out (WITHDRAWAL, PURCHASE, EXPENSES, DEBT_PAID) transactions.
+	 * 
+	 * @param createTransactionDto - Transaction details (type, amount, note)
+	 * @param userId - User ID from authenticated session
+	 * @returns Success response with status and message
+	 * @throws BadRequestException - If amount is invalid or transaction type is unknown
+	 * @throws ConflictException - If business rules are violated (e.g., insufficient funds, duplicate INITIAL_CAPITAL)
+	 */
 	async createTransaction(
 		createTransactionDto: CreateTransactionDto,
 		userId: string,
@@ -76,9 +87,14 @@ export class AccountService {
 
 					const openingCash = yesterdayBalance?.closingCash || 0;
 
-					//TODO: CHECK NUMBER TYPE
-					if (type === "WITHDRAWAL" && amount > Number(openingCash)) {
-						throw new ConflictException("Insufficient funds for withdrawal");
+					const openingBalance = Number(openingCash);
+					if (
+						(type === "WITHDRAWAL" || type === "PURCHASE" || type === "EXPENSES" || type === "DEBT_PAID") &&
+						amount > openingBalance
+					) {
+						throw new ConflictException(
+							`Insufficient funds for ${type.toLowerCase()}. Available: ${openingBalance}, Required: ${amount}`
+						);
 					}
 
 					dailyBalance = await tsx.dailyBalance.create({
@@ -94,12 +110,14 @@ export class AccountService {
 						},
 					});
 				} else {
-					//TODO: here too
+					const currentBalance = Number(dailyBalance.closingCash);
 					if (
-						type === "WITHDRAWAL" &&
-						amount > Number(dailyBalance.closingCash)
+						(type === "WITHDRAWAL" || type === "PURCHASE" || type === "EXPENSES" || type === "DEBT_PAID") &&
+						amount > currentBalance
 					) {
-						throw new ConflictException("Insufficient funds for withdrawal");
+						throw new ConflictException(
+							`Insufficient funds for ${type.toLowerCase()}. Available: ${currentBalance}, Required: ${amount}`
+						);
 					}
 				}
 
@@ -166,6 +184,14 @@ export class AccountService {
 			});
 	}
 
+	/**
+	 * Retrieves the current day's cash balance for a user.
+	 * If no balance exists for today, creates one using yesterday's closing balance as opening balance.
+	 * 
+	 * @param userId - User ID from authenticated session
+	 * @returns BalanceDto containing opening/closing cash, total cash in/out, sales, and expenses
+	 * @throws InternalServerErrorException - If database operation fails
+	 */
 	async getCurrentCashBalance(userId: string): Promise<BalanceDto> {
 		try {
 			const today = new Date();
