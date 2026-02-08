@@ -1,4 +1,3 @@
-
 import { Controller, Get } from '@nestjs/common';
 import { HealthCheck, HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
 import { DatabaseService } from '../../database/database.service';

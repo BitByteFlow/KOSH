@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { ConflictException, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { error } from "console";
 import { DatabaseService } from "src/database/database.service";

@@ -1,5 +1,3 @@
-/* eslint-disable prettier/prettier */
-
 import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
 import { CategoryResponseDto } from "../categories/dto/CategoryResponseDto";

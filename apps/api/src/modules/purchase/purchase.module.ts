@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Module } from "@nestjs/common";
 import { CategoryResponseDto } from "../categories/dto/CategoryResponseDto";
 import { ProductService } from "../product/product.service";

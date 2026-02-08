@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
 import { UserResponseDto } from "./dto/UserResponseDto";

@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Type } from 'class-transformer';
 import { IsDate, IsEmail, IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 

@@ -1,5 +1,4 @@
 import { UpdateProductVariantDto } from "./dto/UpdateVariantDto.dto";
-/* eslint-disable prettier/prettier */
 import {
 	Body,
 	Controller,
