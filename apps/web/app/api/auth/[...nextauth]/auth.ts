@@ -1,6 +1,6 @@
 import NextAuth, { NextAuthResult, Profile } from "next-auth";
-import GitHubProvider from "next-auth/providers/github";
 import { retryApiCall, CircuitBreaker } from "@/lib/index";
+import GoogleProvider from "next-auth/providers/google";
 
 const circuitBreaker = new CircuitBreaker();
 
@@ -17,8 +17,8 @@ type GithubProfile = Profile & {
 	email?: string | null;
 };
 
-if (!process.env.GITHUB_CLIENT_ID || !process.env.GITHUB_CLIENT_SECRET) {
-	throw new Error("Missing GitHub OAuth credentials in environment variables.");
+if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+	throw new Error("Missing Google OAuth credentials in environment variables.");
 }
 
 if (!process.env.AUTH_SECRET) {
@@ -45,9 +45,9 @@ const postJson = async (url: string, body: any): Promise<Response> => {
 
 const nextAuth = NextAuth({
 	providers: [
-		GitHubProvider({
-			clientId: process.env.GITHUB_CLIENT_ID,
-			clientSecret: process.env.GITHUB_CLIENT_SECRET,
+		GoogleProvider({
+			clientId: process.env.GOOGLE_CLIENT_ID,
+			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
 			authorization: { params: { scope: "read:user user:email" } },
 		}),
 	],

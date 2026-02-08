@@ -10,4 +10,5 @@ export interface MetricCardProps {
 	};
 	icon: LucideIcon;
 	sublabel?: string;
+	iconColor?: string;
 }

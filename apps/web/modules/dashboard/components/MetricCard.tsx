@@ -29,6 +29,7 @@ export function MetricCard({
 	change,
 	icon: Icon,
 	sublabel,
+	iconColor,
 }: MetricCardProps) {
 	const colors =
 		colorMap[label] ||
@@ -67,7 +68,7 @@ export function MetricCard({
 					)}
 				</div>
 				<div className={cn("p-3 rounded-lg", colors.bg)}>
-					<Icon className={cn("w-5 h-5", colors.text)} />
+					<Icon className={cn("w-5 h-5", iconColor || colors.text)} />
 				</div>
 			</div>
 		</Card>
