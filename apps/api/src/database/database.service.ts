@@ -1,44 +1,79 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable prettier/prettier */
-import { Global, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from './../../../../packages/db/generated/prisma/index';
-
+import { Injectable, Logger, Global } from "@nestjs/common";
+import type { OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import type { ConfigService } from "@nestjs/config";
+import { PrismaClient } from "db";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 @Global()
 @Injectable()
-export class DatabaseService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-    constructor() {
-        const adapter = new PrismaPg({
-            connectionString: 'postgresql://neondb_owner:npg_brWn9ifgC4Yk@ep-divine-firefly-ahldgyrw-pooler.c-3.us-east-1.aws.neon.tech/kosh_new?sslmode=require&channel_binding=require',
-        })
+export class DatabaseService implements OnModuleInit, OnModuleDestroy {
+	private readonly logger = new Logger(DatabaseService.name);
+	private pool?: Pool;
+	public readonly prisma: PrismaClient;
 
-        super({
-            adapter,
-            log: process.env.NODE_ENV === "development" ? ['query', 'error', 'warn'] : ['error'],
-            transactionOptions : { maxWait: 20000, timeout: 20000 }
+	constructor(private configService: ConfigService) {
+		const dbUrl = configService.get<string>("DATABASE_URL");
+		const maxConnections = configService.get<number>("DB_MAX_CONNECTIONS") || 3;
 
-        });
-    }
+		const pool = new Pool({
+			connectionString: dbUrl,
+			max: maxConnections,
+			idleTimeoutMillis: 30000,
+			connectionTimeoutMillis: 2000,
+		});
 
-    async onModuleDestroy() {
-        await this.$disconnect()
-        console.log('Database disconnected successfully')
-    }
-    async onModuleInit() {
-        await this.$connect()
-        console.log('Database connected successfully')
-    }
-    async cleanDatabase() {
-        if (process.env.NODE_ENV === 'production') {
-            throw new Error("Cannot delete/ clear databases when in production")
-        }
-        const models = Reflect.ownKeys(this).filter((key) => typeof key === "string" && !key.startsWith('_'),)
+		const adapter = new PrismaPg(pool);
 
-        return Promise.all(models.map((modelKey) => {
-            if (typeof modelKey === 'string') {
-                return this[modelKey].deleteMany()
-            }
-        }))
-    }
+		this.prisma = new PrismaClient({
+			adapter,
+			log:
+				process.env.NODE_ENV === "development"
+					? ["query", "error", "warn"]
+					: ["error"],
+			transactionOptions: {
+				maxWait: 5000,
+				timeout: 10000,
+			},
+		});
+
+		this.pool = pool;
+	}
+
+	async onModuleInit() {
+		try {
+			await this.prisma.$executeRaw`SELECT 1`;
+			this.logger.log("Successfully connected to the database.");
+		} catch (error) {
+			this.logger.error("Failed to connect to the database on init", error);
+			process.exit(1);
+		}
+	}
+
+	async onModuleDestroy() {
+		try {
+			await this.prisma.$disconnect();
+			if (this.pool) {
+				this.pool.end();
+			}
+			this.logger.log("Database connections closed.");
+		} catch (error) {
+			this.logger.error("Error during database shutdown", error);
+		}
+	}
+
+	async cleanDatabase() {
+		if (process.env.NODE_ENV === "production") {
+			throw new Error("DANGER: Cannot clear database in production!");
+		}
+
+		const propertyNames = Object.getOwnPropertyNames(this);
+		const modelNames = propertyNames.filter(
+			(item) => !item.startsWith("_") && !item.startsWith("$"),
+		);
+
+		return Promise.all(
+			modelNames.map((model) => (this as any)[model].deleteMany()),
+		);
+	}
 }

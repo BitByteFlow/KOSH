@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -13,7 +14,7 @@ import { UserModule } from './modules/user/user.module';
 import { JWTStrategy } from './utils/jwt.strategy';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, UserModule, PassportModule, CategoryModule,ProductModule,AccountModule,PurchaseModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, AuthModule, UserModule, PassportModule, CategoryModule, ProductModule, AccountModule, PurchaseModule],
   controllers: [AppController],
   providers: [AppService, JWTStrategy],
 })
