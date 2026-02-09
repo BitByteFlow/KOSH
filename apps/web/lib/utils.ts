@@ -17,7 +17,7 @@ export function capitalizeWords(str: string): string {
 export function formatCurrency(amount: string | number) {
 	return new Intl.NumberFormat("en-US", {
 		style: "currency",
-		currency: "USD",
+		currency: "NPR",
 	}).format(Number(amount));
 }
 

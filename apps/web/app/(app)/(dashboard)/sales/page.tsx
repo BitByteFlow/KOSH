@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { Plus, DollarSign, Files, TrendingUp, Users } from "lucide-react";
-import { Button } from "@kosh/ui/components/button";
+import { DollarSign, Files, TrendingUp, Users } from "lucide-react";
 import { MetricCard } from "@/modules/dashboard/components/MetricCard";
 import { SalesHistoryTable } from "@/modules/sales/components/SalesHistoryTable";
+import { CreateSaleSheet } from "@/modules/sales/components/CreateSaleSheet";
 
 const salesMetrics = [
 	{
@@ -44,10 +44,7 @@ export default function SalesPage() {
 					</p>
 				</div>
 				<div className="flex items-center space-x-2">
-					<Button className="flex items-center gap-2">
-						<Plus className="h-4 w-4" />
-						New Sale
-					</Button>
+					<CreateSaleSheet />
 				</div>
 			</div>
 

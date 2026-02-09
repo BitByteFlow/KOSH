@@ -42,7 +42,7 @@ export function MetricCard({
 			<div className="flex items-start justify-between">
 				<div>
 					<p className="text-sm font-medium text-muted-foreground">{label}</p>
-					<p className="text-2xl font-bold mt-1 text-foreground">Rs. {value}</p>
+					<p className="text-2xl font-bold mt-1 text-foreground">{value}</p>
 					{sublabel && (
 						<p className="text-xs text-muted-foreground mt-1">{sublabel}</p>
 					)}

@@ -19,9 +19,31 @@ export interface CreateTransactionRequest {
 export interface Transaction {
 	id: string;
 	type: string;
-	amount: number;
-	note: string;
+	amount: string;
+	note: string | null;
 	createdAt: string;
+	updatedAt: string;
+}
+
+export interface PaginationMeta {
+	total: number;
+	page: number;
+	limit: number;
+	totalPages: number;
+	hasNext: boolean;
+	hasPrev: boolean;
+}
+
+export interface PaginatedTransactions {
+	data: Transaction[];
+	meta: PaginationMeta;
+}
+
+export interface GetTransactionsParams {
+	page?: number;
+	limit?: number;
+	sortBy?: "createdAt" | "amount" | "type";
+	sortOrder?: "asc" | "desc";
 }
 
 export const accountService = {
@@ -31,5 +53,16 @@ export const accountService = {
 
 	createTransaction: async (data: CreateTransactionRequest, token: string | undefined): Promise<Transaction> => {
 		return clientApiClient.post<Transaction>(API_ENDPOINTS.account.transactions, token, data);
+	},
+
+	getAccountTransactions: async (
+		params: GetTransactionsParams,
+		token: string | undefined
+	): Promise<PaginatedTransactions> => {
+		return clientApiClient.get<PaginatedTransactions>(
+			API_ENDPOINTS.account.transactions,
+			token,
+			{ params: params as any }
+		);
 	},
 };

@@ -2,13 +2,14 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { accountService, type CreateTransactionRequest } from "@/services/account.service";
+import { accountService, type CreateTransactionRequest, type GetTransactionsParams } from "@/services/account.service";
 import { getUserFriendlyErrorMessage } from "@/lib/api/errors";
 
 export const accountKeys = {
 	all: ["account"] as const,
 	balance: () => [...accountKeys.all, "balance"] as const,
 	transactions: () => [...accountKeys.all, "transactions"] as const,
+	transactionList: (params: GetTransactionsParams) => [...accountKeys.transactions(), params] as const,
 };
 
 export function useAccountBalance() {
@@ -23,6 +24,17 @@ export function useAccountBalance() {
 	});
 }
 
+export function useAccountTransactions(params: GetTransactionsParams = {}) {
+	const { data: session } = useSession();
+	const token = session?.user?.token;
+
+	return useQuery({
+		queryKey: accountKeys.transactionList(params),
+		queryFn: () => accountService.getAccountTransactions(params, token),
+		enabled: !!token,
+	});
+}
+
 export function useCreateTransaction() {
 	const queryClient = useQueryClient();
 	const { data: session } = useSession();
@@ -34,6 +46,7 @@ export function useCreateTransaction() {
 		
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: accountKeys.balance() });
+			queryClient.invalidateQueries({ queryKey: accountKeys.transactions() });
 		},
 		
 		onError: (error) => {
