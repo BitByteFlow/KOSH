@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { PaymentStatus } from 'db';
+import { PaymentStatus, Prisma } from 'db';
 import { DatabaseService } from 'src/database/database.service';
 import { CreatePurchaseDto } from './dto/CreatePurchaseDto.dto';
 import { UpdatePurchaseDto } from './dto/UpdatePurchaseDto.dto';
@@ -10,7 +10,7 @@ export class PurchasesService {
     constructor(private readonly database: DatabaseService) { }
 
     async createPurchase(createPurchaseDto: CreatePurchaseDto, userId: string) {
-        return this.database.$transaction(async (tsx) => {
+        return this.database.$transaction(async (tsx: Prisma.TransactionClient) => {
             const variantDetails: Array<{ variant: any; quantity: number; price: number }> = [];
 
             for (const item of createPurchaseDto.variants) {
@@ -178,7 +178,7 @@ export class PurchasesService {
                 message: 'Purchase created successfully'
             };
 
-        }).catch((error) => {
+        }).catch((error: any) => {
             console.error('Purchase creation error:', error);
 
             if (error.code === 'P2025') {
@@ -197,7 +197,7 @@ export class PurchasesService {
 
 
     async updatePurchase(updatePurchaseDto: UpdatePurchaseDto, purchaseID: string, userId: string): Promise<any> {
-        return this.database.$transaction(async (tsx) => {
+        return this.database.$transaction(async (tsx: Prisma.TransactionClient) => {
 
             const purchase = await tsx.purchase.findUnique({
                 where: {
