@@ -1,8 +1,5 @@
-import { buildUrl } from "../utils";
-import { API_CONFIG } from "./config";
-import { createErrorFromResponse, NetworkError } from "./errors";
+import { coreRequest } from "./baseRequest";
 import type { RequestOptions } from "./types";
-
 
 
 async function clientRequest<T>(
@@ -10,70 +7,7 @@ async function clientRequest<T>(
 	token: string | undefined,
 	options: RequestOptions = {},
 ): Promise<T> {
-	const { timeout = API_CONFIG.timeout, params, ...fetchOptions } = options;
-	
-	const url = buildUrl(endpoint, params);
-	const method = fetchOptions.method || "GET";
-	
-	const headers: Record<string, string> = {
-		"Content-Type": "application/json",
-	};
-	
-	if (fetchOptions.headers) {
-		const customHeaders = new Headers(fetchOptions.headers);
-		customHeaders.forEach((value, key) => {
-			headers[key] = value;
-		});
-	}
-	
-	if (token) {
-		headers.Authorization = `Bearer ${token}`;
-	}
-	
-	// logRequest(method, url, fetchOptions);
-	
-	const controller = new AbortController();
-	const timeoutId = setTimeout(() => controller.abort(), timeout);
-	
-	try {
-		const response = await fetch(url, {
-			...fetchOptions,
-			headers,
-			signal: controller.signal,
-		});
-		
-		clearTimeout(timeoutId);
-		
-		const contentType = response.headers.get("content-type");
-		const isJson = contentType?.includes("application/json");
-		
-		let data: unknown;
-		if (isJson) {
-			data = await response.json();
-		} else {
-			data = await response.text();
-		}
-		
-		// logResponse(method, url, response.status, data);
-		
-		if (!response.ok) {
-			throw createErrorFromResponse(response.status, data as any);
-		}
-		
-		return data as T;
-	} catch (error) {
-		clearTimeout(timeoutId);
-		
-		if (error instanceof Error && error.name === "AbortError") {
-			throw new NetworkError("Request timeout");
-		}
-		
-		if (error instanceof TypeError) {
-			throw new NetworkError("Network request failed");
-		}
-		
-		throw error;
-	}
+	return coreRequest<T>(endpoint, options, token);
 }
 
 export const clientApiClient = {

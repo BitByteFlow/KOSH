@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useForm, useFieldArray, Control, Controller } from "react-hook-form";
+import { useForm, useFieldArray, type Control, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { variantSchema, Variant } from "@kosh/validation";
+import { variantSchema, type Variant } from "@kosh/validation";
 import { Button } from "@kosh/ui/components/button";
 import { Input } from "@kosh/ui/components/input";
 import { Label } from "@kosh/ui/components/label";

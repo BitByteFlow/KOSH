@@ -20,7 +20,7 @@ export async function retryApiCall<T>(
 			}
 
 			const delay =
-				Math.min(baseDelay * Math.pow(2, i), 10000) + Math.random() * 1000;
+				Math.min(baseDelay * 2 ** i, 10000) + Math.random() * 1000;
 
 			await new Promise((resolve) => setTimeout(resolve, delay));
 		}

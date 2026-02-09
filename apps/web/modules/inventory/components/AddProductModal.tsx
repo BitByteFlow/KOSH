@@ -16,9 +16,9 @@ import { Input } from "@kosh/ui/components/input";
 import { Label } from "@kosh/ui/components/label";
 import { Checkbox } from "@kosh/ui/components/checkbox";
 import { cn } from "@kosh/ui/lib/utils";
-import { useForm, useFieldArray, Control, Controller } from "react-hook-form";
+import { useForm, useFieldArray, type Control, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createProductSchema, CreateProductInput } from "@kosh/validation";
+import { createProductSchema, type CreateProductInput } from "@kosh/validation";
 
 interface AttributeListProps {
 	variantIndex: number;

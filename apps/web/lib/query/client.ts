@@ -19,7 +19,7 @@ export const queryClient = new QueryClient({
 			},
 			
 			retryDelay: (attemptIndex) => 
-				Math.min(API_CONFIG.retry.delay * Math.pow(API_CONFIG.retry.backoff, attemptIndex), 30000),
+				Math.min(API_CONFIG.retry.delay * API_CONFIG.retry.backoff ** attemptIndex, 30000),
 			
 			refetchOnWindowFocus: false,
 			

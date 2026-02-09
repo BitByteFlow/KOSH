@@ -1,4 +1,4 @@
-import { Type as type, LucideIcon } from "lucide-react";
+import { Type as type, type LucideIcon } from "lucide-react";
 
 interface TopicCardProps {
 	icon: LucideIcon;

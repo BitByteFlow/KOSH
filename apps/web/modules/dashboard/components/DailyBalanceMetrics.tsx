@@ -4,7 +4,7 @@ import React from "react"
 import { MetricCard } from "./MetricCard"
 import { useAccountBalance } from "../hooks/useAccount";
 import { Wallet, DollarSign, TrendingUp, ShoppingCart, TrendingDown } from "lucide-react";
-import { MetricCardProps } from "@/types/dashboard";
+import type { MetricCardProps } from "@/types/dashboard";
 import { formatCurrency } from "@/lib/utils";
 import { getUserFriendlyErrorMessage } from "@/lib/api/errors";
 

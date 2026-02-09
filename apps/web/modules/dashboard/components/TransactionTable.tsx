@@ -16,7 +16,7 @@ import {
 import { useAccountTransactions } from "../hooks/useAccount";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
-import { Transaction } from "@/services/account.service";
+import type { Transaction } from "@/services/account.service";
 
 const TRANSACTION_TYPE_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
 	INITIAL_CAPITAL: { label: "Initial Capital", variant: "default" },

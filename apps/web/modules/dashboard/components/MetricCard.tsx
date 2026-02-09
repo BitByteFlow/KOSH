@@ -1,7 +1,7 @@
 import { TrendingUp } from "lucide-react";
 
 import { Card } from "@kosh/ui/components/card";
-import { MetricCardProps } from "@/types/dashboard";
+import type { MetricCardProps } from "@/types/dashboard";
 import { cn } from "@/lib/utils";
 
 const colorMap: { [key: string]: { bg: string; text: string } } = {
@@ -42,7 +42,7 @@ export function MetricCard({
 			<div className="flex items-start justify-between">
 				<div>
 					<p className="text-sm font-medium text-muted-foreground">{label}</p>
-					<p className="text-2xl font-bold mt-1 text-foreground">{value}</p>
+					<p className="text-2xl font-semibold mt-1 text-foreground">{value}</p>
 					{sublabel && (
 						<p className="text-xs text-muted-foreground mt-1">{sublabel}</p>
 					)}

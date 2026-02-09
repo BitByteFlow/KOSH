@@ -1,4 +1,5 @@
-export { serverApiClient, clientApiClient, apiClient } from "./client";
+export { serverApiClient, apiClient } from "./serverRequest";
+export { clientApiClient } from "./client";
 export { API_CONFIG, API_ENDPOINTS } from "./config";
 
 export type {

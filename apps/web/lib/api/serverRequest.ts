@@ -1,31 +1,13 @@
 import { auth } from "@/app/api/auth/[...nextauth]/auth";
 import type { RequestOptions } from "./types";
-import { API_CONFIG } from "./config";
-import { createErrorFromResponse, NetworkError } from "./errors";
-import { buildUrl } from "../utils";
-
-
-function logRequest(method: string, url: string, options?: RequestOptions) {
-	if (process.env.NODE_ENV === "development") {
-		console.log(`[API] ${method} ${url}`, options?.body ? JSON.parse(options.body as string) : "");
-	}
-}
-
-function logResponse(method: string, url: string, status: number, data?: unknown) {
-	if (process.env.NODE_ENV === "development") {
-		console.log(`[API] ${method} ${url} - ${status}`, data);
-	}
-}
+import { coreRequest } from "./baseRequest";
 
 
 async function serverRequest<T>(
 	endpoint: string,
 	options: RequestOptions = {},
 ): Promise<T> {
-	const { skipAuth = false, timeout = API_CONFIG.timeout, params, ...fetchOptions } = options;
-	
-	const url = buildUrl(endpoint, params);
-	const method = fetchOptions.method || "GET";
+	const { skipAuth = false, ...fetchOptions } = options;
 	
 	let token: string | undefined;
 	if (!skipAuth) {
@@ -37,65 +19,7 @@ async function serverRequest<T>(
 		}
 	}
 	
-	const headers: Record<string, string> = {
-		"Content-Type": "application/json",
-	};
-	
-	if (fetchOptions.headers) {
-		const customHeaders = new Headers(fetchOptions.headers);
-		customHeaders.forEach((value, key) => {
-			headers[key] = value;
-		});
-	}
-	
-	if (token && !skipAuth) {
-		headers.Authorization = `Bearer ${token}`;
-	}
-	
-	logRequest(method, url, fetchOptions);
-	
-	const controller = new AbortController();
-	const timeoutId = setTimeout(() => controller.abort(), timeout);
-	
-	try {
-		const response = await fetch(url, {
-			...fetchOptions,
-			headers,
-			signal: controller.signal,
-		});
-		
-		clearTimeout(timeoutId);
-		
-		const contentType = response.headers.get("content-type");
-		const isJson = contentType?.includes("application/json");
-		
-		let data: unknown;
-		if (isJson) {
-			data = await response.json();
-		} else {
-			data = await response.text();
-		}
-		
-		logResponse(method, url, response.status, data);
-		
-		if (!response.ok) {
-			throw createErrorFromResponse(response.status, data as any);
-		}
-		
-		return data as T;
-	} catch (error) {
-		clearTimeout(timeoutId);
-		
-		if (error instanceof Error && error.name === "AbortError") {
-			throw new NetworkError("Request timeout");
-		}
-		
-		if (error instanceof TypeError) {
-			throw new NetworkError("Network request failed");
-		}
-		
-		throw error;
-	}
+	return coreRequest<T>(endpoint, fetchOptions, token);
 }
 
 export const serverApiClient = {

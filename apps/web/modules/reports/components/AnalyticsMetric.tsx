@@ -1,6 +1,6 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AnalyticsMetricCardProps } from "@/types/reports";
+import type { AnalyticsMetricCardProps } from "@/types/reports";
 
 export function AnalyticsMetricCard({
 	label,

@@ -19,7 +19,7 @@ import {
 	SelectValue,
 } from "@kosh/ui/components/select";
 import { useCreateTransaction } from "../hooks/useAccount";
-import { TransactionType } from "@/types/transcation";
+import type { TransactionType } from "@/types/transcation";
 import { useState } from "react";
 
 const TRANSACTION_TYPES = [

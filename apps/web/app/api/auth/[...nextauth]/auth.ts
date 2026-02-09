@@ -1,21 +1,22 @@
-import NextAuth, { NextAuthResult, Profile } from "next-auth";
+import NextAuth, { type NextAuthResult, type Profile } from "next-auth";
 import { retryApiCall, CircuitBreaker } from "@/lib/index";
 import GoogleProvider from "next-auth/providers/google";
+import { baseApiClient } from "@/lib/api/baseRequest";
+import { API_ENDPOINTS } from "@/lib/api/config";
+import { ApiError } from "@/lib/api/errors";
 
 const circuitBreaker = new CircuitBreaker();
 
-const backendURL = process.env.BACKEND_URL;
-
-if (!backendURL) {
-	console.error("BACKEND_URL environment variable is not set");
+interface GoogleProfile extends Profile {
+	sub: string;
+	name: string;
+	given_name: string;
+	family_name: string;
+	picture: string;
+	email: string;
+	email_verified: boolean;
+	locale: string;
 }
-
-type GithubProfile = Profile & {
-	login: string;
-	avatar_url: string;
-	id: string;
-	email?: string | null;
-};
 
 if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
 	throw new Error("Missing Google OAuth credentials in environment variables.");
@@ -25,30 +26,20 @@ if (!process.env.AUTH_SECRET) {
 	throw new Error("Missing AUTH_SECRET in environment variables.");
 }
 
-const postJson = async (url: string, body: any): Promise<Response> => {
-	const response = await fetch(url, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify(body),
-	});
-
-	if (!response.ok) {
-		throw Object.assign(new Error(`HTTP error! status: ${response.status}`), {
-			response,
-		});
-	}
-
-	return response;
-};
+interface AuthResponse {
+	user: {
+		id: string;
+		email: string;
+		username: string;
+	};
+	token: string;
+}
 
 const nextAuth = NextAuth({
 	providers: [
 		GoogleProvider({
 			clientId: process.env.GOOGLE_CLIENT_ID,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-			authorization: { params: { scope: "read:user user:email" } },
 		}),
 	],
 	session: {
@@ -59,47 +50,48 @@ const nextAuth = NextAuth({
 
 	callbacks: {
 		async signIn({ account, profile, user }) {
-			if (account?.provider !== "github") return true;
+			if (account?.provider !== "google") return true;
 
-			const githubProfile = profile as GithubProfile;
-			if (!githubProfile?.email || !githubProfile.login || !githubProfile.id) {
+			const googleProfile = profile as GoogleProfile;
+			if (!googleProfile?.email || !googleProfile.sub) {
 				return false;
 			}
 
 			try {
-				const loginResponse = await retryApiCall(() =>
+				const loginData = await retryApiCall(() =>
 					circuitBreaker.call(() =>
-						postJson(`${backendURL}/users/login`, {
-							githubId: githubProfile.id,
-							email: githubProfile.email,
+						baseApiClient.post<AuthResponse>(API_ENDPOINTS.auth.login, {
+							googleId: googleProfile.sub,
+							email: googleProfile.email,
 						}),
 					),
 				);
-				const loginData = await loginResponse.json();
+				
 				user.id = loginData.user.id;
 				user.token = loginData.token;
 			} catch (error: any) {
-				console.error(`Login failed for user: ${githubProfile.email}`, error);
-				if (
-					error.response &&
-					(error.response.status === 404 || error.response.status === 400)
-				) {
+				console.error(`Login failed for user: ${googleProfile.email}`, error);
+				
+				// Handle user not found (404) or missing details (400) by attempting registration
+				const statusCode = error instanceof ApiError ? error.statusCode : (error.response?.status || 500);
+				
+				if (statusCode === 404 || statusCode === 400) {
 					try {
-						const signUpResponse = await retryApiCall(() =>
+						const signUpData = await retryApiCall(() =>
 							circuitBreaker.call(() =>
-								postJson(`${backendURL}/users/register`, {
-									githubId: githubProfile.id,
-									email: githubProfile.email,
-									username: githubProfile.login,
-									image: githubProfile.avatar_url,
+								baseApiClient.post<AuthResponse>(API_ENDPOINTS.auth.register, {
+									googleId: googleProfile.sub,
+									email: googleProfile.email,
+									username: googleProfile.name,
+									image: googleProfile.picture,
 								}),
 							),
 						);
-						const signUpData = await signUpResponse.json();
+						
 						user.id = signUpData.user.id;
 						user.token = signUpData.token;
 					} catch (registerError: any) {
-						console.log("Failed to signup user Email: ", githubProfile.email);
+						console.log("Failed to signup user Email: ", googleProfile.email);
 						return false;
 					}
 				} else {
@@ -114,11 +106,11 @@ const nextAuth = NextAuth({
 				return { ...token, ...session };
 			}
 			if (account && profile) {
-				const githubProfile = profile as GithubProfile;
+				const googleProfile = profile as GoogleProfile;
 				token.id = user.id;
-				token.email = githubProfile.email;
-				token.name = githubProfile.login;
-				token.picture = githubProfile.avatar_url;
+				token.email = googleProfile.email;
+				token.name = googleProfile.name;
+				token.picture = googleProfile.picture;
 				if (user.token) {
 					token.accessToken = user.token;
 				}

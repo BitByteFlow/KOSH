@@ -1,4 +1,4 @@
-import { AnalyticsMetricCardProps } from "@/types/reports";
+import type { AnalyticsMetricCardProps } from "@/types/reports";
 
 export const mockProducts = [
 	{
