@@ -29,7 +29,12 @@ export interface PaginatedProducts {
 }
 
 export const productsService = {
-	getProducts: async (token: string | undefined): Promise<PaginatedProducts> => {
-		return clientApiClient.get<PaginatedProducts>(API_ENDPOINTS.products.list, token);
+	getProducts: async (
+		token: string | undefined,
+		params?: { search?: string; limit?: number }
+	): Promise<PaginatedProducts> => {
+		return clientApiClient.get<PaginatedProducts>(API_ENDPOINTS.products.list, token, {
+			params: params as any,
+		});
 	},
 };

@@ -14,6 +14,9 @@ export interface CreateSaleRequest {
 	creditId?: string;
 	items: SaleItem[];
 	transactionNote?: string;
+	customerName?: string;
+	customerEmail?: string;
+	customerContact?: string;
 }
 
 export interface SaleItemResponse {
