@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { DatabaseService } from "src/database/database.service";
-import { AuthResponseDto } from "./dto/AuthResponseDto";
+import type { JwtService } from "@nestjs/jwt";
+import type { DatabaseService } from "src/database/database.service";
+import type { AuthResponseDto } from "./dto/AuthResponseDto";
 
 @Injectable()
 export class AuthService {
@@ -53,6 +53,11 @@ export class AuthService {
 
 		return {
 			token: token,
+			user: {
+				id: user.id,
+				email: user.email,
+				username: user.username,
+			},
 		};
 	}
 
@@ -85,6 +90,11 @@ export class AuthService {
 
 		return {
 			token: token,
+			user: {
+				id: existinguser.id,
+				email: existinguser.email,
+				username: existinguser.username,
+			},
 		};
 	}
 }

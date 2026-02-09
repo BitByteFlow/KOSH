@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { error } from "console";
-import { DatabaseService } from "src/database/database.service";
-import { CategoryResponseDto } from "./dto/CategoryResponseDto";
+import type { DatabaseService } from "src/database/database.service";
+import type { CategoryResponseDto } from "./dto/CategoryResponseDto";
 
 
 @Injectable()

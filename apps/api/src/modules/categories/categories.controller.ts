@@ -12,9 +12,9 @@ import {
 
 import { Controller, Post, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/utils/jwt.guard";
-import { CategoryService } from "./categories.service";
-import { CategoryResponseDto } from "./dto/CategoryResponseDto";
-import { CreateCategoryDto } from "./dto/CreateCategoryDto";
+import type { CategoryService } from "./categories.service";
+import type { CategoryResponseDto } from "./dto/CategoryResponseDto";
+import type { CreateCategoryDto } from "./dto/CreateCategoryDto";
 import type { AuthenticatedRequest } from "src/types/auth";
 
 @Controller("categories/")

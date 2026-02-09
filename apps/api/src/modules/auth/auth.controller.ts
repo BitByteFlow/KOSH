@@ -1,14 +1,14 @@
-import { LoginRequestDto } from "./dto/LoginRequestDto";
+import type { LoginRequestDto } from "./dto/LoginRequestDto";
 import { Body, Controller, Get, Post } from "@nestjs/common";
-import { AuthService } from "./auth.service";
-import { AuthResponseDto } from "./dto/AuthResponseDto";
-import { CreateUserDto } from "./dto/CreateUserDto";
+import type { AuthService } from "./auth.service";
+import type { AuthResponseDto } from "./dto/AuthResponseDto";
+import type { CreateUserDto } from "./dto/CreateUserDto";
 
-@Controller("auths")
+@Controller("auth")
 export class AuthController {
 	constructor(private authService: AuthService) {}
 
-	@Post()
+	@Post("register")
 	async register(@Body() authPayLoad: CreateUserDto): Promise<AuthResponseDto> {
 		const response = await this.authService.createUser(
 			authPayLoad.email,
@@ -19,7 +19,7 @@ export class AuthController {
 		return response;
 	}
 
-	@Get()
+	@Post("login")
 	async login(@Body() authPayLoad: LoginRequestDto): Promise<AuthResponseDto> {
 		console.log(authPayLoad);
 		const response = await this.authService.signin(

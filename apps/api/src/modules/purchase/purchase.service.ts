@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { PaymentStatus, Prisma } from 'db';
-import { DatabaseService } from 'src/database/database.service';
-import { CreatePurchaseDto } from './dto/CreatePurchaseDto.dto';
-import { UpdatePurchaseDto } from './dto/UpdatePurchaseDto.dto';
+import type { PaymentStatus, Prisma } from 'db';
+import type { DatabaseService } from 'src/database/database.service';
+import type { CreatePurchaseDto } from './dto/CreatePurchaseDto.dto';
+import type { UpdatePurchaseDto } from './dto/UpdatePurchaseDto.dto';
 
 
 @Injectable()

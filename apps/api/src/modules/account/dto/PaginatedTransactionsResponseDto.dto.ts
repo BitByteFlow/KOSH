@@ -1,4 +1,4 @@
-import { TransactionResponseDto } from "./TransactionResponseDto.dto";
+import type { TransactionResponseDto } from "./TransactionResponseDto.dto";
 
 export class PaginationMetaDto {
 	total: number;

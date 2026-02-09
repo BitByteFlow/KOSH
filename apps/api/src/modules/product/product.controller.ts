@@ -1,4 +1,4 @@
-import { UpdateProductVariantDto } from "./dto/UpdateVariantDto.dto";
+import type { UpdateProductVariantDto } from "./dto/UpdateVariantDto.dto";
 import {
 	Body,
 	Controller,
@@ -15,14 +15,14 @@ import {
 	UseGuards,
 } from "@nestjs/common";
 import { JwtAuthGuard } from "src/utils/jwt.guard";
-import { CategoryResponseDto } from "../categories/dto/CategoryResponseDto";
+import type { CategoryResponseDto } from "../categories/dto/CategoryResponseDto";
 
 import { ParseUUIDPipe } from "@nestjs/common";
-import { CreateVariantDto } from "./dto/AddVariantDto.dto";
-import { CreateProductRequestDto } from "./dto/CreateProductRequestDto.dto";
-import { ProductFilterDto } from "./dto/ProductFilterDto.dto";
-import { UpdateProductDto } from "./dto/UpdateProductDto.dto";
-import { ProductService } from "./product.service";
+import type { CreateVariantDto } from "./dto/AddVariantDto.dto";
+import type { CreateProductRequestDto } from "./dto/CreateProductRequestDto.dto";
+import type { ProductFilterDto } from "./dto/ProductFilterDto.dto";
+import type { UpdateProductDto } from "./dto/UpdateProductDto.dto";
+import type { ProductService } from "./product.service";
 import type { AuthenticatedRequest } from "src/types/auth";
 
 @Controller("products")

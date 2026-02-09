@@ -4,7 +4,7 @@ import {
 	InternalServerErrorException,
 	NotFoundException,
 } from "@nestjs/common";
-import { DatabaseService } from "src/database/database.service";
+import type { DatabaseService } from "src/database/database.service";
 import { TransactionType } from "db";
 import type { CreateSaleDto } from "./dto/CreateSaleDto.dto";
 import type { SaleResponseDto } from "./dto/SaleResponseDto.dto";

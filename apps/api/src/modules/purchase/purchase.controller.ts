@@ -13,10 +13,10 @@ import {
 	UseGuards,
 } from "@nestjs/common";
 import { JwtAuthGuard } from "src/utils/jwt.guard";
-import { CreatePurchaseDto } from "./dto/CreatePurchaseDto.dto";
-import { GetPurchaseFilter } from "./dto/GetPurchaseDto.dto";
-import { UpdatePurchaseDto } from "./dto/UpdatePurchaseDto.dto";
-import { PurchasesService } from "./purchase.service";
+import type { CreatePurchaseDto } from "./dto/CreatePurchaseDto.dto";
+import type { GetPurchaseFilter } from "./dto/GetPurchaseDto.dto";
+import type { UpdatePurchaseDto } from "./dto/UpdatePurchaseDto.dto";
+import type { PurchasesService } from "./purchase.service";
 import type { AuthenticatedRequest } from "src/types/auth";
 @Controller("purchases")
 export class PurchaseController {

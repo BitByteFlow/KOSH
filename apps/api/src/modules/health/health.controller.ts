@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
-import { HealthCheck, HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
-import { DatabaseService } from '../../database/database.service';
+import { HealthCheck, type HealthCheckService, type MemoryHealthIndicator } from '@nestjs/terminus';
+import type { DatabaseService } from '../../database/database.service';
 
 @Controller('health')
 export class HealthController {
