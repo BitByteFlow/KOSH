@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
 import {
 	Dialog,
 	DialogContent,
@@ -11,8 +11,16 @@ import {
 } from "@kosh/ui/components/dialog";
 import { Button } from "@kosh/ui/components/button";
 import { Input } from "@kosh/ui/components/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@kosh/ui/components/select";
 import { useCreateTransaction } from "../hooks/useAccount";
 import { TransactionType } from "@/types/transcation";
+import { useState } from "react";
 
 const TRANSACTION_TYPES = [
 	{ value: "WITHDRAWAL" as TransactionType, label: "Withdrawal" },
@@ -21,33 +29,44 @@ const TRANSACTION_TYPES = [
 	{ value: "DEBT" as TransactionType, label: "Debt" },
 ] as const;
 
+interface FormData {
+	type: TransactionType;
+	amount: string;
+	note: string;
+}
+
 export const WithdrawCashModal = () => {
 	const [isOpen, setIsOpen] = useState(false);
-	const [amount, setAmount] = useState("");
-	const [note, setNote] = useState("");
-	const [type, setType] = useState<TransactionType>("WITHDRAWAL");
-	const [isLoading, setIsLoading] = useState(false);
+	const createTransaction = useCreateTransaction();
 
-	const createTransaction = useCreateTransaction()
+	const {
+		register,
+		handleSubmit,
+		control,
+		reset,
+		formState: { isSubmitting },
+	} = useForm<FormData>({
+		defaultValues: {
+			type: "WITHDRAWAL",
+			amount: "",
+			note: "",
+		},
+	});
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setIsLoading(true);
-
-		const amountValue = parseFloat(amount);
+	const onSubmit = async (data: FormData) => {
+		const amountValue = parseFloat(data.amount);
 		if (isNaN(amountValue) || amountValue <= 0) {
-			setIsLoading(false);
 			return;
 		}
 
-		await createTransaction.mutateAsync({ amount: amountValue, note, type });
+		await createTransaction.mutateAsync({
+			amount: amountValue,
+			note: data.note,
+			type: data.type,
+		});
 
 		setIsOpen(false);
-		setAmount("");
-		setNote("");
-		setType("WITHDRAWAL");
-
-		setIsLoading(false);
+		reset();
 	};
 
 	return (
@@ -61,24 +80,33 @@ export const WithdrawCashModal = () => {
 				<DialogHeader>
 					<DialogTitle>Withdraw Cash / Expenses</DialogTitle>
 				</DialogHeader>
-				<form onSubmit={handleSubmit} className="grid gap-4 py-4">
+				<form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
 					<div className="grid gap-2">
 						<label htmlFor="type" className="text-sm font-medium leading-none">
 							Transaction Type
 						</label>
-						<select
-							id="type"
-							value={type}
-							onChange={(e) => setType(e.target.value)}
-							disabled={isLoading}
-							className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							{TRANSACTION_TYPES.map((t) => (
-								<option key={t.value} value={t.value}>
-									{t.label}
-								</option>
-							))}
-						</select>
+						<Controller
+							name="type"
+							control={control}
+							render={({ field }) => (
+								<Select
+									value={field.value}
+									onValueChange={field.onChange}
+									disabled={isSubmitting}
+								>
+									<SelectTrigger className="w-full">
+										<SelectValue placeholder="Select type" />
+									</SelectTrigger>
+									<SelectContent>
+										{TRANSACTION_TYPES.map((t) => (
+											<SelectItem key={t.value} value={t.value}>
+												{t.label}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							)}
+						/>
 					</div>
 					<div className="grid gap-2">
 						<label htmlFor="amount" className="text-sm font-medium leading-none">
@@ -87,10 +115,10 @@ export const WithdrawCashModal = () => {
 						<Input
 							id="amount"
 							type="number"
-							value={amount}
-							onChange={(e) => setAmount(e.target.value)}
+							step="0.01"
 							placeholder="0.00"
-							disabled={isLoading}
+							disabled={isSubmitting}
+							{...register("amount", { required: true, min: 0.01 })}
 						/>
 					</div>
 					<div className="grid gap-2">
@@ -99,15 +127,14 @@ export const WithdrawCashModal = () => {
 						</label>
 						<Input
 							id="note"
-							value={note}
-							onChange={(e) => setNote(e.target.value)}
 							placeholder="Description"
-							disabled={isLoading}
+							disabled={isSubmitting}
+							{...register("note")}
 						/>
 					</div>
 					<DialogFooter>
-						<Button type="submit" disabled={isLoading}>
-							{isLoading ? "Processing..." : "Confirm"}
+						<Button type="submit" disabled={isSubmitting}>
+							{isSubmitting ? "Processing..." : "Confirm"}
 						</Button>
 					</DialogFooter>
 				</form>
