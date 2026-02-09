@@ -59,7 +59,7 @@ const mockTransactions = [
 
 
 
-import { getDashboardMetrics } from "@/services/dashboard.service";
+import { getDashboardMetrics } from "@/services/account.service";
 import { OpeningCashModal } from "@/modules/dashboard/components/OpeningCashModal";
 import { WithdrawCashModal } from "@/modules/dashboard/components/WithdrawCashModal";
 import { TrendingUp, TrendingDown } from "lucide-react";
