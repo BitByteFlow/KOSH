@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Trash2, ChevronDown } from "lucide-react";
+import { Plus, Trash2, ChevronDown, Save, Loader2, Package } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
 import {
 	Sheet,
@@ -19,6 +19,8 @@ import { cn } from "@kosh/ui/lib/utils";
 import { useForm, useFieldArray, Control, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createProductSchema, CreateProductInput } from "@kosh/validation";
+import { useCreateProduct, useCategoryList } from "../hooks/useProducts";
+import { toast } from "sonner";
 
 interface AttributeListProps {
 	variantIndex: number;
@@ -41,13 +43,11 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 							control={control}
 							name={`variants.${variantIndex}.attributes.${attrIndex}.name`}
 							render={({ field, fieldState }) => (
-								<>
-									<Input
-										placeholder="Name (e.g. Size)"
-										className={cn("h-8 text-sm", fieldState.error && "border-red-500")}
-										{...field}
-									/>
-								</>
+								<Input
+									placeholder="Name (e.g. Size)"
+									className={cn("h-8 text-sm", fieldState.error && "border-red-500")}
+									{...field}
+								/>
 							)}
 						/>
 					</div>
@@ -56,13 +56,11 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 							control={control}
 							name={`variants.${variantIndex}.attributes.${attrIndex}.value`}
 							render={({ field, fieldState }) => (
-								<>
-									<Input
-										placeholder="Value (e.g. M)"
-										className={cn("h-8 text-sm", fieldState.error && "border-red-500")}
-										{...field}
-									/>
-								</>
+								<Input
+									placeholder="Value (e.g. M)"
+									className={cn("h-8 text-sm", fieldState.error && "border-red-500")}
+									{...field}
+								/>
 							)}
 						/>
 					</div>
@@ -79,15 +77,17 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 					)}
 				</div>
 			))}
-			<Button
-				type="button"
-				variant="link"
-				size="sm"
-				className="px-0 h-auto text-xs text-blue-600"
-				onClick={() => append({ name: "", value: "" })}
-			>
-				+ Add Attribute
-			</Button>
+			{fields.length < 5 && (
+				<Button
+					type="button"
+					variant="link"
+					size="sm"
+					className="px-0 h-auto text-xs text-blue-600"
+					onClick={() => append({ name: "", value: "" })}
+				>
+					+ Add Attribute
+				</Button>
+			)}
 		</div>
 	);
 }
@@ -96,8 +96,7 @@ interface ProductSheetProps {
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
 	trigger?: React.ReactNode;
-	product?: any; // To be typed properly with mapping logic
-	onSubmit?: (data: CreateProductInput) => Promise<void>;
+	product?: any;
 }
 
 export function ProductSheet({
@@ -105,10 +104,10 @@ export function ProductSheet({
 	onOpenChange,
 	trigger,
 	product,
-	onSubmit: onSubmitProp,
 }: ProductSheetProps) {
 	const [internalOpen, setInternalOpen] = useState(false);
-	const [loading, setLoading] = useState(false);
+	const { data: categories, isLoading: categoriesLoading } = useCategoryList();
+	const createProduct = useCreateProduct();
 
 	const isControlled = open !== undefined && onOpenChange !== undefined;
 	const isOpen = isControlled ? open : internalOpen;
@@ -142,22 +141,7 @@ export function ProductSheet({
 	} = form;
 
 	useEffect(() => {
-		if (isOpen && product) {
-			// Map existing product to form structure
-			// This is a simplified mapping, might need adjustment based on real data shape
-			reset({
-				name: product.productName || product.name || "",
-				categoryId: product.category || "", // Assuming category is string ID or name
-				supplierName: "",
-				keepPurchaseRecord: false,
-				variants: product.variants?.map((v: any) => ({
-					costPrice: v.costPrice?.toString() || "",
-					sellingPrice: v.price?.toString() || "",
-					stock: v.stock?.toString() || "0",
-					attributes: v.attributes ? Object.entries(v.attributes).map(([name, value]) => ({ name, value })) : [{ name: "", value: "" }]
-				})) || [],
-			});
-		} else if (isOpen && !product) {
+		if (isOpen && !product) {
 			reset({
 				name: "",
 				categoryId: "",
@@ -183,99 +167,117 @@ export function ProductSheet({
 	const keepPurchaseRecord = watch("keepPurchaseRecord");
 
 	const onSubmit = async (data: CreateProductInput) => {
-		setLoading(true);
 		try {
-			if (onSubmitProp) {
-				await onSubmitProp(data);
-			} else {
-				// Default behavior if no prop
-				console.log("Submitting product:", data);
-				await new Promise((resolve) => setTimeout(resolve, 1000));
-			}
+			// Format data for backend
+			const payload = {
+				name: data.name,
+				categoryId: data.categoryId,
+				createPurchaseRecord: data.keepPurchaseRecord,
+				supplierName: data.keepPurchaseRecord ? data.supplierName : undefined,
+				variants: data.variants.map(v => ({
+					costPrice: parseFloat(v.costPrice),
+					sellingPrice: parseFloat(v.sellingPrice),
+					stock: parseInt(v.stock),
+					attributes: v.attributes.filter(attr => attr.name && attr.value)
+				}))
+			};
+
+			await createProduct.mutateAsync(payload);
+			toast.success("Product created successfully");
 			setIsOpen(false);
 			reset();
-		} catch (error) {
-			console.error("Error saving product", error);
-		} finally {
-			setLoading(false);
+		} catch (error: any) {
+			toast.error(error.response?.data?.message || "Failed to create product");
 		}
 	};
 
 	return (
 		<Sheet open={isOpen} onOpenChange={setIsOpen}>
 			{trigger && <SheetTrigger asChild>{trigger}</SheetTrigger>}
-			<SheetContent className="max-h-screen sm:max-w-[600px] w-full p-0">
-				<SheetHeader className="p-6 pb-2 border-b border-gray-100">
-					<SheetTitle className="text-xl font-semibold tracking-tight">
-						{product ? "Edit Product" : "Add New Product"}
-					</SheetTitle>
-					<SheetDescription className="text-sm text-muted-foreground mt-1">
-						{product ? "Update product details and variants below." : "Enter product details and variants below."}
-					</SheetDescription>
+			<SheetContent className="max-h-screen sm:max-w-[600px] w-full p-0 flex flex-col">
+				<SheetHeader className="p-6 pb-2 border-b border-gray-100 bg-white sticky top-0 z-10">
+					<div className="flex items-center gap-3">
+						<div className="p-2 bg-primary/5 rounded-xl">
+							<Package className="h-5 w-5 text-primary" />
+						</div>
+						<div>
+							<SheetTitle className="text-xl font-semibold tracking-tight">
+								{product ? "Edit Product" : "Add New Product"}
+							</SheetTitle>
+							<SheetDescription className="text-sm text-muted-foreground mt-0.5">
+								{product ? "Update product details and variants." : "Enter product details and variants below."}
+							</SheetDescription>
+						</div>
+					</div>
 				</SheetHeader>
 
 				<form
 					onSubmit={handleSubmit(onSubmit)}
-					className="flex flex-col h-[calc(100vh-120px)]"
+					className="flex flex-col flex-1 overflow-hidden"
 				>
-					<div className="flex-1 overflow-y-auto p-6 space-y-8">
+					<div className="flex-1 overflow-y-auto p-6 space-y-8 bg-gray-50/30">
 						{/* Product Details Section */}
 						<div className="space-y-6">
 							<div className="space-y-4">
-								<h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+								<h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
 									Product Information
 								</h3>
 
-								<div className="grid gap-2">
-									<Label htmlFor="name" className="text-sm font-medium text-muted-foreground">
-										Product Name
-									</Label>
-									<Input
-										id="name"
-										placeholder="e.g. Cotton T-Shirt"
-										className={cn("h-10", errors.name && "border-red-500")}
-										{...register("name")}
-									/>
-									{errors.name && (
-										<p className="text-xs text-red-500">{errors.name.message}</p>
-									)}
-								</div>
-
-								<div className="grid gap-2">
-									<Label htmlFor="categoryId" className="text-sm font-medium text-muted-foreground">
-										Category
-									</Label>
-									<div className="relative">
-										<select
-											id="categoryId"
-											className={cn(
-												"flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none",
-												errors.categoryId && "border-red-500"
-											)}
-											{...register("categoryId")}
-										>
-											<option value="" disabled>
-												Select a category
-											</option>
-											<option value="electronics">Electronics</option>
-											<option value="clothing">Clothing</option>
-											<option value="groceries">Groceries</option>
-										</select>
-										<div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-muted-foreground">
-											<ChevronDown className="w-4 h-4" />
-										</div>
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div className="space-y-2">
+										<Label htmlFor="name" className="text-[11px] font-bold uppercase text-muted-foreground">
+											Product Name *
+										</Label>
+										<Input
+											id="name"
+											placeholder="e.g. Cotton T-Shirt"
+											className={cn("h-10 bg-white rounded-xl shadow-sm border-gray-100", errors.name && "border-red-500")}
+											{...register("name")}
+										/>
+										{errors.name && (
+											<p className="text-xs text-red-500">{errors.name.message}</p>
+										)}
 									</div>
-									{errors.categoryId && (
-										<p className="text-xs text-red-500">{errors.categoryId.message}</p>
-									)}
+
+									<div className="space-y-2">
+										<Label htmlFor="categoryId" className="text-[11px] font-bold uppercase text-muted-foreground">
+											Category *
+										</Label>
+										<div className="relative">
+											<select
+												id="categoryId"
+												disabled={categoriesLoading}
+												className={cn(
+													"flex h-10 w-full rounded-xl border border-gray-100 bg-white px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 appearance-none disabled:bg-gray-50",
+													errors.categoryId && "border-red-500"
+												)}
+												{...register("categoryId")}
+											>
+												<option value="" disabled>
+													{categoriesLoading ? "Loading..." : "Select a category"}
+												</option>
+												{categories?.map((cat) => (
+													<option key={cat.id} value={cat.id}>
+														{cat.name}
+													</option>
+												))}
+											</select>
+											<div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-muted-foreground">
+												<ChevronDown className="w-4 h-4" />
+											</div>
+										</div>
+										{errors.categoryId && (
+											<p className="text-xs text-red-500">{errors.categoryId.message}</p>
+										)}
+									</div>
 								</div>
 							</div>
 						</div>
 
-						<div className="space-y-6 pt-4">
+						<div className="space-y-6">
 							<div className="flex items-center justify-between">
-								<h3 className="text-base font-semibold text-foreground">
-									Variants
+								<h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+									Variants & Inventory
 								</h3>
 								<Button
 									type="button"
@@ -289,7 +291,7 @@ export function ProductSheet({
 											attributes: [{ name: "", value: "" }],
 										})
 									}
-									className="h-8"
+									className="h-8 rounded-full bg-white shadow-sm border-gray-100"
 								>
 									<Plus className="w-3.5 h-3.5 mr-1.5" /> Add Variant
 								</Button>
@@ -299,76 +301,66 @@ export function ProductSheet({
 								{variantFields.map((variant, index) => (
 									<div
 										key={variant.id}
-										className="group p-5 rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-all relative space-y-4"
+										className="group p-5 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all relative space-y-4"
 									>
 										{variantFields.length > 1 && (
 											<Button
 												type="button"
 												variant="ghost"
 												size="icon"
-												className="absolute top-2 right-2 h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-600 hover:bg-red-50"
+												className="absolute top-2 right-2 h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-600 hover:bg-red-50 rounded-full"
 												onClick={() => removeVariant(index)}
 											>
-												<span className="sr-only">Remove</span>
 												<Trash2 className="w-4 h-4" />
 											</Button>
 										)}
 
 										<AttributeList variantIndex={index} control={control} />
 
-										<div className="grid grid-cols-3 gap-4 pt-4 border-t border-border/50">
+										<div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-50">
 											<div className="space-y-2">
-												<Label className="text-xs font-medium text-muted-foreground">
+												<Label className="text-[11px] font-bold uppercase text-muted-foreground">
 													Cost Price
 												</Label>
-												<div className="relative">
-													<span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-medium">Rs</span>
+												<div className="relative group/input">
+													<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">Rs</span>
 													<Input
 														type="number"
 														min="0"
 														step="0.01"
 														placeholder="0.00"
-														className={cn("h-9 pl-7", errors.variants?.[index]?.costPrice && "border-red-500")}
+														className={cn("h-9 pl-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl", errors.variants?.[index]?.costPrice && "border-red-500")}
 														{...register(`variants.${index}.costPrice`)}
 													/>
 												</div>
-												{errors.variants?.[index]?.costPrice && (
-													<p className="text-xs text-red-500">{errors.variants[index]?.costPrice?.message}</p>
-												)}
 											</div>
 											<div className="space-y-2">
-												<Label className="text-xs font-medium text-muted-foreground">
-													Selling Price
+												<Label className="text-[11px] font-bold uppercase text-muted-foreground">
+													Sale Price
 												</Label>
 												<div className="relative">
-													<span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-medium">Rs</span>
+													<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">Rs</span>
 													<Input
 														type="number"
 														min="0"
 														step="0.01"
 														placeholder="0.00"
-														className={cn("h-9 pl-7", errors.variants?.[index]?.sellingPrice && "border-red-500")}
+														className={cn("h-9 pl-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl", errors.variants?.[index]?.sellingPrice && "border-red-500")}
 														{...register(`variants.${index}.sellingPrice`)}
 													/>
 												</div>
-												{errors.variants?.[index]?.sellingPrice && (
-													<p className="text-xs text-red-500">{errors.variants[index]?.sellingPrice?.message}</p>
-												)}
 											</div>
 											<div className="space-y-2">
-												<Label className="text-xs font-medium text-muted-foreground">
+												<Label className="text-[11px] font-bold uppercase text-muted-foreground">
 													Stock
 												</Label>
 												<Input
 													type="number"
 													min="0"
 													placeholder="0"
-													className={cn("h-9", errors.variants?.[index]?.stock && "border-red-500")}
+													className={cn("h-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl", errors.variants?.[index]?.stock && "border-red-500")}
 													{...register(`variants.${index}.stock`)}
 												/>
-												{errors.variants?.[index]?.stock && (
-													<p className="text-xs text-red-500">{errors.variants[index]?.stock?.message}</p>
-												)}
 											</div>
 										</div>
 									</div>
@@ -376,8 +368,8 @@ export function ProductSheet({
 							</div>
 						</div>
 
-						<div className="space-y-4 pt-2 border-t border-gray-50">
-							<div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg transition-colors hover:bg-gray-100/80">
+						<div className="space-y-4 pt-2 border-t border-gray-100">
+							<div className="flex items-start space-x-4 p-4 bg-primary/5 rounded-2xl border border-primary/10 transition-colors">
 								<Controller
 									control={control}
 									name="keepPurchaseRecord"
@@ -386,33 +378,33 @@ export function ProductSheet({
 											id="keepPurchaseRecord"
 											checked={field.value}
 											onCheckedChange={field.onChange}
-											className="mt-1"
+											className="mt-1 border-primary/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
 										/>
 									)}
 								/>
 								<div className="grid gap-1.5 leading-none">
 									<Label
 										htmlFor="keepPurchaseRecord"
-										className="font-medium cursor-pointer"
+										className="text-sm font-bold text-primary cursor-pointer"
 									>
-										Log Purchase Record
+										Initial Stock Purchase Log
 									</Label>
-									<p className="text-xs text-muted-foreground">
-										Create a purchase entry for the initial stock of all variants.
+									<p className="text-xs text-primary/60">
+										Automatically record a purchase entry for the initial stock. This will subtract from your cash balance.
 									</p>
 								</div>
 							</div>
 
 							{keepPurchaseRecord && (
-								<div className="grid gap-2 pl-2 animate-in slide-in-from-top-2 fade-in duration-200">
-									<Label htmlFor="supplierName" className="text-sm font-medium">
+								<div className="grid gap-2 pl-4 animate-in slide-in-from-top-2 fade-in duration-300">
+									<Label htmlFor="supplierName" className="text-[11px] font-bold uppercase text-muted-foreground">
 										Supplier Name
 									</Label>
 									<Input
 										id="supplierName"
-										placeholder="e.g. Tech Distributors Inc."
-										className={cn("h-10 bg-white", errors.supplierName && "border-red-500")}
-										{...register("supplierName")}
+										placeholder="e.g. Main Vendor"
+										className={cn("h-10 bg-white rounded-xl shadow-sm border-gray-100", errors.supplierName && "border-red-500")}
+										{...register("supplierName", { required: keepPurchaseRecord })}
 									/>
 									{errors.supplierName && (
 										<p className="text-xs text-red-500">{errors.supplierName.message}</p>
@@ -422,24 +414,39 @@ export function ProductSheet({
 						</div>
 					</div>
 
-					<SheetFooter className="p-6 border-t border-gray-100 bg-white sm:justify-between sticky bottom-0">
+					<SheetFooter className="p-6 border-t border-gray-100 bg-white sm:justify-between sticky bottom-0 z-10 shadow-[0_-4px_12px_rgba(0,0,0,0.02)]">
 						<Button
 							type="button"
-							variant="outline"
+							variant="ghost"
 							onClick={() => setIsOpen(false)}
-							className="w-full sm:w-auto"
+							className="rounded-xl px-8"
 						>
-							Cancel
+							Discard
 						</Button>
 						<Button
 							type="submit"
-							disabled={loading}
-							className="w-full sm:w-auto"
+							disabled={createProduct.isPending}
+							className="rounded-xl px-8 shadow-md shadow-primary/20 gap-2 min-w-[140px]"
 						>
-							{loading ? "Saving..." : (product ? "Save Changes" : "Save Product")}
+							{createProduct.isPending ? (
+								<>
+									<Loader2 className="h-4 w-4 animate-spin" />
+									Saving...
+								</>
+							) : (
+								<>
+									<Save className="h-4 w-4" />
+									{product ? "Update Product" : "Create Product"}
+								</>
+							)}
 						</Button>
 					</SheetFooter>
 				</form>
+				<style jsx global>{`
+					select {
+						background-image: none !important;
+					}
+				`}</style>
 			</SheetContent>
 		</Sheet>
 	);

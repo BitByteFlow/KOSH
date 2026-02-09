@@ -20,7 +20,6 @@ export default function InventoryPage() {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [itemsPerPage, setItemsPerPage] = useState(10);
 
-	// Action States
 	const [editingProduct, setEditingProduct] = useState<any>(null);
 	const [viewingProduct, setViewingProduct] = useState<any>(null);
 	const [categoryProduct, setCategoryProduct] = useState<any>(null);
@@ -125,28 +124,24 @@ export default function InventoryPage() {
 				</div>
 			</div>
 
-			{/* Edit Product Sheet */}
 			<ProductSheet
 				open={!!editingProduct}
 				onOpenChange={(open) => !open && setEditingProduct(null)}
 				product={editingProduct}
 			/>
 
-			{/* View Details Sheet */}
 			<ProductDetailsSheet
 				open={!!viewingProduct}
 				onOpenChange={(open) => !open && setViewingProduct(null)}
 				product={viewingProduct}
 			/>
 
-			{/* Change Category Dialog */}
 			<ChangeCategoryDialog
 				open={!!categoryProduct}
 				onOpenChange={(open) => !open && setCategoryProduct(null)}
 				product={categoryProduct}
 				onSave={async (id, cat) => {
 					console.log("Saving category:", id, cat);
-					// Simulate API call
 					await new Promise(resolve => setTimeout(resolve, 500));
 				}}
 			/>

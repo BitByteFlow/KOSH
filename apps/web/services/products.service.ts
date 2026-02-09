@@ -37,4 +37,15 @@ export const productsService = {
 			params: params as any,
 		});
 	},
+
+	createProduct: async (
+		data: any,
+		token: string | undefined
+	): Promise<{ status: string; message: string }> => {
+		return clientApiClient.post<{ status: string; message: string }>(
+			API_ENDPOINTS.products.create,
+			token,
+			data
+		);
+	},
 };
