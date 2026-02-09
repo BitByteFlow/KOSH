@@ -11,44 +11,41 @@ import {
 } from "@kosh/ui/components/dialog";
 import { Button } from "@kosh/ui/components/button";
 import { Input } from "@kosh/ui/components/input";
-import { addWithdrawCash } from "@/actions/transaction.actions";
+import { useCreateTransaction } from "../hooks/useAccount";
+import { TransactionType } from "@/types/transcation";
 
 const TRANSACTION_TYPES = [
-	{ value: "WITHDRAWAL", label: "Withdrawal" },
-	{ value: "EXPENSES", label: "Expenses" },
-	{ value: "DEBT_PAID", label: "Debt Paid" },
+	{ value: "WITHDRAWAL" as TransactionType, label: "Withdrawal" },
+	{ value: "EXPENSES" as TransactionType, label: "Expenses" },
+	{ value: "DEBT_PAID" as TransactionType, label: "Debt Paid" },
+	{ value: "DEBT" as TransactionType, label: "Debt" },
 ] as const;
 
 export const WithdrawCashModal = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [amount, setAmount] = useState("");
 	const [note, setNote] = useState("");
-	const [type, setType] = useState<string>("WITHDRAWAL");
+	const [type, setType] = useState<TransactionType>("WITHDRAWAL");
 	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState("");
+
+	const createTransaction = useCreateTransaction()
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setError("");
 		setIsLoading(true);
 
 		const amountValue = parseFloat(amount);
 		if (isNaN(amountValue) || amountValue <= 0) {
-			setError("Please enter a valid positive amount.");
 			setIsLoading(false);
 			return;
 		}
 
-		const result = await addWithdrawCash({ amount: amountValue, note, type });
+		await createTransaction.mutateAsync({ amount: amountValue, note, type });
 
-		if (result.success) {
-			setIsOpen(false);
-			setAmount("");
-			setNote("");
-			setType("WITHDRAWAL");
-		} else {
-			setError(result.message);
-		}
+		setIsOpen(false);
+		setAmount("");
+		setNote("");
+		setType("WITHDRAWAL");
 
 		setIsLoading(false);
 	};
@@ -65,7 +62,6 @@ export const WithdrawCashModal = () => {
 					<DialogTitle>Withdraw Cash / Expenses</DialogTitle>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} className="grid gap-4 py-4">
-					{error && <p className="text-red-500 text-sm">{error}</p>}
 					<div className="grid gap-2">
 						<label htmlFor="type" className="text-sm font-medium leading-none">
 							Transaction Type

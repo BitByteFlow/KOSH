@@ -1,16 +1,6 @@
 import React from "react";
 
-import { MetricCard } from "@/modules/dashboard/components/MetricCard";
 import { TransactionTable } from "@/modules/dashboard/components/TransactionTable";
-import {
-	DollarSign,
-	ShoppingCart,
-	Wallet,
-	CreditCard,
-	Calendar,
-	LucideIcon,
-} from "lucide-react";
-import { MetricCardProps } from "@/types/dashboard";
 
 const mockTransactions = [
 	{
@@ -58,57 +48,11 @@ const mockTransactions = [
 ];
 
 
-
-import { getDashboardMetrics } from "@/services/account.service";
 import { OpeningCashModal } from "@/modules/dashboard/components/OpeningCashModal";
 import { WithdrawCashModal } from "@/modules/dashboard/components/WithdrawCashModal";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import DailyBalanceMetrics from "@/modules/dashboard/components/DailyBalanceMetrics";
 
 const Dashboard = async () => {
-	const metrics = await getDashboardMetrics();
-
-	const metricCardValues: MetricCardProps[] = [
-		{
-			label: "Opening Cash",
-			value: formatCurrency(metrics?.openingCash || 0),
-			icon: Wallet,
-			sublabel: "Start of day",
-			iconColor: "text-blue-500",
-		},
-		{
-			label: "Sales Today",
-			value: formatCurrency(metrics?.totalSales || 0),
-			icon: DollarSign,
-			iconColor: "text-green-500",
-		},
-		{
-			label: "Cash In",
-			value: formatCurrency(metrics?.totalCashIn || 0),
-			icon: TrendingUp,
-			sublabel: "Total inflows",
-			iconColor: "text-emerald-500",
-		},
-		{
-			label: "Total Expenses",
-			value: formatCurrency(metrics?.totalExpense || 0),
-			icon: ShoppingCart,
-			iconColor: "text-orange-500",
-		},
-		{
-			label: "Cash Out",
-			value: formatCurrency(metrics?.totalCashOut || 0),
-			icon: TrendingDown,
-			sublabel: "Total outflows",
-			iconColor: "text-red-500",
-		},
-		{
-			label: "Closing Cash",
-			value: formatCurrency(metrics?.closingCash || 0),
-			icon: Wallet,
-			sublabel: "Cash in hand",
-			iconColor: "text-purple-500",
-		},
-	];
 
 	return (
 		<section className="flex-1 overflow-y-auto p-8">
@@ -126,20 +70,7 @@ const Dashboard = async () => {
 							<WithdrawCashModal />
 						</div>
 					</div>
-
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{metricCardValues.map((item) => (
-							<MetricCard
-								label={item.label}
-								value={item.value}
-								change={item.change}
-								icon={item.icon}
-								key={item.label}
-								sublabel={item.sublabel}
-								iconColor={item.iconColor}
-							/>
-						))}
-					</div>
+					<DailyBalanceMetrics />
 				</section>
 				<section>
 					<TransactionTable transactions={mockTransactions} />
@@ -148,12 +79,5 @@ const Dashboard = async () => {
 		</section>
 	);
 };
-
-function formatCurrency(amount: string | number) {
-	return new Intl.NumberFormat("en-US", {
-		style: "currency",
-		currency: "USD",
-	}).format(Number(amount));
-}
 
 export default Dashboard;

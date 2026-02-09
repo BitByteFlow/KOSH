@@ -11,7 +11,7 @@ export interface DashboardMetrics {
 }
 
 export interface CreateTransactionRequest {
-	type: "OPENING_CASH" | "WITHDRAW" | "EXPENSE";
+	type: "INITIAL_CAPITAL" | "WITHDRAWAL" | "ADDITIONAL_CAPITAL" | "SALE_INCOME" | "PURCHASE" | "DEBT_PAID" | "CREDIT_RECEIVED" | "EXPENSES" | "DEBT";
 	amount: number;
 	note: string;
 }

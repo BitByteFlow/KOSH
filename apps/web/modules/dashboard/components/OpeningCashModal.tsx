@@ -11,46 +11,41 @@ import {
 } from "@kosh/ui/components/dialog";
 import { Button } from "@kosh/ui/components/button";
 import { Input } from "@kosh/ui/components/input";
-import { addOpeningCash } from "@/actions/transaction.actions";
+import { useCreateTransaction } from "../hooks/useAccount";
+import { TransactionType } from "@/types/transcation";
 
 const TRANSACTION_TYPES = [
-	{ value: "INITIAL_CAPITAL", label: "Initial Capital" },
-	{ value: "ADDITIONAL_CAPITAL", label: "Additional Capital" },
-	{ value: "SALE_INCOME", label: "Sale Income" },
-	{ value: "CREDIT_RECEIVED", label: "Credit Received" },
+	{ value: "INITIAL_CAPITAL" as TransactionType, label: "Initial Capital" },
+	{ value: "ADDITIONAL_CAPITAL" as TransactionType, label: "Additional Capital" },
+	{ value: "SALE_INCOME" as TransactionType, label: "Sale Income" },
+	{ value: "CREDIT_RECEIVED" as TransactionType, label: "Credit Received" },
 ] as const;
 
 export const OpeningCashModal = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [amount, setAmount] = useState("");
 	const [note, setNote] = useState("");
-	const [type, setType] = useState<string>("INITIAL_CAPITAL");
+	const [type, setType] = useState<TransactionType>("INITIAL_CAPITAL");
 	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState("");
+
+	const createTransaction = useCreateTransaction()
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setError("");
 		setIsLoading(true);
 
 		const amountValue = parseFloat(amount);
 		if (isNaN(amountValue) || amountValue <= 0) {
-			setError("Please enter a valid positive amount.");
 			setIsLoading(false);
 			return;
 		}
 
-		const result = await addOpeningCash({ amount: amountValue, note, type });
+		await createTransaction.mutateAsync({ amount: amountValue, note, type });
 
-		if (result.success) {
-			setIsOpen(false);
-			setAmount("");
-			setNote("");
-			setType("INITIAL_CAPITAL");
-		} else {
-			setError(result.message);
-		}
-
+		setIsOpen(false);
+		setAmount("");
+		setNote("");
+		setType("INITIAL_CAPITAL");
 		setIsLoading(false);
 	};
 
@@ -66,7 +61,6 @@ export const OpeningCashModal = () => {
 					<DialogTitle>Add Cash</DialogTitle>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} className="grid gap-4 py-4">
-					{error && <p className="text-red-500 text-sm">{error}</p>}
 					<div className="grid gap-2">
 						<label htmlFor="type" className="text-sm font-medium leading-none">
 							Transaction Type
