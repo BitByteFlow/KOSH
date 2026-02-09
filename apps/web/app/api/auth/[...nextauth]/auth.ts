@@ -5,9 +5,10 @@ import GoogleProvider from "next-auth/providers/google";
 const circuitBreaker = new CircuitBreaker();
 
 const backendURL = process.env.BACKEND_URL;
+console.log(backendURL, "this is backendulr")
 
 if (!backendURL) {
-	console.error("BACKEND_URL environment variable is not set");
+	console.error("BACKEND_URL environment variable is not set", backendURL);
 }
 
 type GithubProfile = Profile & {

@@ -1,5 +1,4 @@
 import React from "react";
-
 import { TransactionTable } from "@/modules/dashboard/components/TransactionTable";
 
 const mockTransactions = [

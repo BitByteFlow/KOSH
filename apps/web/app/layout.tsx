@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { QueryProvider } from "@/lib/query/provider";
+import { Providers } from "@/lib/query/providers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -28,7 +28,7 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body className={`${inter.variable} antialiased`}>
-				<QueryProvider>{children}</QueryProvider>
+				<Providers>{children}</Providers>
 			</body>
 		</html>
 	);

@@ -1,4 +1,4 @@
-import { apiClient } from "@/lib/api/client";
+import { clientApiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/config";
 
 export interface DashboardMetrics {
@@ -25,11 +25,11 @@ export interface Transaction {
 }
 
 export const accountService = {
-	getDashboardMetrics: async (): Promise<DashboardMetrics> => {
-		return apiClient.get<DashboardMetrics>(API_ENDPOINTS.account.balance);
+	getDashboardMetrics: async (token: string | undefined): Promise<DashboardMetrics> => {
+		return clientApiClient.get<DashboardMetrics>(API_ENDPOINTS.account.balance, token);
 	},
 
-	createTransaction: async (data: CreateTransactionRequest): Promise<Transaction> => {
-		return apiClient.post<Transaction>(API_ENDPOINTS.account.transactions, data);
+	createTransaction: async (data: CreateTransactionRequest, token: string | undefined): Promise<Transaction> => {
+		return clientApiClient.post<Transaction>(API_ENDPOINTS.account.transactions, token, data);
 	},
 };
