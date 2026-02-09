@@ -29,4 +29,16 @@ export class CreateSaleDto {
 	@IsOptional()
 	@IsString()
 	transactionNote?: string;
+
+	@IsOptional()
+	@IsString()
+	customerName?: string;
+
+	@IsOptional()
+	@IsString()
+	customerEmail?: string;
+
+	@IsOptional()
+	@IsString()
+	customerContact?: string;
 }

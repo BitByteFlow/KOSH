@@ -5,6 +5,7 @@ import {
 	NotFoundException,
 } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
+import { TransactionType } from "db";
 import type { CreateSaleDto } from "./dto/CreateSaleDto.dto";
 import type { SaleResponseDto } from "./dto/SaleResponseDto.dto";
 
@@ -154,11 +155,53 @@ export class SalesService {
 					await tsx.accountTransaction.create({
 						data: {
 							userId: userId,
-							type: "SALE_INCOME",
+							type: TransactionType.SALE_INCOME,
 							amount: total,
 							note: transactionNote || `Sale #${sale.id.slice(0, 8)}`,
 							saleId: sale.id,
 							dailyBalanceId: dailyBalance.id,
+						},
+					});
+				} else if (paymentType === "CREDIT") {
+					let creditAccountId = creditId;
+
+					if (!creditAccountId && createSaleDto.customerName) {
+						// Create a new credit account if details provided
+						const creditAccount = await tsx.creditAccount.create({
+							data: {
+								userId: userId,
+								customerName: createSaleDto.customerName,
+								email: createSaleDto.customerEmail,
+								contactNumber: createSaleDto.customerContact,
+								balance: total,
+							},
+						});
+						creditAccountId = creditAccount.id;
+
+						// Update the sale with the newly created credit account ID
+						await tsx.sale.update({
+							where: { id: sale.id },
+							data: { creditId: creditAccountId },
+						});
+					} else if (creditAccountId) {
+						// Increment balance of existing credit account
+						await tsx.creditAccount.update({
+							where: { id: creditAccountId },
+							data: {
+								balance: { increment: total },
+							},
+						});
+					}
+
+					// Record the DEBT transaction for history
+					await tsx.accountTransaction.create({
+						data: {
+							userId: userId,
+							type: TransactionType.DEBT,
+							amount: total,
+							note: transactionNote || `Credit Sale #${sale.id.slice(0, 8)}`,
+							saleId: sale.id,
+							creditAccountId: creditAccountId,
 						},
 					});
 				}
