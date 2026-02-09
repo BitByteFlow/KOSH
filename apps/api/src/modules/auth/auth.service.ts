@@ -56,8 +56,7 @@ export class AuthService {
 		};
 	}
 
-    //TODO: NOT valid remove later
-	async getUser(email: string, googleId: string): Promise<AuthResponseDto> {
+	async signin(email: string, googleId: string): Promise<AuthResponseDto> {
 		const existinguser = await this.database.user.findFirst({
 			where: {
 				OR: [

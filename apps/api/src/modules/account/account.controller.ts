@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/utils/jwt.guard";
 import { AccountService } from "./account.service";
 import { BalanceDto } from "./dto/BalanceDto.dto";
 import { CreateTransactionDto } from "./dto/CreateTransactionDto.dto";
+import { GetTransactionsQueryDto } from "./dto/GetTransactionsQueryDto.dto";
 import type { AuthenticatedRequest } from "src/types/auth";
 
 @Controller("accounts/")
@@ -30,5 +31,22 @@ export class AccountController {
 		);
 
 		return response;
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Get("transactions")
+	async getAccountTransactions(
+		@Req() req: AuthenticatedRequest,
+		@Query() query: GetTransactionsQueryDto,
+	) {
+		const { page, limit, sortBy, sortOrder } = query;
+		
+		return this.accountService.getAccountTransactions(
+			req.user.id,
+			page,
+			limit,
+			sortBy,
+			sortOrder,
+		);
 	}
 }

@@ -15,9 +15,10 @@ import { UserModule } from './modules/user/user.module';
 import { JWTStrategy } from './utils/jwt.strategy';
 
 import { HealthModule } from './modules/health/health.module';
+import { SalesModule } from './modules/sales/sales.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, AuthModule, UserModule, PassportModule, CategoryModule, ProductModule, AccountModule, PurchaseModule, HealthModule,
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, AuthModule, UserModule, PassportModule, CategoryModule, ProductModule, AccountModule, PurchaseModule, HealthModule, SalesModule,
     LoggerModule.forRoot(),
     ThrottlerModule.forRoot([{
       ttl: 60000,

@@ -261,4 +261,66 @@ export class AccountService {
 			throw new InternalServerErrorException("Couldn't get today's balance");
 		}
 	}
+
+	async getAccountTransactions(
+		userId: string,
+		page: number = 1,
+		limit: number = 10,
+		sortBy: "createdAt" | "amount" | "type" = "createdAt",
+		sortOrder: "asc" | "desc" = "desc",
+	) {
+		try {
+			const skip = (page - 1) * limit;
+
+			const [transactions, total] = await Promise.all([
+				this.database.prisma.accountTransaction.findMany({
+					where: {
+						userId: userId,
+					},
+					orderBy: {
+						[sortBy]: sortOrder,
+					},
+					skip: skip,
+					take: limit,
+					select: {
+						id: true,
+						type: true,
+						amount: true,
+						note: true,
+						createdAt: true,
+						updatedAt: true,
+					},
+				}),
+				this.database.prisma.accountTransaction.count({
+					where: {
+						userId: userId,
+					},
+				}),
+			]);
+
+			const totalPages = Math.ceil(total / limit);
+
+			return {
+				data: transactions.map((t) => ({
+					id: t.id,
+					type: t.type,
+					amount: t.amount.toString(),
+					note: t.note,
+					createdAt: t.createdAt,
+					updatedAt: t.updatedAt,
+				})),
+				meta: {
+					total,
+					page,
+					limit,
+					totalPages,
+					hasNext: page < totalPages,
+					hasPrev: page > 1,
+				},
+			};
+		} catch (error) {
+			console.error("Error fetching transactions:", error);
+			throw new InternalServerErrorException("Failed to fetch transactions");
+		}
+	}
 }
