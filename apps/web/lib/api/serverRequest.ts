@@ -1,19 +1,41 @@
-import { buildUrl } from "../utils";
+import { auth } from "@/app/api/auth/[...nextauth]/auth";
+import type { RequestOptions } from "./types";
 import { API_CONFIG } from "./config";
 import { createErrorFromResponse, NetworkError } from "./errors";
-import type { RequestOptions } from "./types";
+import { buildUrl } from "../utils";
 
 
+function logRequest(method: string, url: string, options?: RequestOptions) {
+	if (process.env.NODE_ENV === "development") {
+		console.log(`[API] ${method} ${url}`, options?.body ? JSON.parse(options.body as string) : "");
+	}
+}
 
-async function clientRequest<T>(
+function logResponse(method: string, url: string, status: number, data?: unknown) {
+	if (process.env.NODE_ENV === "development") {
+		console.log(`[API] ${method} ${url} - ${status}`, data);
+	}
+}
+
+
+async function serverRequest<T>(
 	endpoint: string,
-	token: string | undefined,
 	options: RequestOptions = {},
 ): Promise<T> {
-	const { timeout = API_CONFIG.timeout, params, ...fetchOptions } = options;
+	const { skipAuth = false, timeout = API_CONFIG.timeout, params, ...fetchOptions } = options;
 	
 	const url = buildUrl(endpoint, params);
 	const method = fetchOptions.method || "GET";
+	
+	let token: string | undefined;
+	if (!skipAuth) {
+		try {
+			const session = await auth();
+			token = session?.user?.token;
+		} catch (error) {
+			console.error("[API] Failed to get session:", error);
+		}
+	}
 	
 	const headers: Record<string, string> = {
 		"Content-Type": "application/json",
@@ -26,11 +48,11 @@ async function clientRequest<T>(
 		});
 	}
 	
-	if (token) {
+	if (token && !skipAuth) {
 		headers.Authorization = `Bearer ${token}`;
 	}
 	
-	// logRequest(method, url, fetchOptions);
+	logRequest(method, url, fetchOptions);
 	
 	const controller = new AbortController();
 	const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -54,7 +76,7 @@ async function clientRequest<T>(
 			data = await response.text();
 		}
 		
-		// logResponse(method, url, response.status, data);
+		logResponse(method, url, response.status, data);
 		
 		if (!response.ok) {
 			throw createErrorFromResponse(response.status, data as any);
@@ -76,33 +98,33 @@ async function clientRequest<T>(
 	}
 }
 
-export const clientApiClient = {
-	get: <T>(endpoint: string, token: string | undefined, options?: RequestOptions) =>
-		clientRequest<T>(endpoint, token, { ...options, method: "GET" }),
+export const serverApiClient = {
+	get: <T>(endpoint: string, options?: RequestOptions) =>
+		serverRequest<T>(endpoint, { ...options, method: "GET" }),
 	
-	post: <T>(endpoint: string, token: string | undefined, body?: unknown, options?: RequestOptions) =>
-		clientRequest<T>(endpoint, token, {
+	post: <T>(endpoint: string, body?: unknown, options?: RequestOptions) =>
+		serverRequest<T>(endpoint, {
 			...options,
 			method: "POST",
 			body: body ? JSON.stringify(body) : undefined,
 		}),
 	
-	put: <T>(endpoint: string, token: string | undefined, body?: unknown, options?: RequestOptions) =>
-		clientRequest<T>(endpoint, token, {
+	put: <T>(endpoint: string, body?: unknown, options?: RequestOptions) =>
+		serverRequest<T>(endpoint, {
 			...options,
 			method: "PUT",
 			body: body ? JSON.stringify(body) : undefined,
 		}),
 	
-	patch: <T>(endpoint: string, token: string | undefined, body?: unknown, options?: RequestOptions) =>
-		clientRequest<T>(endpoint, token, {
+	patch: <T>(endpoint: string, body?: unknown, options?: RequestOptions) =>
+		serverRequest<T>(endpoint, {
 			...options,
 			method: "PATCH",
 			body: body ? JSON.stringify(body) : undefined,
 		}),
 	
-	delete: <T>(endpoint: string, token: string | undefined, options?: RequestOptions) =>
-		clientRequest<T>(endpoint, token, { ...options, method: "DELETE" }),
+	delete: <T>(endpoint: string, options?: RequestOptions) =>
+		serverRequest<T>(endpoint, { ...options, method: "DELETE" }),
 };
 
-// Legacy export (deprecated - use serverApiClient or clientApiClient)
+export const apiClient = serverApiClient;

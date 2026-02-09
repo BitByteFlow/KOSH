@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { API_CONFIG } from "./api/config";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -18,4 +19,17 @@ export function formatCurrency(amount: string | number) {
 		style: "currency",
 		currency: "USD",
 	}).format(Number(amount));
+}
+
+
+export function buildUrl(endpoint: string, params?: Record<string, string | number | boolean>): string {
+	const url = new URL(endpoint, API_CONFIG.baseURL);
+	
+	if (params) {
+		Object.entries(params).forEach(([key, value]) => {
+			url.searchParams.append(key, String(value));
+		});
+	}
+	
+	return url.toString();
 }
