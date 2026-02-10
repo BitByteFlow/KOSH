@@ -1,5 +1,5 @@
 {
-	"name": "db",
+	"name": "@kosh/db",
 	"module": "index.ts",
 	"type": "module",
 	"private": true,

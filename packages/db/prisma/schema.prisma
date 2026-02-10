@@ -22,6 +22,7 @@ enum TransactionType {
   DEBT_PAID
   CREDIT_RECEIVED
   EXPENSES
+  DEBT
 }
 
 enum PaymentType {
@@ -267,7 +268,7 @@ model AccountTransaction {
 
 model DailyBalance {
   id   String   @id @default(uuid())
-  date DateTime @unique @default(now())
+  date DateTime @default(now())
 
   openingCash  Decimal @db.Decimal(12, 2)
   closingCash  Decimal @db.Decimal(12, 2)
@@ -281,6 +282,7 @@ model DailyBalance {
 
   transactions AccountTransaction[]
 
+  @@unique([userId, date])
   @@index([userId, date])
 }
 
