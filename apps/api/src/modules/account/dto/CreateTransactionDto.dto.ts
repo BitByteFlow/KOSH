@@ -4,12 +4,12 @@ export class CreateTransactionDto {
 
     @IsString()
     @IsNotEmpty({ message: "Type cannot be empty!" })
-    type: string
+    type!: string
 
 
     @IsNotEmpty({message:"Amount is missing!"})
     @IsNumber()
-    amount:number
+    amount!:number
 
 
     @IsString()

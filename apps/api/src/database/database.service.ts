@@ -1,7 +1,7 @@
-import { Injectable, Logger, Global } from "@nestjs/common";
+import { Injectable, Logger, Global, Inject } from "@nestjs/common";
 import type { OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import type { ConfigService } from "@nestjs/config";
-import { PrismaClient } from "db";
+import { PrismaClient } from "@kosh/db";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
@@ -12,7 +12,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 	private pool?: Pool;
 	public readonly prisma: PrismaClient;
 
-	constructor(private configService: ConfigService) {
+	constructor(@Inject("DATABASE_CONNECTION") private configService: ConfigService) {
 		const dbUrl = configService.get<string>("DATABASE_URL");
 		const maxConnections = configService.get<number>("DB_MAX_CONNECTIONS") || 3;
 

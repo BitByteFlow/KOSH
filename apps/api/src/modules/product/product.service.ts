@@ -2,7 +2,7 @@ import { ConflictException, Injectable, InternalServerErrorException, NotFoundEx
 import type { DatabaseService } from "src/database/database.service";
 import type { CategoryResponseDto } from "../categories/dto/CategoryResponseDto";
 import type { ProductFilterDto } from "./dto/ProductFilterDto.dto";
-import type { Prisma } from "db";
+import type { Prisma } from "@kosh/db";
 
 @Injectable()
 export class ProductService {
@@ -205,7 +205,7 @@ export class ProductService {
                 status: "success",
                 message: "Product Deleted",
             };
-        } catch (error) {
+        } catch (error: any) {
             if (
                 error instanceof NotFoundException ||
                 error instanceof ConflictException
@@ -274,7 +274,7 @@ export class ProductService {
                 status: "success",
                 message: "Product updated successfully"
             };
-        } catch (error) {
+        } catch (error: any) {
             if (
                 error instanceof NotFoundException ||
                 error instanceof ConflictException
@@ -348,7 +348,7 @@ export class ProductService {
                 status: "success",
                 message: "Variant added successfully",
             };
-        } catch (error) {
+        } catch (error: any) {
             if (error instanceof NotFoundException) {
                 throw error;
             }
@@ -385,7 +385,7 @@ export class ProductService {
                 message: "Product Returned Successfully",
                 data: products
             };
-        } catch (error) {
+        } catch (error: any) {
             console.log(error);
             if (error instanceof NotFoundException) {
                 throw error;
@@ -425,7 +425,7 @@ export class ProductService {
                     message: "Variant updated successfully",
                 };
             });
-        } catch (error) {
+        } catch (error: any) {
             if (error instanceof NotFoundException) {
                 throw error;
             }
@@ -460,7 +460,7 @@ export class ProductService {
                     message: "Variant deleted successfully",
                 };
             });
-        } catch (error) {
+        } catch (error: any) {
             if (error instanceof NotFoundException) {
                 throw error;
             }

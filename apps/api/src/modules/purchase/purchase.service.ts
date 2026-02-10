@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import type { PaymentStatus, Prisma } from 'db';
+import type { PaymentStatus, Prisma } from '@kosh/db';
 import type { DatabaseService } from 'src/database/database.service';
 import type { CreatePurchaseDto } from './dto/CreatePurchaseDto.dto';
 import type { UpdatePurchaseDto } from './dto/UpdatePurchaseDto.dto';

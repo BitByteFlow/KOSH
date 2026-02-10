@@ -9,6 +9,7 @@ import type { DatabaseService } from "src/database/database.service";
 import type { CategoryResponseDto } from "../categories/dto/CategoryResponseDto";
 import type { BalanceDto } from "./dto/BalanceDto.dto";
 import type { CreateTransactionDto } from "./dto/CreateTransactionDto.dto";
+import { Prisma } from "@kosh/db";
 
 @Injectable()
 export class AccountService {
@@ -18,7 +19,7 @@ export class AccountService {
 	 * Creates a transaction and updates the daily balance accordingly.
 	 * Handles both cash-in (INITIAL_CAPITAL, ADDITIONAL_CAPITAL, SALE_INCOME, CREDIT_RECEIVED)
 	 * and cash-out (WITHDRAWAL, PURCHASE, EXPENSES, DEBT_PAID) transactions.
-	 * 
+	 *
 	 * @param createTransactionDto - Transaction details (type, amount, note)
 	 * @param userId - User ID from authenticated session
 	 * @returns Success response with status and message
@@ -89,11 +90,14 @@ export class AccountService {
 
 					const openingBalance = Number(openingCash);
 					if (
-						(type === "WITHDRAWAL" || type === "PURCHASE" || type === "EXPENSES" || type === "DEBT_PAID") &&
+						(type === "WITHDRAWAL" ||
+							type === "PURCHASE" ||
+							type === "EXPENSES" ||
+							type === "DEBT_PAID") &&
 						amount > openingBalance
 					) {
 						throw new ConflictException(
-							`Insufficient funds for ${type.toLowerCase()}. Available: ${openingBalance}, Required: ${amount}`
+							`Insufficient funds for ${type.toLowerCase()}. Available: ${openingBalance}, Required: ${amount}`,
 						);
 					}
 
@@ -112,11 +116,14 @@ export class AccountService {
 				} else {
 					const currentBalance = Number(dailyBalance.closingCash);
 					if (
-						(type === "WITHDRAWAL" || type === "PURCHASE" || type === "EXPENSES" || type === "DEBT_PAID") &&
+						(type === "WITHDRAWAL" ||
+							type === "PURCHASE" ||
+							type === "EXPENSES" ||
+							type === "DEBT_PAID") &&
 						amount > currentBalance
 					) {
 						throw new ConflictException(
-							`Insufficient funds for ${type.toLowerCase()}. Available: ${currentBalance}, Required: ${amount}`
+							`Insufficient funds for ${type.toLowerCase()}. Available: ${currentBalance}, Required: ${amount}`,
 						);
 					}
 				}
@@ -187,7 +194,7 @@ export class AccountService {
 	/**
 	 * Retrieves the current day's cash balance for a user.
 	 * If no balance exists for today, creates one using yesterday's closing balance as opening balance.
-	 * 
+	 *
 	 * @param userId - User ID from authenticated session
 	 * @returns BalanceDto containing opening/closing cash, total cash in/out, sales, and expenses
 	 * @throws InternalServerErrorException - If database operation fails
@@ -204,8 +211,8 @@ export class AccountService {
 			yesterday.setDate(yesterday.getDate() - 1);
 			yesterday.setHours(0, 0, 0, 0);
 
-			const response = await this.database.prisma.$transaction(async (tsx) => {
-				let balance = await tsx.dailyBalance.findFirst({
+			return await this.database.prisma.$transaction(async (tsx) => {
+				const lastRecord = await tsx.dailyBalance.findFirst({
 					where: {
 						userId: userId,
 						date: {
@@ -215,35 +222,27 @@ export class AccountService {
 					},
 				});
 
-				if (!balance) {
-					const yesterdayBalance = await tsx.dailyBalance.findFirst({
-						where: {
-							userId: userId,
-							date: {
-								gte: yesterday,
-								lt: today,
-							},
-						},
-						orderBy: {
-							date: "desc",
-						},
-					});
+				const openingCash = lastRecord?.closingCash ?? new Prisma.Decimal(0);
 
-					const openingCash = yesterdayBalance?.closingCash || 0;
-
-					balance = await tsx.dailyBalance.create({
-						data: {
+				const balance = await tsx.dailyBalance.upsert({
+					where: {
+						userId_date: {
 							userId: userId,
 							date: today,
-							openingCash: openingCash,
-							closingCash: openingCash,
-							totalCashIn: 0,
-							totalCashOut: 0,
-							totalSales: 0,
-							totalExpense: 0,
 						},
-					});
-				}
+					},
+					update: {},
+					create: {
+						userId: userId,
+						date: today,
+						openingCash: openingCash,
+						closingCash: openingCash,
+						totalCashIn: 0,
+						totalCashOut: 0,
+						totalSales: 0,
+						totalExpense: 0,
+					},
+				});
 				return {
 					openingCash: balance.openingCash,
 					closingCash: balance.closingCash,
@@ -253,8 +252,6 @@ export class AccountService {
 					totalSales: balance.totalSales,
 				};
 			});
-
-			return response;
 		} catch (error) {
 			console.log(error);
 
