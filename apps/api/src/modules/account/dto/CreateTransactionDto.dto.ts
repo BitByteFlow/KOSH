@@ -1,18 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { createZodDto } from "nestjs-zod";
+import { createTransactionSchema } from "@kosh/validation";
 
-export class CreateTransactionDto {
-
-    @IsString()
-    @IsNotEmpty({ message: "Type cannot be empty!" })
-    type!: string
-
-
-    @IsNotEmpty({message:"Amount is missing!"})
-    @IsNumber()
-    amount!:number
-
-
-    @IsString()
-    @IsOptional()
-    note?:string
-}
+export class CreateTransactionDto extends createZodDto(createTransactionSchema) {}

@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import type { DatabaseService } from "src/database/database.service";
+import { DatabaseService } from "src/database/database.service";
 import type { CategoryResponseDto } from "../categories/dto/CategoryResponseDto";
 import type { ProductFilterDto } from "./dto/ProductFilterDto.dto";
 import type { Prisma } from "@kosh/db";

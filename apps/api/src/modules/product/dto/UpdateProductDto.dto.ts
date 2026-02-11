@@ -1,10 +1,4 @@
-/* eslint-disable prettier/prettier */
-import { IsString, IsUUID, MinLength } from "class-validator";
-export class UpdateProductDto {
-    @IsString()
-    @MinLength(2)
-    name: string;
+import { createZodDto } from "nestjs-zod";
+import { updateProductSchema } from "@kosh/validation";
 
-    @IsUUID()
-    categoryId: string;
-}
+export class UpdateProductDto extends createZodDto(updateProductSchema) {}

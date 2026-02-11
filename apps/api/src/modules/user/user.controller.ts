@@ -1,10 +1,10 @@
 import { Controller, Get, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/utils/jwt.guard";
 import type { UserResponseDto } from "./dto/UserResponseDto";
-import type { UserService } from "./user.service";
+import { UserService } from "./user.service";
 import type { AuthenticatedRequest } from "src/types/auth";
 
-@Controller("users/")
+@Controller("users")
 export class UserController {
 	constructor(private userService: UserService) {}
 

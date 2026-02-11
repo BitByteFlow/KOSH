@@ -1,8 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
-import type { ConfigService } from "@nestjs/config";
-import type { DatabaseService } from "src/database/database.service";
+import { ConfigService } from "@nestjs/config";
+import { DatabaseService } from "src/database/database.service";
 import type { UserResponseDto } from './../modules/user/dto/UserResponseDto';
 
 @Injectable()

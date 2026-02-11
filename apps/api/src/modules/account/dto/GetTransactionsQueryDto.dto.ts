@@ -1,24 +1,4 @@
-import { IsEnum, IsInt, IsOptional, Min } from "class-validator";
-import { Type } from "class-transformer";
+import { createZodDto } from "nestjs-zod";
+import { getTransactionsQuerySchema } from "@kosh/validation";
 
-export class GetTransactionsQueryDto {
-	@IsOptional()
-	@Type(() => Number)
-	@IsInt()
-	@Min(1)
-	page?: number = 1;
-
-	@IsOptional()
-	@Type(() => Number)
-	@IsInt()
-	@Min(1)
-	limit?: number = 10;
-
-	@IsOptional()
-	@IsEnum(["createdAt", "amount", "type"])
-	sortBy?: "createdAt" | "amount" | "type" = "createdAt";
-
-	@IsOptional()
-	@IsEnum(["asc", "desc"])
-	sortOrder?: "asc" | "desc" = "desc";
-}
+export class GetTransactionsQueryDto extends createZodDto(getTransactionsQuerySchema) {}

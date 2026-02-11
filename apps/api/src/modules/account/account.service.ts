@@ -4,7 +4,7 @@ import {
 	Injectable,
 	InternalServerErrorException,
 } from "@nestjs/common";
-import type { DatabaseService } from "src/database/database.service";
+import { DatabaseService } from "src/database/database.service";
 
 import type { CategoryResponseDto } from "../categories/dto/CategoryResponseDto";
 import type { BalanceDto } from "./dto/BalanceDto.dto";

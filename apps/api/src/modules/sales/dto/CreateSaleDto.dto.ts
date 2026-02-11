@@ -1,44 +1,4 @@
-import { Type } from "class-transformer";
-import { IsArray, IsDecimal, IsEnum, IsOptional, IsString, IsUUID, Min, ValidateNested } from "class-validator";
-import { CreateSaleItemDto } from "./CreateSaleItemDto.dto";
+import { createZodDto } from "nestjs-zod";
+import { createSaleSchema } from "@kosh/validation";
 
-export enum PaymentType {
-	CASH = "CASH",
-	ONLINE = "ONLINE",
-	CREDIT = "CREDIT",
-}
-
-export class CreateSaleDto {
-	@Type(() => Number)
-	@IsDecimal()
-	@Min(0)
-	discount: number;
-
-	@IsEnum(PaymentType)
-	paymentType: PaymentType;
-
-	@IsOptional()
-	@IsUUID()
-	creditId?: string;
-
-	@IsArray()
-	@ValidateNested({ each: true })
-	@Type(() => CreateSaleItemDto)
-	items: CreateSaleItemDto[];
-
-	@IsOptional()
-	@IsString()
-	transactionNote?: string;
-
-	@IsOptional()
-	@IsString()
-	customerName?: string;
-
-	@IsOptional()
-	@IsString()
-	customerEmail?: string;
-
-	@IsOptional()
-	@IsString()
-	customerContact?: string;
-}
+export class CreateSaleDto extends createZodDto(createSaleSchema) {}

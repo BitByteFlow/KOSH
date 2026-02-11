@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
-import { HealthCheck, type HealthCheckService, type MemoryHealthIndicator } from '@nestjs/terminus';
-import type { DatabaseService } from '../../database/database.service';
+import { HealthCheck,  HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
+import { DatabaseService } from '../../database/database.service';
 
 @Controller('health')
 export class HealthController {
@@ -15,23 +15,11 @@ export class HealthController {
   check() {
     return this.health.check([
       () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
-      async () => {
-        try {
-            await this.db.$queryRaw`SELECT 1`;
-            return {
-                database: {
-                    status: 'up',
-                },
-            };
-        } catch (e) {
-            return {
-                database: {
-                    status: 'down',
-                    message: e.message,
-                },
-            };
-        }
-      }
+      (() => {
+        return this.db.$queryRaw`SELECT 1`
+          .then(() => ({ database: { status: 'up' } }))
+          .catch((e: any) => ({ database: { status: 'down', message: e.message } }));
+      }) as any
     ]);
   }
 }

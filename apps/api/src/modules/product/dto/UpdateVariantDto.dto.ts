@@ -1,25 +1,4 @@
-/* eslint-disable prettier/prettier */
-import { IsNotEmpty, IsNumber, IsString, Min } from "class-validator";
+import { createZodDto } from "nestjs-zod";
+import { updateVariantSchema } from "@kosh/validation";
 
-export class UpdateProductVariantDto {
-
-    @IsString()
-    @IsNotEmpty({ message: "Product ID not sent!" })
-    productId: string
-
-    @IsNotEmpty({ message: "Variant ID not sent!" })
-    variantId: string
-
-
-    @IsNumber()
-    @Min(0)
-    costPrice: number;
-
-    @IsNumber()
-    @Min(0)
-    sellingPrice: number;
-
-    @IsString()
-    status:string
-
-}
+export class UpdateProductVariantDto extends createZodDto(updateVariantSchema) {}

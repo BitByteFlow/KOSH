@@ -1,10 +1,4 @@
-import { IsEmail, IsNotEmpty } from 'class-validator';
-export class LoginRequestDto {
+import { createZodDto } from 'nestjs-zod';
+import { loginRequestSchema } from '@kosh/validation';
 
-    @IsNotEmpty({ message: "Google Id cannot be empty!" })
-    googleId: string;
-
-    @IsNotEmpty({ message: "Email cannot be empty!" })
-    @IsEmail()
-    email: string;
-}
+export class LoginRequestDto extends createZodDto(loginRequestSchema) {}

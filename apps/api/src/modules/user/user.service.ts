@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
-import type { DatabaseService } from "src/database/database.service";
+import { DatabaseService } from "src/database/database.service";
 import type { UserResponseDto } from "./dto/UserResponseDto";
 
 @Injectable()

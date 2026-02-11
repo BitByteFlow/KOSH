@@ -22,7 +22,7 @@ import type { CreateVariantDto } from "./dto/AddVariantDto.dto";
 import type { CreateProductRequestDto } from "./dto/CreateProductRequestDto.dto";
 import type { ProductFilterDto } from "./dto/ProductFilterDto.dto";
 import type { UpdateProductDto } from "./dto/UpdateProductDto.dto";
-import type { ProductService } from "./product.service";
+import { ProductService } from "./product.service";
 import type { AuthenticatedRequest } from "src/types/auth";
 
 @Controller("products")

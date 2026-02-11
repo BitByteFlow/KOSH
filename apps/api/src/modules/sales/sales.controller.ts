@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/utils/jwt.guard";
-import type { SalesService } from "./sales.service";
+import { SalesService } from "./sales.service";
 import type { CreateSaleDto } from "./dto/CreateSaleDto.dto";
 import type { AuthenticatedRequest } from "src/types/auth";
 
