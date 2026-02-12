@@ -73,8 +73,7 @@ const nextAuth = NextAuth({
 				console.error(`Login failed for user: ${googleProfile.email}`, error);
 				
 				const statusCode = error instanceof ApiError ? error.statusCode : (error.response?.status || 500);
-				
-				if (statusCode === 404 || statusCode === 400) {
+				if (statusCode === 404 || statusCode === 400 || statusCode === 401) {
 					try {
 						const signUpData = await retryApiCall(() =>
 							circuitBreaker.call(() =>

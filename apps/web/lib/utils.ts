@@ -23,9 +23,7 @@ export function formatCurrency(amount: string | number) {
 
 
 export function buildUrl(endpoint: string, params?: Record<string, string | number | boolean>): string {
-	console.log("before build", API_CONFIG.baseURL)
 	const url = new URL(endpoint, API_CONFIG.baseURL);
-	console.log("after build", url)
 	
 	if (params) {
 		Object.entries(params).forEach(([key, value]) => {

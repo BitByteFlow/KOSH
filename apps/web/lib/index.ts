@@ -22,6 +22,7 @@ export async function retryApiCall<T>(
 			const delay =
 				Math.min(baseDelay * 2 ** i, 10000) + Math.random() * 1000;
 
+			console.log("thisis is in retry", error)
 			await new Promise((resolve) => setTimeout(resolve, delay));
 		}
 	}
@@ -59,6 +60,7 @@ export class CircuitBreaker {
 			if (this.failureCount >= this.failureThreshold) {
 				this.state = "OPEN";
 			}
+			console.log("thisis is in call", error)
 
 			throw error;
 		}
