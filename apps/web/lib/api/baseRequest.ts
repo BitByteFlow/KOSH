@@ -4,12 +4,14 @@ import { createErrorFromResponse, NetworkError } from "./errors";
 import { buildUrl } from "../utils";
 
 function logRequest(method: string, url: string, options?: RequestOptions) {
+	console.log("log request")
 	if (process.env.NODE_ENV === "development") {
 		console.log(`[API] ${method} ${url}`, options?.body ? JSON.parse(options.body as string) : "");
 	}
 }
 
 function logResponse(method: string, url: string, status: number, data?: unknown) {
+	console.log("log response")
 	if (process.env.NODE_ENV === "development") {
 		console.log(`[API] ${method} ${url} - ${status}`, data);
 	}

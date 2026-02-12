@@ -72,7 +72,6 @@ const nextAuth = NextAuth({
 			} catch (error: any) {
 				console.error(`Login failed for user: ${googleProfile.email}`, error);
 				
-				// Handle user not found (404) or missing details (400) by attempting registration
 				const statusCode = error instanceof ApiError ? error.statusCode : (error.response?.status || 500);
 				
 				if (statusCode === 404 || statusCode === 400) {
