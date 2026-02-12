@@ -1,5 +1,5 @@
 import { Injectable, Logger, Global, Inject } from "@nestjs/common";
-import type { OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import { OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaClient } from "@kosh/db";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -40,31 +40,15 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 		this.pool = pool;
 	}
 
-	get user() {
-		return this.prisma.user;
-	}
-	get product() {
-		return this.prisma.product;
-	}
-	get category() {
-		return this.prisma.category;
-	}
-	get productVariant() {
-		return this.prisma.productVariant;
-	}
-	get purchase() {
-		return this.prisma.purchase;
-	}
-
-	get $transaction() {
-		return this.prisma.$transaction.bind(this.prisma);
-	}
-	get $executeRaw() {
-		return this.prisma.$executeRaw.bind(this.prisma);
-	}
-	get $queryRaw() {
-		return this.prisma.$queryRaw.bind(this.prisma);
-	}
+    get user() { return this.prisma.user; }
+    get product() { return this.prisma.product; }
+    get category() { return this.prisma.category; }
+    get productVariant() { return this.prisma.productVariant; }
+    get purchase() { return this.prisma.purchase; }
+    
+    get $transaction() { return this.prisma.$transaction.bind(this.prisma); }
+    get $executeRaw() { return this.prisma.$executeRaw.bind(this.prisma); }
+    get $queryRaw() { return this.prisma.$queryRaw.bind(this.prisma); }
 
 	async onModuleInit() {
 		try {
@@ -92,16 +76,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 		if (process.env.NODE_ENV === "production") {
 			throw new Error("DANGER: Cannot clear database in production!");
 		}
-		// Or using Reflect to find models on this.prisma
-		const models = [
-			"user",
-			"product",
-			"category",
-			"productVariant",
-			"purchase",
-		];
-		return Promise.all(
-			models.map((model) => (this.prisma as any)[model].deleteMany()),
-		);
+        // Or using Reflect to find models on this.prisma
+        const models = ['user', 'product', 'category', 'productVariant', 'purchase'];
+        return Promise.all(models.map(model => (this.prisma as any)[model].deleteMany()));
 	}
 }

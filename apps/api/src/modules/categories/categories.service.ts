@@ -5,7 +5,7 @@ import {
 } from "@nestjs/common";
 import { error } from "console";
 import { DatabaseService } from "src/database/database.service";
-import type { CategoryResponseDto } from "./dto/CategoryResponseDto";
+import { CategoryResponseDto } from "./dto/CategoryResponseDto";
 
 @Injectable()
 export class CategoryService {

@@ -6,9 +6,9 @@ import {
 } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
 
-import type { CategoryResponseDto } from "../categories/dto/CategoryResponseDto";
-import type { BalanceDto } from "./dto/BalanceDto.dto";
-import type { CreateTransactionDto } from "./dto/CreateTransactionDto.dto";
+import { CategoryResponseDto } from "../categories/dto/CategoryResponseDto";
+import { BalanceDto } from "./dto/BalanceDto.dto";
+import { CreateTransactionDto } from "./dto/CreateTransactionDto.dto";
 import { Prisma } from "@kosh/db";
 
 @Injectable()

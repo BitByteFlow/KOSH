@@ -6,8 +6,8 @@ import {
 } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
 import { TransactionType } from "@kosh/db";
-import type { CreateSaleDto } from "./dto/CreateSaleDto.dto";
-import type { SaleResponseDto } from "./dto/SaleResponseDto.dto";
+import { CreateSaleDto } from "./dto/CreateSaleDto.dto";
+import { SaleResponseDto } from "./dto/SaleResponseDto.dto";
 
 @Injectable()
 export class SalesService {

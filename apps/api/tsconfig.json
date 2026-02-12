@@ -19,6 +19,9 @@
       ],
       "@kosh/db": [
         "../../../packages/db/index.ts"
+      ],
+      "@kosh/validation": [
+        "../../../packages/validation/index.ts"
       ]
     },
     "incremental": true,

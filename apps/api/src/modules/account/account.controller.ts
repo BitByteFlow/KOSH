@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/utils/jwt.guard";
 import { AccountService } from "./account.service";
-import type { BalanceDto } from "./dto/BalanceDto.dto";
-import type { CreateTransactionDto } from "./dto/CreateTransactionDto.dto";
-import type { GetTransactionsQueryDto } from "./dto/GetTransactionsQueryDto.dto";
+import { BalanceDto } from "./dto/BalanceDto.dto";
+import { CreateTransactionDto } from "./dto/CreateTransactionDto.dto";
+import { GetTransactionsQueryDto } from "./dto/GetTransactionsQueryDto.dto";
 import type { AuthenticatedRequest } from "src/types/auth";
 
 @Controller("accounts")

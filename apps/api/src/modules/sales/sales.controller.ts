@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/utils/jwt.guard";
 import { SalesService } from "./sales.service";
-import type { CreateSaleDto } from "./dto/CreateSaleDto.dto";
+import { CreateSaleDto } from "./dto/CreateSaleDto.dto";
 import type { AuthenticatedRequest } from "src/types/auth";
 
 @Controller("sales")

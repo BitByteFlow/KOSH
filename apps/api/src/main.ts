@@ -28,10 +28,27 @@ async function bootstrap() {
 		.setVersion("1.0")
 		.addBearerAuth()
 		.build();
-	const document = SwaggerModule.createDocument(app, config);
-	SwaggerModule.setup("api/docs", app, document);
 
-	await app.listen(process.env.PORT ?? 3001);
+	// const document = SwaggerModule.createDocument(app, config);
+	// console.log("what here")
+	// console.log("what here")
+
+	// SwaggerModule.setup("api/docs", app, document);
+
+	try {
+		const port = parseInt(process.env.PORT ?? "3001", 10);
+		await app.listen(port);
+
+		console.log(
+			`🚀 Application is running on: http://localhost:${port}/api/v1`,
+		);
+		console.log(
+			`📖 Swagger documentation available at: http://localhost:${port}/api/docs`,
+		);
+	} catch (error) {
+		console.error("❌ Failed to start application:", error);
+		process.exit(1);
+	}
 }
 bootstrap().catch((error) => {
 	Logger.error("Error starting the server", error);

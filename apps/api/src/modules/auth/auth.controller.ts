@@ -1,8 +1,8 @@
-import type { LoginRequestDto } from "./dto/LoginRequestDto";
+import { LoginRequestDto } from "./dto/LoginRequestDto";
 import { Body, Controller, Get, Post } from "@nestjs/common";
 import { AuthService } from "./auth.service";
-import type { AuthResponseDto } from "./dto/AuthResponseDto";
-import type { CreateUserDto } from "./dto/CreateUserDto";
+import { AuthResponseDto } from "./dto/AuthResponseDto";
+import { CreateUserDto } from "./dto/CreateUserDto";
 
 @Controller("auth")
 export class AuthController {

@@ -1,6 +1,6 @@
 import { Controller, Get, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/utils/jwt.guard";
-import type { UserResponseDto } from "./dto/UserResponseDto";
+import { UserResponseDto } from "./dto/UserResponseDto";
 import { UserService } from "./user.service";
 import type { AuthenticatedRequest } from "src/types/auth";
 
