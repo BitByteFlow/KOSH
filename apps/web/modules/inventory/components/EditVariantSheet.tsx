@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray, type Control, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { variantSchema, type Variant } from "@kosh/validation";
+import { variantDtoSchema, type VariantDtoInput } from "@kosh/validation";
 import { Button } from "@kosh/ui/components/button";
 import { Input } from "@kosh/ui/components/input";
 import { Label } from "@kosh/ui/components/label";
@@ -30,11 +30,11 @@ interface EditVariantSheetProps {
 		stock: number;
 		costPrice?: number;
 	};
-	onSave: (variant: Variant) => Promise<void>;
+	onSave: (variant: VariantDtoInput) => Promise<void>;
 }
 
 interface AttributeListProps {
-	control: Control<Variant>;
+	control: Control<VariantDtoInput>;
 }
 
 function AttributeList({ control }: AttributeListProps) {
@@ -108,12 +108,12 @@ export function EditVariantSheet({
 }: EditVariantSheetProps) {
 	const [loading, setLoading] = useState(false);
 
-	const form = useForm<Variant>({
-		resolver: zodResolver(variantSchema),
+	const form = useForm<VariantDtoInput>({
+		resolver: zodResolver(variantDtoSchema),
 		defaultValues: {
-			costPrice: "",
-			sellingPrice: "",
-			stock: "",
+			costPrice: 0,
+			sellingPrice: 0,
+			stock: 0,
 			attributes: [],
 		},
 	});
@@ -130,9 +130,7 @@ export function EditVariantSheet({
 		if (variant) {
 			reset({
 				id: variant.id,
-				costPrice: variant.costPrice?.toString() || "",
-				sellingPrice: variant.price.toString(),
-				stock: variant.stock.toString(),
+				costPrice: variant.costPrice || 0,
 				attributes: Object.entries(variant.attributes).map(([name, value]) => ({
 					name,
 					value,
@@ -141,7 +139,7 @@ export function EditVariantSheet({
 		}
 	}, [variant, reset]);
 
-	const onSubmit = async (data: Variant) => {
+	const onSubmit = async (data: VariantDtoInput) => {
 		setLoading(true);
 		try {
 			await onSave(data);

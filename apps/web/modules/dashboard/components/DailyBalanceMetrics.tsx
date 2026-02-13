@@ -1,20 +1,41 @@
-"use client"
+"use client";
 
-import React from "react"
-import { MetricCard } from "./MetricCard"
+import React from "react";
+import { MetricCard } from "./MetricCard";
 import { useAccountBalance } from "../hooks/useAccount";
-import { Wallet, DollarSign, TrendingUp, ShoppingCart, TrendingDown } from "lucide-react";
+import {
+	Wallet,
+	DollarSign,
+	TrendingUp,
+	ShoppingCart,
+	TrendingDown,
+} from "lucide-react";
 import type { MetricCardProps } from "@/types/dashboard";
 import { formatCurrency } from "@/lib/utils";
 import { getUserFriendlyErrorMessage } from "@/lib/api/errors";
+import { Button } from "@kosh/ui/components/button";
+import { MetricCardSkeleton } from "@/components/MetricCardSkeletion";
 
 const DailyBalanceMetrics = () => {
-	const { data: metrics, isLoading, error, refetch, isPending, isError, isSuccess } = useAccountBalance();
+	const {
+		data: metrics,
+		isLoading,
+		error,
+		refetch,
+		isPending,
+		isError,
+		isSuccess,
+	} = useAccountBalance();
 
 	if (isLoading) {
 		return (
-			<div className="p-4 border rounded">
-				<p>Loading dashboard metrics...</p>
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				<MetricCardSkeleton />
+				<MetricCardSkeleton />
+				<MetricCardSkeleton />
+				<MetricCardSkeleton />
+				<MetricCardSkeleton />
+				<MetricCardSkeleton />
 			</div>
 		);
 	}
@@ -22,13 +43,15 @@ const DailyBalanceMetrics = () => {
 	if (error) {
 		return (
 			<div className="p-4 border border-red-500 rounded bg-red-50">
-				<p className="text-red-700">Error: {getUserFriendlyErrorMessage(error)}</p>
-				<button
+				<p className="text-red-700">
+					Error: {getUserFriendlyErrorMessage(error)}
+				</p>
+				<Button
 					onClick={() => refetch()}
 					className="mt-2 px-4 py-2 bg-red-600 text-white rounded"
 				>
 					Retry
-				</button>
+				</Button>
 			</div>
 		);
 	}
@@ -76,7 +99,6 @@ const DailyBalanceMetrics = () => {
 		},
 	];
 	return (
-
 		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 			{metricCardValues.map((item) => (
 				<MetricCard
@@ -90,7 +112,7 @@ const DailyBalanceMetrics = () => {
 				/>
 			))}
 		</div>
-	)
-}
+	);
+};
 
-export default DailyBalanceMetrics
+export default DailyBalanceMetrics;

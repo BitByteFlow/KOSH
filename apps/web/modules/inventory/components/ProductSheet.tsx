@@ -18,7 +18,7 @@ import { Checkbox } from "@kosh/ui/components/checkbox";
 import { cn } from "@kosh/ui/lib/utils";
 import { useForm, useFieldArray, type Control, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createProductSchema, type CreateProductInput } from "@kosh/validation";
+import { createProductRequestSchema as createProductSchema, type CreateProductRequestInput as CreateProductInput } from "@kosh/validation";
 import { useCreateProduct, useCategoryList } from "../hooks/useProducts";
 import { toast } from "sonner";
 
@@ -122,9 +122,9 @@ export function ProductSheet({
 			keepPurchaseRecord: false,
 			variants: [
 				{
-					costPrice: "",
-					sellingPrice: "",
-					stock: "0",
+					costPrice: 0,
+					sellingPrice: 0,
+					stock: 0,
 					attributes: [{ name: "", value: "" }],
 				},
 			],
@@ -149,9 +149,9 @@ export function ProductSheet({
 				keepPurchaseRecord: false,
 				variants: [
 					{
-						costPrice: "",
-						sellingPrice: "",
-						stock: "0",
+						costPrice: 0,
+						sellingPrice: 0,
+						stock: 0,
 						attributes: [{ name: "", value: "" }],
 					},
 				],
@@ -175,10 +175,11 @@ export function ProductSheet({
 				createPurchaseRecord: data.keepPurchaseRecord,
 				supplierName: data.keepPurchaseRecord ? data.supplierName : undefined,
 				variants: data.variants.map(v => ({
-					costPrice: parseFloat(v.costPrice),
-					sellingPrice: parseFloat(v.sellingPrice),
-					stock: parseInt(v.stock),
-					attributes: v.attributes.filter(attr => attr.name && attr.value)
+					costPrice: v.costPrice,
+					sellingPrice: v.sellingPrice,
+					stock: v.stock,
+					attributes: v.attributes?.filter(attr => attr.name && attr.value)
+					//TODO: add validation for attributes
 				}))
 			};
 
@@ -256,6 +257,7 @@ export function ProductSheet({
 												<option value="" disabled>
 													{categoriesLoading ? "Loading..." : "Select a category"}
 												</option>
+												{/* TODO: Fix this */}
 												{categories?.map((cat) => (
 													<option key={cat.id} value={cat.id}>
 														{cat.name}
@@ -285,9 +287,9 @@ export function ProductSheet({
 									size="sm"
 									onClick={() =>
 										appendVariant({
-											costPrice: "",
-											sellingPrice: "",
-											stock: "0",
+											costPrice: 0,
+											sellingPrice: 0,
+											stock: 0,
 											attributes: [{ name: "", value: "" }],
 										})
 									}
