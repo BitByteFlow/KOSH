@@ -17,8 +17,15 @@ import { useAccountTransactions } from "../hooks/useAccount";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import type { Transaction } from "@/services/account.service";
+import { TransactionTableSkeleton } from "@/components/TableSkeleton";
 
-const TRANSACTION_TYPE_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const TRANSACTION_TYPE_CONFIG: Record<
+	string,
+	{
+		label: string;
+		variant: "default" | "secondary" | "destructive" | "outline";
+	}
+> = {
 	INITIAL_CAPITAL: { label: "Initial Capital", variant: "default" },
 	ADDITIONAL_CAPITAL: { label: "Additional Capital", variant: "default" },
 	SALE_INCOME: { label: "Sale Income", variant: "default" },
@@ -66,16 +73,18 @@ export function TransactionTable() {
 
 			<div className="overflow-x-auto">
 				{isLoading ? (
-					<div className="flex items-center justify-center py-12">
-						<Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-					</div>
+					<TransactionTableSkeleton />
 				) : error ? (
 					<div className="flex items-center justify-center py-12">
-						<p className="text-sm text-destructive">Failed to load transactions</p>
+						<p className="text-sm text-destructive">
+							Failed to load transactions
+						</p>
 					</div>
 				) : !data?.data.length ? (
 					<div className="flex items-center justify-center py-12">
-						<p className="text-sm text-muted-foreground">No transactions found</p>
+						<p className="text-sm text-muted-foreground">
+							No transactions found
+						</p>
 					</div>
 				) : (
 					<>
@@ -101,7 +110,9 @@ export function TransactionTable() {
 							</TableHeader>
 							<TableBody className="gap-4 [&_tr_td]:py-4">
 								{data.data.map((transaction: Transaction) => {
-									const typeConfig = TRANSACTION_TYPE_CONFIG[transaction.type] || {
+									const typeConfig = TRANSACTION_TYPE_CONFIG[
+										transaction.type
+									] || {
 										label: transaction.type,
 										variant: "outline" as const,
 									};
@@ -112,7 +123,10 @@ export function TransactionTable() {
 											className="border-bottom border-gray-200 shadow-sm rounded-md"
 										>
 											<TableCell className="text-sm">
-												{format(new Date(transaction.createdAt), "MMM dd, yyyy HH:mm")}
+												{format(
+													new Date(transaction.createdAt),
+													"MMM dd, yyyy HH:mm",
+												)}
 											</TableCell>
 											<TableCell>
 												<Badge variant={typeConfig.variant}>
