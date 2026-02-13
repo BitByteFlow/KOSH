@@ -1,5 +1,3 @@
-"use client";
-
 import { Card } from "@kosh/ui/components/card";
 import { Skeleton } from "@kosh/ui/components/skeleton";
 

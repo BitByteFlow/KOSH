@@ -3,7 +3,13 @@ import { useSession } from "next-auth/react";
 import { productsService } from "../../../services/products.service";
 import { categoriesService } from "../../../services/categories.service";
 
-export const useProductList = (params?: { search?: string; limit?: number }) => {
+export const useProductList = (params?: { 
+	search?: string; 
+	limit?: number; 
+	page?: number; 
+	categoryId?: string;
+	lowStock?: number;
+}) => {
 	const { data: session } = useSession();
 	const token = session?.user?.token;
 	return useQuery({

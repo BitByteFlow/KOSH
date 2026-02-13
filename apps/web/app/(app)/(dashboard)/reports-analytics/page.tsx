@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { AnalyticsMetricCard } from "@/modules/reports/components/AnalyticsMetric";
+import { useState, useMemo } from "react";
 import { SalesTrendChart } from "@/modules/reports/components/SalesTrendChart";
 import { TopProductsChart } from "@/modules/reports/components/TopProductsChart";
 import { ReportTabs } from "@/modules/reports/components/ReportTabs";
@@ -11,10 +10,11 @@ import { ProductPerformanceTable } from "@/modules/reports/components/ProductPer
 import { InventoryReportTable } from "@/modules/reports/components/InventoryReportTable";
 import { DateRangeSelector } from "@/modules/reports/components/DateRangeSelector";
 import { salesTrendData, topProducts, transactions } from "@/data/mockData";
-import { analyticsMetricValues } from "@/data/mockData";
+import ReportMetrics from "@/modules/reports/components/ReportMetrics";
 
 export default function AnalyticsPage() {
 	const [activeReport, setActiveReport] = useState("Sales Report");
+	const [dateRange, setDateRange] = useState("This Month");
 
 	const handleReportChange = (report: string) => {
 		setActiveReport(report);
@@ -26,23 +26,10 @@ export default function AnalyticsPage() {
 				<h2 className="text-2xl font-semibold text-foreground">
 					Reports & Analytics
 				</h2>
-				<DateRangeSelector onRangeChange={() => { }} />
+				<DateRangeSelector onRangeChange={setDateRange} />
 			</div>
 
-			<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-				{analyticsMetricValues.map((metric) => (
-					<AnalyticsMetricCard
-						key={metric.label}
-						label={metric.label}
-						value={metric.value}
-						trend={metric.trend}
-						trendLabel={metric.trendLabel}
-						isPositive={metric.isPositive}
-						subtitle={metric.subtitle}
-					/>
-				))}
-			</div>
-
+			<ReportMetrics dateRange={dateRange} />
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="lg:col-span-2">
 					<SalesTrendChart data={salesTrendData} />
@@ -63,9 +50,13 @@ export default function AnalyticsPage() {
 
 				<div className="mt-6">
 					{activeReport === "Sales Report" && <SalesReportTable />}
-					{activeReport === "Product Performance" && <ProductPerformanceTable />}
+					{activeReport === "Product Performance" && (
+						<ProductPerformanceTable />
+					)}
 					{activeReport === "Inventory Report" && <InventoryReportTable />}
-					{activeReport === "Cash Report" && <AnalyticsTransactionTable transactions={transactions} />}
+					{activeReport === "Cash Report" && (
+						<AnalyticsTransactionTable transactions={transactions} />
+					)}
 				</div>
 			</div>
 		</main>

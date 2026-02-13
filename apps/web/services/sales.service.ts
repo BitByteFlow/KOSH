@@ -40,7 +40,7 @@ export interface SaleResponse {
 }
 
 export interface SalesMetricsResponse {
-	totalRevenue: number;
+	totalSales: number;
 	totalTransactions: number;
 	avgSaleValue: number;
 	totalProfit: number;

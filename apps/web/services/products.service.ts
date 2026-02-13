@@ -3,28 +3,34 @@ import { API_ENDPOINTS } from "@/lib/api/config";
 
 export interface ProductVariant {
 	id: string;
-	name: string;
 	sku: string;
+	barcode: string;
+	attributes: Record<string, string>;
+	price: number;
 	stock: number;
-	costPrice: string;
-	sellPrice: string;
+	lowStock: boolean;
+	status: string;
 }
 
 export interface Product {
 	id: string;
-	name: string;
-	description: string;
-	categoryId: string;
+	productName: string;
+	category: string;
+	totalStock: number;
+	variantCount: number;
+	status: "active" | "inactive" | "out-of-stock";
 	variants: ProductVariant[];
 }
 
 export interface PaginatedProducts {
 	data: Product[];
 	meta: {
-		total: number;
 		page: number;
 		limit: number;
+		total: number;
 		totalPages: number;
+		hasNext: boolean;
+		hasPrev: boolean;
 	};
 }
 

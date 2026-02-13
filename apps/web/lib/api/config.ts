@@ -56,7 +56,7 @@ export const API_ENDPOINTS = {
 	reports: {
 		sales: "reports/sales",
 		inventory: "reports/inventory",
-		analytics: "reports/analytics",
+		analytics: "reports/analytics/metrics",
 	},
 	
 	users: {
