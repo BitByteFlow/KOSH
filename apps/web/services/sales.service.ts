@@ -39,6 +39,13 @@ export interface SaleResponse {
 	updatedAt: string;
 }
 
+export interface SalesMetricsResponse {
+	totalRevenue: number;
+	totalTransactions: number;
+	avgSaleValue: number;
+	totalProfit: number;
+}
+
 export const salesService = {
 	createSale: async (
 		data: CreateSaleRequest,
@@ -49,5 +56,9 @@ export const salesService = {
 
 	getSales: async (token: string | undefined): Promise<SaleResponse[]> => {
 		return clientApiClient.get<SaleResponse[]>(API_ENDPOINTS.sales.list, token);
+	},
+
+	getSalesMetrics: async (token: string | undefined): Promise<SalesMetricsResponse> => {
+		return clientApiClient.get<SalesMetricsResponse>(API_ENDPOINTS.sales.metrics, token);
 	},
 };

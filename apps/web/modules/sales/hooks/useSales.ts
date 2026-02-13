@@ -10,6 +10,7 @@ export const salesKeys = {
 	all: ["sales"] as const,
 	list: () => [...salesKeys.all, "list"] as const,
 	detail: (id: string) => [...salesKeys.all, "detail", id] as const,
+	metrics: () => [...salesKeys.all, "metrics"] as const,
 };
 
 export function useCreateSale() {
@@ -43,6 +44,17 @@ export function useSalesList() {
 	return useQuery({
 		queryKey: salesKeys.list(),
 		queryFn: () => salesService.getSales(token),
+		enabled: !!token,
+	});
+}
+
+export function useSalesMetrics() {
+	const { data: session } = useSession();
+	const token = session?.user?.token;
+
+	return useQuery({
+		queryKey: salesKeys.metrics(),
+		queryFn: () => salesService.getSalesMetrics(token),
 		enabled: !!token,
 	});
 }

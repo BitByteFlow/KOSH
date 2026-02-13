@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, SlidersHorizontal, Upload, FileText, Printer, Eye, MoreHorizontal, Loader2 } from "lucide-react";
+import {
+	Search,
+	SlidersHorizontal,
+	Upload,
+	FileText,
+	Printer,
+	Eye,
+	MoreHorizontal,
+	Loader2,
+} from "lucide-react";
 import {
 	Table,
 	TableBody,
@@ -23,6 +32,7 @@ import {
 import { useSalesList } from "../hooks/useSales";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
+import { TransactionTableSkeleton } from "@/components/TableSkeleton";
 
 export function SalesHistoryTable() {
 	const [searchQuery, setSearchQuery] = useState("");
@@ -30,18 +40,15 @@ export function SalesHistoryTable() {
 
 	const filteredSales = useMemo(() => {
 		if (!sales) return [];
-		return sales.filter((sale: any) =>
-			sale.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			sale.paymentType.toLowerCase().includes(searchQuery.toLowerCase())
+		return sales.filter(
+			(sale: any) =>
+				sale.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				sale.paymentType.toLowerCase().includes(searchQuery.toLowerCase()),
 		);
 	}, [sales, searchQuery]);
 
 	if (isLoading) {
-		return (
-			<div className="flex items-center justify-center py-12">
-				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-			</div>
-		);
+		return <TransactionTableSkeleton />;
 	}
 
 	if (error) {
@@ -65,11 +72,17 @@ export function SalesHistoryTable() {
 					/>
 				</div>
 				<div className="flex gap-2">
-					<Button variant="outline" className="flex items-center gap-2 h-10">
+					<Button
+						variant="outline"
+						className="flex items-center gap-2 h-10"
+					>
 						<SlidersHorizontal className="h-4 w-4" />
 						Filter
 					</Button>
-					<Button variant="outline" className="flex items-center gap-2 h-10">
+					<Button
+						variant="outline"
+						className="flex items-center gap-2 h-10"
+					>
 						<Upload className="h-4 w-4" />
 						Export
 					</Button>
@@ -92,22 +105,33 @@ export function SalesHistoryTable() {
 					<TableBody>
 						{filteredSales.length === 0 ? (
 							<TableRow>
-								<TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+								<TableCell
+									colSpan={7}
+									className="text-center py-12 text-muted-foreground"
+								>
 									No sales found.
 								</TableCell>
 							</TableRow>
 						) : (
 							filteredSales.map((sale: any) => (
-								<TableRow key={sale.id} className="hover:bg-muted/50">
+								<TableRow
+									key={sale.id}
+									className="hover:bg-muted/50"
+								>
 									<TableCell className="font-medium text-xs truncate max-w-[120px]">
 										#{sale.id.slice(0, 8)}
 									</TableCell>
 									<TableCell className="text-muted-foreground text-xs">
 										{format(new Date(sale.createdAt), "MMM dd, yyyy HH:mm")}
 									</TableCell>
-									<TableCell className="text-center">{sale.items.length}</TableCell>
+									<TableCell className="text-center">
+										{sale.items.length}
+									</TableCell>
 									<TableCell>
-										<Badge variant="secondary" className="font-normal">
+										<Badge
+											variant="secondary"
+											className="font-normal"
+										>
 											{sale.paymentType}
 										</Badge>
 									</TableCell>
@@ -120,7 +144,10 @@ export function SalesHistoryTable() {
 									<TableCell>
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
-												<Button variant="ghost" className="h-8 w-8 p-0">
+												<Button
+													variant="ghost"
+													className="h-8 w-8 p-0"
+												>
 													<span className="sr-only">Open menu</span>
 													<MoreHorizontal className="h-4 w-4" />
 												</Button>

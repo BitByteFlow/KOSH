@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Trash2, ChevronDown, Save, Loader2, Package } from "lucide-react";
+import {
+	Plus,
+	Trash2,
+	ChevronDown,
+	Save,
+	Loader2,
+	Package,
+} from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
 import {
 	Sheet,
@@ -16,11 +23,20 @@ import { Input } from "@kosh/ui/components/input";
 import { Label } from "@kosh/ui/components/label";
 import { Checkbox } from "@kosh/ui/components/checkbox";
 import { cn } from "@kosh/ui/lib/utils";
-import { useForm, useFieldArray, type Control, Controller } from "react-hook-form";
+import {
+	useForm,
+	useFieldArray,
+	type Control,
+	Controller,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createProductRequestSchema as createProductSchema, type CreateProductRequestInput as CreateProductInput } from "@kosh/validation";
+import {
+	createProductRequestSchema as createProductSchema,
+	type CreateProductRequestInput as CreateProductInput,
+} from "@kosh/validation";
 import { useCreateProduct, useCategoryList } from "../hooks/useProducts";
 import { toast } from "sonner";
+import { Category } from "@/services/categories.service";
 
 interface AttributeListProps {
 	variantIndex: number;
@@ -37,7 +53,10 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 		<div className="space-y-3">
 			<Label className="text-xs font-semibold text-gray-500">Attributes</Label>
 			{fields.map((attr, attrIndex) => (
-				<div key={attr.id} className="flex gap-2 items-start">
+				<div
+					key={attr.id}
+					className="flex gap-2 items-start"
+				>
 					<div className="flex-1">
 						<Controller
 							control={control}
@@ -45,7 +64,10 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 							render={({ field, fieldState }) => (
 								<Input
 									placeholder="Name (e.g. Size)"
-									className={cn("h-8 text-sm", fieldState.error && "border-red-500")}
+									className={cn(
+										"h-8 text-sm",
+										fieldState.error && "border-red-500",
+									)}
 									{...field}
 								/>
 							)}
@@ -58,7 +80,10 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 							render={({ field, fieldState }) => (
 								<Input
 									placeholder="Value (e.g. M)"
-									className={cn("h-8 text-sm", fieldState.error && "border-red-500")}
+									className={cn(
+										"h-8 text-sm",
+										fieldState.error && "border-red-500",
+									)}
 									{...field}
 								/>
 							)}
@@ -106,7 +131,9 @@ export function ProductSheet({
 	product,
 }: ProductSheetProps) {
 	const [internalOpen, setInternalOpen] = useState(false);
-	const { data: categories, isLoading: categoriesLoading } = useCategoryList();
+	const { data: categoryData, isLoading: categoriesLoading } =
+		useCategoryList();
+	console.log("this is categories", categoryData);
 	const createProduct = useCreateProduct();
 
 	const isControlled = open !== undefined && onOpenChange !== undefined;
@@ -159,7 +186,11 @@ export function ProductSheet({
 		}
 	}, [isOpen, product, reset]);
 
-	const { fields: variantFields, append: appendVariant, remove: removeVariant } = useFieldArray({
+	const {
+		fields: variantFields,
+		append: appendVariant,
+		remove: removeVariant,
+	} = useFieldArray({
 		control,
 		name: "variants",
 	});
@@ -174,13 +205,13 @@ export function ProductSheet({
 				categoryId: data.categoryId,
 				createPurchaseRecord: data.keepPurchaseRecord,
 				supplierName: data.keepPurchaseRecord ? data.supplierName : undefined,
-				variants: data.variants.map(v => ({
+				variants: data.variants.map((v) => ({
 					costPrice: v.costPrice,
 					sellingPrice: v.sellingPrice,
 					stock: v.stock,
-					attributes: v.attributes?.filter(attr => attr.name && attr.value)
+					attributes: v.attributes?.filter((attr) => attr.name && attr.value),
 					//TODO: add validation for attributes
-				}))
+				})),
 			};
 
 			await createProduct.mutateAsync(payload);
@@ -192,10 +223,17 @@ export function ProductSheet({
 		}
 	};
 
+	if (categoriesLoading) {
+		return <h2>loading...</h2>;
+	}
+
 	return (
-		<Sheet open={isOpen} onOpenChange={setIsOpen}>
+		<Sheet
+			open={isOpen}
+			onOpenChange={setIsOpen}
+		>
 			{trigger && <SheetTrigger asChild>{trigger}</SheetTrigger>}
-			<SheetContent className="max-h-screen sm:max-w-[600px] w-full p-0 flex flex-col">
+			<SheetContent className="max-h-screen sm:max-w-150 w-full p-0 flex flex-col">
 				<SheetHeader className="p-6 pb-2 border-b border-gray-100 bg-white sticky top-0 z-10">
 					<div className="flex items-center gap-3">
 						<div className="p-2 bg-primary/5 rounded-xl">
@@ -206,7 +244,9 @@ export function ProductSheet({
 								{product ? "Edit Product" : "Add New Product"}
 							</SheetTitle>
 							<SheetDescription className="text-sm text-muted-foreground mt-0.5">
-								{product ? "Update product details and variants." : "Enter product details and variants below."}
+								{product
+									? "Update product details and variants."
+									: "Enter product details and variants below."}
 							</SheetDescription>
 						</div>
 					</div>
@@ -226,22 +266,33 @@ export function ProductSheet({
 
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div className="space-y-2">
-										<Label htmlFor="name" className="text-[11px] font-bold uppercase text-muted-foreground">
+										<Label
+											htmlFor="name"
+											className="text-[11px] font-bold uppercase text-muted-foreground"
+										>
 											Product Name *
 										</Label>
 										<Input
 											id="name"
 											placeholder="e.g. Cotton T-Shirt"
-											className={cn("h-10 bg-white rounded-xl shadow-sm border-gray-100", errors.name && "border-red-500")}
+											className={cn(
+												"h-10 bg-white rounded-xl shadow-sm border-gray-100",
+												errors.name && "border-red-500",
+											)}
 											{...register("name")}
 										/>
 										{errors.name && (
-											<p className="text-xs text-red-500">{errors.name.message}</p>
+											<p className="text-xs text-red-500">
+												{errors.name.message}
+											</p>
 										)}
 									</div>
 
 									<div className="space-y-2">
-										<Label htmlFor="categoryId" className="text-[11px] font-bold uppercase text-muted-foreground">
+										<Label
+											htmlFor="categoryId"
+											className="text-[11px] font-bold uppercase text-muted-foreground"
+										>
 											Category *
 										</Label>
 										<div className="relative">
@@ -250,26 +301,37 @@ export function ProductSheet({
 												disabled={categoriesLoading}
 												className={cn(
 													"flex h-10 w-full rounded-xl border border-gray-100 bg-white px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 appearance-none disabled:bg-gray-50",
-													errors.categoryId && "border-red-500"
+													errors.categoryId && "border-red-500",
 												)}
 												{...register("categoryId")}
 											>
-												<option value="" disabled>
-													{categoriesLoading ? "Loading..." : "Select a category"}
+												<option
+													value=""
+													disabled
+												>
+													{categoriesLoading
+														? "Loading..."
+														: "Select a category"}
 												</option>
 												{/* TODO: Fix this */}
-												{categories?.map((cat) => (
-													<option key={cat.id} value={cat.id}>
-														{cat.name}
-													</option>
-												))}
+												{categoryData  &&
+													categoryData?.categories.map((cat: Category) => (
+														<option
+															key={cat.id}
+															value={cat.id}
+														>
+															{cat.name}
+														</option>
+													))}
 											</select>
 											<div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-muted-foreground">
 												<ChevronDown className="w-4 h-4" />
 											</div>
 										</div>
 										{errors.categoryId && (
-											<p className="text-xs text-red-500">{errors.categoryId.message}</p>
+											<p className="text-xs text-red-500">
+												{errors.categoryId.message}
+											</p>
 										)}
 									</div>
 								</div>
@@ -317,7 +379,10 @@ export function ProductSheet({
 											</Button>
 										)}
 
-										<AttributeList variantIndex={index} control={control} />
+										<AttributeList
+											variantIndex={index}
+											control={control}
+										/>
 
 										<div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-50">
 											<div className="space-y-2">
@@ -325,13 +390,19 @@ export function ProductSheet({
 													Cost Price
 												</Label>
 												<div className="relative group/input">
-													<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">Rs</span>
+													<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">
+														Rs
+													</span>
 													<Input
 														type="number"
 														min="0"
 														step="0.01"
 														placeholder="0.00"
-														className={cn("h-9 pl-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl", errors.variants?.[index]?.costPrice && "border-red-500")}
+														className={cn(
+															"h-9 pl-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl",
+															errors.variants?.[index]?.costPrice &&
+																"border-red-500",
+														)}
 														{...register(`variants.${index}.costPrice`)}
 													/>
 												</div>
@@ -341,13 +412,19 @@ export function ProductSheet({
 													Sale Price
 												</Label>
 												<div className="relative">
-													<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">Rs</span>
+													<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">
+														Rs
+													</span>
 													<Input
 														type="number"
 														min="0"
 														step="0.01"
 														placeholder="0.00"
-														className={cn("h-9 pl-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl", errors.variants?.[index]?.sellingPrice && "border-red-500")}
+														className={cn(
+															"h-9 pl-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl",
+															errors.variants?.[index]?.sellingPrice &&
+																"border-red-500",
+														)}
 														{...register(`variants.${index}.sellingPrice`)}
 													/>
 												</div>
@@ -360,7 +437,10 @@ export function ProductSheet({
 													type="number"
 													min="0"
 													placeholder="0"
-													className={cn("h-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl", errors.variants?.[index]?.stock && "border-red-500")}
+													className={cn(
+														"h-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl",
+														errors.variants?.[index]?.stock && "border-red-500",
+													)}
 													{...register(`variants.${index}.stock`)}
 												/>
 											</div>
@@ -392,24 +472,35 @@ export function ProductSheet({
 										Initial Stock Purchase Log
 									</Label>
 									<p className="text-xs text-primary/60">
-										Automatically record a purchase entry for the initial stock. This will subtract from your cash balance.
+										Automatically record a purchase entry for the initial stock.
+										This will subtract from your cash balance.
 									</p>
 								</div>
 							</div>
 
 							{keepPurchaseRecord && (
 								<div className="grid gap-2 pl-4 animate-in slide-in-from-top-2 fade-in duration-300">
-									<Label htmlFor="supplierName" className="text-[11px] font-bold uppercase text-muted-foreground">
+									<Label
+										htmlFor="supplierName"
+										className="text-[11px] font-bold uppercase text-muted-foreground"
+									>
 										Supplier Name
 									</Label>
 									<Input
 										id="supplierName"
 										placeholder="e.g. Main Vendor"
-										className={cn("h-10 bg-white rounded-xl shadow-sm border-gray-100", errors.supplierName && "border-red-500")}
-										{...register("supplierName", { required: keepPurchaseRecord })}
+										className={cn(
+											"h-10 bg-white rounded-xl shadow-sm border-gray-100",
+											errors.supplierName && "border-red-500",
+										)}
+										{...register("supplierName", {
+											required: keepPurchaseRecord,
+										})}
 									/>
 									{errors.supplierName && (
-										<p className="text-xs text-red-500">{errors.supplierName.message}</p>
+										<p className="text-xs text-red-500">
+											{errors.supplierName.message}
+										</p>
 									)}
 								</div>
 							)}
@@ -444,7 +535,10 @@ export function ProductSheet({
 						</Button>
 					</SheetFooter>
 				</form>
-				<style jsx global>{`
+				<style
+					jsx
+					global
+				>{`
 					select {
 						background-image: none !important;
 					}

@@ -39,6 +39,7 @@ export const API_ENDPOINTS = {
 		list: "sales",
 		detail: (id: string) => `sales/${id}`,
 		create: "sales",
+		metrics: "sales/todays-metrices",
 	},
 	
 	categories: {
