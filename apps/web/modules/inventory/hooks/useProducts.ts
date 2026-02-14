@@ -43,3 +43,16 @@ export const useCategoryList = () => {
 		enabled: !!token,
 	});
 };
+
+export const useCreateCategory = () => {
+	const queryClient = useQueryClient();
+	const { data: session } = useSession();
+	const token = session?.user?.token;
+
+	return useMutation({
+		mutationFn: (name: string) => categoriesService.createCategory(name, token),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["categories"] });
+		},
+	});
+};

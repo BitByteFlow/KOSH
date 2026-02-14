@@ -45,6 +45,7 @@ export const API_ENDPOINTS = {
 	categories: {
 		list: "categories",
 		detail: (id: string) => `categories/${id}`,
+		create: "categories",
 	},
 	
 	purchases: {

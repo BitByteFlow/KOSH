@@ -19,6 +19,9 @@ import { cn } from "@kosh/ui/lib/utils";
 import { useForm, useFieldArray, type Control, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createProductSchema, type CreateProductInput } from "@kosh/validation";
+import { useCreateProduct, useCategoryList } from "../hooks/useProducts";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface AttributeListProps {
 	variantIndex: number;
@@ -94,7 +97,8 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 
 export function AddProductModal() {
 	const [isOpen, setIsOpen] = useState(false);
-	const [loading, setLoading] = useState(false);
+	const { data: categoryData, isLoading: categoriesLoading } = useCategoryList();
+	const createProduct = useCreateProduct();
 
 	const form = useForm<CreateProductInput>({
 		resolver: zodResolver(createProductSchema),
@@ -105,9 +109,9 @@ export function AddProductModal() {
 			keepPurchaseRecord: false,
 			variants: [
 				{
-					costPrice: "",
-					sellingPrice: "",
-					stock: "0",
+					costPrice: 0,
+					sellingPrice: 0,
+					stock: 0,
 					attributes: [{ name: "", value: "" }],
 				},
 			],
@@ -131,14 +135,14 @@ export function AddProductModal() {
 	const keepPurchaseRecord = watch("keepPurchaseRecord");
 
 	const onSubmit = async (data: CreateProductInput) => {
-		setLoading(true);
-		console.log("Submitting product:", data);
-
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-
-		setLoading(false);
-		setIsOpen(false);
-		reset();
+		try {
+			await createProduct.mutateAsync(data);
+			toast.success("Product created successfully");
+			setIsOpen(false);
+			reset();
+		} catch (error: any) {
+			toast.error(error.response?.data?.message || "Failed to create product");
+		}
 	};
 
 	return (
@@ -199,11 +203,13 @@ export function AddProductModal() {
 										{...register("categoryId")}
 									>
 										<option value="" disabled>
-											Select a category
+											{categoriesLoading ? "Loading..." : "Select a category"}
 										</option>
-										<option value="electronics">Electronics</option>
-										<option value="clothing">Clothing</option>
-										<option value="groceries">Groceries</option>
+										{categoryData?.categories?.map((cat: any) => (
+											<option key={cat.id} value={cat.id}>
+												{cat.name}
+											</option>
+										))}
 									</select>
 									<div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-muted-foreground">
 										<svg
@@ -238,9 +244,9 @@ export function AddProductModal() {
 									size="sm"
 									onClick={() =>
 										appendVariant({
-											costPrice: "",
-											sellingPrice: "",
-											stock: "0",
+											costPrice: 0,
+											sellingPrice: 0,
+											stock: 0,
 											attributes: [{ name: "", value: "" }],
 										})
 									}
@@ -283,7 +289,7 @@ export function AddProductModal() {
 														step="0.01"
 														placeholder="0.00"
 														className={cn("h-9", errors.variants?.[index]?.costPrice && "border-red-500")}
-														{...register(`variants.${index}.costPrice`)}
+														{...register(`variants.${index}.costPrice`, { valueAsNumber: true })}
 													/>
 													{errors.variants?.[index]?.costPrice && (
 														<p className="text-xs text-red-500">{errors.variants[index]?.costPrice?.message}</p>
@@ -299,7 +305,7 @@ export function AddProductModal() {
 														step="0.01"
 														placeholder="0.00"
 														className={cn("h-9", errors.variants?.[index]?.sellingPrice && "border-red-500")}
-														{...register(`variants.${index}.sellingPrice`)}
+														{...register(`variants.${index}.sellingPrice`, { valueAsNumber: true })}
 													/>
 													{errors.variants?.[index]?.sellingPrice && (
 														<p className="text-xs text-red-500">{errors.variants[index]?.sellingPrice?.message}</p>
@@ -314,7 +320,7 @@ export function AddProductModal() {
 														min="0"
 														placeholder="0"
 														className={cn("h-9", errors.variants?.[index]?.stock && "border-red-500")}
-														{...register(`variants.${index}.stock`)}
+														{...register(`variants.${index}.stock`, { valueAsNumber: true })}
 													/>
 													{errors.variants?.[index]?.stock && (
 														<p className="text-xs text-red-500">{errors.variants[index]?.stock?.message}</p>
@@ -384,10 +390,17 @@ export function AddProductModal() {
 						</Button>
 						<Button
 							type="submit"
-							disabled={loading}
+							disabled={createProduct.isPending}
 							className="w-full sm:w-auto"
 						>
-							{loading ? "Saving..." : "Save Product"}
+							{createProduct.isPending ? (
+								<>
+									<Loader2 className="h-4 w-4 animate-spin mr-2" />
+									Saving...
+								</>
+							) : (
+								"Save Product"
+							)}
 						</Button>
 					</SheetFooter>
 				</form>

@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { salesService, type CreateSaleRequest } from "@/services/sales.service";
+import { toast } from "sonner";
 import { getUserFriendlyErrorMessage } from "@/lib/api/errors";
 import { accountKeys } from "@/modules/dashboard/hooks/useAccount";
 
@@ -23,16 +24,17 @@ export function useCreateSale() {
 			salesService.createSale(data, token),
 		
 		onSuccess: () => {
+			toast.success("Sale completed successfully!");
 			queryClient.invalidateQueries({ queryKey: salesKeys.list() });
 			queryClient.invalidateQueries({ queryKey: accountKeys.balance() });
 			queryClient.invalidateQueries({ queryKey: accountKeys.transactions() });
+			queryClient.invalidateQueries({ queryKey: salesKeys.metrics() });
 		},
 		
 		onError: (error) => {
 			console.error("[useCreateSale] Error:", error);
-			
 			const message = getUserFriendlyErrorMessage(error);
-			console.error("Sale creation failed:", message);
+			toast.error(message || "Failed to create sale");
 		},
 	});
 }

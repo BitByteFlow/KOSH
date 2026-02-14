@@ -10,6 +10,8 @@ export interface ProductVariant {
 	stock: number;
 	lowStock: boolean;
 	status: string;
+	sellPrice: number;
+	costPrice: number;
 }
 
 export interface Product {

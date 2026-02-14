@@ -16,4 +16,15 @@ export const categoriesService = {
 		);
 		return { categories: response.data };
 	},
+
+	createCategory: async (
+		name: string,
+		token: string | undefined,
+	): Promise<{ status: string; message: string }> => {
+		return clientApiClient.post<{ status: string; message: string }>(
+			API_ENDPOINTS.categories.create,
+			token,
+			{ name },
+		);
+	},
 };

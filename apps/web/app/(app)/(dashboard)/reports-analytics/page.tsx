@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { SalesTrendChart } from "@/modules/reports/components/SalesTrendChart";
 import { TopProductsChart } from "@/modules/reports/components/TopProductsChart";
 import { ReportTabs } from "@/modules/reports/components/ReportTabs";
@@ -30,6 +30,7 @@ export default function AnalyticsPage() {
 			</div>
 
 			<ReportMetrics dateRange={dateRange} />
+
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="lg:col-span-2">
 					<SalesTrendChart data={salesTrendData} />

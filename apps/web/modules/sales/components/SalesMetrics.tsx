@@ -5,9 +5,9 @@ import { useSalesMetrics } from "../hooks/useSales";
 import { MetricCardSkeleton } from "@/components/MetricCardSkeletion";
 
 const SalesMetrics = () => {
-	const { data: metrics, isLoading } = useSalesMetrics();
+	const { data: metrics, isLoading, isPending } = useSalesMetrics();
 
-	if (isLoading) {
+	if (isPending) {
 		return (
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 				<MetricCardSkeleton />

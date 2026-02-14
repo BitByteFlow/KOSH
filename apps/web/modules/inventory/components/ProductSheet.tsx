@@ -31,8 +31,8 @@ import {
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-	createProductRequestSchema as createProductSchema,
-	type CreateProductRequestInput as CreateProductInput,
+	createProductSchema,
+	type CreateProductInput,
 } from "@kosh/validation";
 import { useCreateProduct, useCategoryList } from "../hooks/useProducts";
 import { toast } from "sonner";
@@ -62,14 +62,22 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 							control={control}
 							name={`variants.${variantIndex}.attributes.${attrIndex}.name`}
 							render={({ field, fieldState }) => (
-								<Input
-									placeholder="Name (e.g. Size)"
-									className={cn(
-										"h-8 text-sm",
-										fieldState.error && "border-red-500",
-									)}
-									{...field}
-								/>
+								<div className="flex flex-col gap-2">
+									<Input
+										placeholder="Name (e.g. Size)"
+										className={cn(
+											"h-8 text-sm",
+											fieldState.error && "border-red-500",
+										)}
+										{...field}
+									/>
+									{
+										fieldState.error &&
+										<p className="text-xs text-red-500">
+											{fieldState.error.message}
+										</p>
+									}
+								</div>
 							)}
 						/>
 					</div>
@@ -78,14 +86,22 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 							control={control}
 							name={`variants.${variantIndex}.attributes.${attrIndex}.value`}
 							render={({ field, fieldState }) => (
-								<Input
-									placeholder="Value (e.g. M)"
-									className={cn(
-										"h-8 text-sm",
-										fieldState.error && "border-red-500",
-									)}
-									{...field}
-								/>
+								<div className="flex flex-col gap-2">
+									<Input
+										placeholder="Value (e.g. M)"
+										className={cn(
+											"h-8 text-sm",
+											fieldState.error && "border-red-500",
+										)}
+										{...field}
+									/>
+									{
+										fieldState.error &&
+										<p className="text-xs text-red-500">
+											{fieldState.error.message}
+										</p>
+									}
+								</div>
 							)}
 						/>
 					</div>
@@ -133,7 +149,6 @@ export function ProductSheet({
 	const [internalOpen, setInternalOpen] = useState(false);
 	const { data: categoryData, isLoading: categoriesLoading } =
 		useCategoryList();
-	console.log("this is categories", categoryData);
 	const createProduct = useCreateProduct();
 
 	const isControlled = open !== undefined && onOpenChange !== undefined;
@@ -314,7 +329,7 @@ export function ProductSheet({
 														: "Select a category"}
 												</option>
 												{/* TODO: Fix this */}
-												{categoryData  &&
+												{categoryData &&
 													categoryData?.categories.map((cat: Category) => (
 														<option
 															key={cat.id}
@@ -386,6 +401,7 @@ export function ProductSheet({
 
 										<div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-50">
 											<div className="space-y-2">
+
 												<Label className="text-[11px] font-bold uppercase text-muted-foreground">
 													Cost Price
 												</Label>
@@ -401,12 +417,19 @@ export function ProductSheet({
 														className={cn(
 															"h-9 pl-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl",
 															errors.variants?.[index]?.costPrice &&
-																"border-red-500",
+															"border-red-500",
 														)}
-														{...register(`variants.${index}.costPrice`)}
+														{...register(`variants.${index}.costPrice`, { valueAsNumber: true })}
 													/>
 												</div>
+												{
+													errors.variants?.[index]?.costPrice &&
+													<p className="text-xs text-red-500">
+														{errors.variants[index].costPrice.message}
+													</p>
+												}
 											</div>
+
 											<div className="space-y-2">
 												<Label className="text-[11px] font-bold uppercase text-muted-foreground">
 													Sale Price
@@ -423,11 +446,18 @@ export function ProductSheet({
 														className={cn(
 															"h-9 pl-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl",
 															errors.variants?.[index]?.sellingPrice &&
-																"border-red-500",
+															"border-red-500",
 														)}
-														{...register(`variants.${index}.sellingPrice`)}
+														{...register(`variants.${index}.sellingPrice`, { valueAsNumber: true })}
 													/>
 												</div>
+
+												{
+													errors.variants?.[index]?.sellingPrice &&
+													<p className="text-xs text-red-500">
+														{errors.variants[index].sellingPrice.message}
+													</p>
+												}
 											</div>
 											<div className="space-y-2">
 												<Label className="text-[11px] font-bold uppercase text-muted-foreground">
@@ -441,9 +471,17 @@ export function ProductSheet({
 														"h-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl",
 														errors.variants?.[index]?.stock && "border-red-500",
 													)}
-													{...register(`variants.${index}.stock`)}
+													{...register(`variants.${index}.stock`, { valueAsNumber: true })}
 												/>
+
+												{
+													errors.variants?.[index]?.stock &&
+													<p className="text-xs text-red-500">
+														{errors.variants[index].stock.message}
+													</p>
+												}
 											</div>
+
 										</div>
 									</div>
 								))}

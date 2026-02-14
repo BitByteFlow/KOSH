@@ -9,9 +9,14 @@ const ReportMetrics = ({ dateRange }: { dateRange: string }) => {
 		() => getDateRange(dateRange),
 		[dateRange],
 	);
-	const { data: metrics, isLoading } = useAnalyticsMetrics(startDate, endDate);
+	console.log("dates :", startDate, endDate);
+	const {
+		data: metrics,
+		isPending,
+		isError,
+	} = useAnalyticsMetrics(startDate, endDate);
 
-	if (isLoading) {
+	if (isPending) {
 		return (
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 				<MetricCardSkeleton />
@@ -20,6 +25,9 @@ const ReportMetrics = ({ dateRange }: { dateRange: string }) => {
 				<MetricCardSkeleton />
 			</div>
 		);
+	}
+	if (isError) {
+		return <h2>error</h2>;
 	}
 
 	return (

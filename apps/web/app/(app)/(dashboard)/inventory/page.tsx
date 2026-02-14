@@ -29,13 +29,20 @@ export default function InventoryPage() {
 	const [viewingProduct, setViewingProduct] = useState<any>(null);
 	const [categoryProduct, setCategoryProduct] = useState<any>(null);
 
-	const { data: inventoryData, isLoading, isError } = useProductList({
+	const {
+		data: inventoryData,
+		isLoading,
+		isError,
+		isPending,
+		error
+	} = useProductList({
 		page: currentPage,
 		limit: itemsPerPage,
 		search: debouncedSearch,
 	});
 
 	const products = inventoryData?.data || [];
+	console.log("products", inventoryData, isError, error)
 	const meta = inventoryData?.meta;
 	const totalPages = meta?.totalPages || 0;
 	const totalItems = meta?.total || 0;
@@ -74,7 +81,9 @@ export default function InventoryPage() {
 						onStatusFilter={() => console.log("Status filter")}
 						onExport={() => console.log("Export")}
 					/>
-					{isLoading ? <TransactionTableSkeleton /> :
+					{isPending ? (
+						<TransactionTableSkeleton />
+					) : (
 						<div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
 							<Table>
 								<TableHeader className="bg-gray-50">
@@ -117,7 +126,10 @@ export default function InventoryPage() {
 									))}
 									{products.length === 0 && (
 										<TableRow>
-											<TableCell colSpan={6} className="h-24 text-center">
+											<TableCell
+												colSpan={6}
+												className="h-24 text-center"
+											>
 												No products found.
 											</TableCell>
 										</TableRow>
@@ -125,7 +137,7 @@ export default function InventoryPage() {
 								</TableBody>
 							</Table>
 						</div>
-					}
+					)}
 
 					{!isLoading && !isError && products.length > 0 && (
 						<InventoryPagination
@@ -161,7 +173,7 @@ export default function InventoryPage() {
 				product={categoryProduct}
 				onSave={async (id, cat) => {
 					console.log("Saving category:", id, cat);
-					await new Promise(resolve => setTimeout(resolve, 500));
+					await new Promise((resolve) => setTimeout(resolve, 500));
 				}}
 			/>
 		</div>

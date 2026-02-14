@@ -1,6 +1,7 @@
 import { Search, Download, ChevronDown, Plus } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
 import { ProductSheet } from "./ProductSheet";
+import { AddCategoryModal } from "./AddCategoryModal";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@kosh/ui/components/tooltip";
 
 interface InventorySearchProps {
@@ -38,6 +39,7 @@ export function InventorySearch({
 						</Button>
 					}
 				/>
+				<AddCategoryModal />
 				<Button
 					variant="outline"
 					size="sm"

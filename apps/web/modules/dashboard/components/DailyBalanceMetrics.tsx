@@ -19,15 +19,12 @@ import { MetricCardSkeleton } from "@/components/MetricCardSkeletion";
 const DailyBalanceMetrics = () => {
 	const {
 		data: metrics,
-		isLoading,
 		error,
 		refetch,
 		isPending,
-		isError,
-		isSuccess,
 	} = useAccountBalance();
 
-	if (isLoading) {
+	if (isPending) {
 		return (
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 				<MetricCardSkeleton />
