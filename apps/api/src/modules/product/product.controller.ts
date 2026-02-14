@@ -30,7 +30,7 @@ export class ProductController {
 	constructor(private productService: ProductService) {}
 
 	@UseGuards(JwtAuthGuard)
-	@HttpCode(HttpStatus.CREATED)
+	@HttpCode(HttpStatus.OK)
 	@Get("/variants")
 	async getProductWithVariant(@Req() req: AuthenticatedRequest): Promise<any> {
 		const response = await this.productService.listProductsWithVariant(
@@ -42,7 +42,7 @@ export class ProductController {
 
 	@Get()
 	@UseGuards(JwtAuthGuard)
-	@HttpCode(HttpStatus.FOUND)
+	@HttpCode(HttpStatus.OK)
 	async listProductsWithFilter(
 		@Req() req: AuthenticatedRequest,
 		@Query() filterDto: ProductFilterDto,
@@ -69,7 +69,7 @@ export class ProductController {
 		return response;
 	}
 	@UseGuards(JwtAuthGuard)
-	@HttpCode(HttpStatus.CREATED)
+	@HttpCode(HttpStatus.OK)
 	@Delete(":id")
 	async deleteProduct(
 		@Req() req: AuthenticatedRequest,
@@ -102,7 +102,7 @@ export class ProductController {
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@HttpCode(HttpStatus.CREATED)
+	@HttpCode(HttpStatus.OK)
 	@Put("/variants/:productVariantId")
 	async updateProductVariant(
 		@Req() req: AuthenticatedRequest,
@@ -119,7 +119,7 @@ export class ProductController {
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@HttpCode(HttpStatus.CREATED)
+	@HttpCode(HttpStatus.OK)
 	@Delete("/variants/:productVariantId")
 	async deleteProductVariant(
 		@Req() req: AuthenticatedRequest,
@@ -138,7 +138,7 @@ export class ProductController {
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@HttpCode(HttpStatus.CREATED)
+	@HttpCode(HttpStatus.OK)
 	@Patch("/:productId")
 	async updateProduct(
 		@Req() req: AuthenticatedRequest,

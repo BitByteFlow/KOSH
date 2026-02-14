@@ -22,4 +22,9 @@ export class SalesController {
 	async getSales(@Req() req: AuthenticatedRequest) {
 		return this.salesService.getSales(req.user.id);
 	}
+	@UseGuards(JwtAuthGuard)
+	@Get("todays-metrices")
+	async getSalesMetrices(@Req() req: AuthenticatedRequest) {
+		return this.salesService.getMetrices(req.user.id);
+	}
 }

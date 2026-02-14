@@ -1,4 +1,4 @@
 import { createZodDto } from "nestjs-zod";
-import { createProductRequestSchema } from "@kosh/validation";
+import { createProductSchema } from "@kosh/validation";
 
-export class CreateProductRequestDto extends createZodDto(createProductRequestSchema) {}
+export class CreateProductRequestDto extends createZodDto(createProductSchema) {}

@@ -36,7 +36,7 @@ export class CategoriesController {
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@HttpCode(HttpStatus.ACCEPTED)
+	@HttpCode(HttpStatus.OK)
 	@Get()
 	async getCategories(@Req() req: AuthenticatedRequest): Promise<any> {
 		const response = await this.categoryService.getCategories(req.user.id);
@@ -45,7 +45,7 @@ export class CategoriesController {
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@HttpCode(HttpStatus.ACCEPTED)
+	@HttpCode(HttpStatus.OK)
 	@Delete(":id")
 	async deleteCategory(
 		@Req() req: AuthenticatedRequest,
@@ -55,7 +55,7 @@ export class CategoriesController {
 		return response;
 	}
 	@UseGuards(JwtAuthGuard)
-	@HttpCode(HttpStatus.ACCEPTED)
+	@HttpCode(HttpStatus.OK)
 	@Patch(":id")
 	async updateCategory(
 		@Req() req: AuthenticatedRequest,

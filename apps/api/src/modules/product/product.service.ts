@@ -65,7 +65,7 @@ export class ProductService {
                     }
                 }
 
-                if (productDetail.createPurchaseRecord && totalPurchaseAmount > 0) {
+                if (productDetail.keepPurchaseRecord && totalPurchaseAmount > 0) {
                     const purchase = await tsx.purchase.create({
                         data: {
                             userId: userId,
@@ -360,7 +360,7 @@ export class ProductService {
 
     async listProductsWithVariant(userId: string): Promise<any> {
         try {
-            const products = await this.database.product.findMany({
+            const products = await this.database.prisma.product.findMany({
                 where: {
                     userId: userId
                 },
@@ -526,12 +526,12 @@ export class ProductService {
             };
         }
 
-        const total = await this.database.product.count({ where });
+        const total = await this.database.prisma.product.count({ where });
 
-        const products = await this.database.product.findMany({
+        const products = await this.database.prisma.product.findMany({
             where,
             skip,
-            take: limit,
+            take: Number(limit),
             orderBy: {
                 [sortBy]: sortOrder
             },
@@ -540,22 +540,46 @@ export class ProductService {
                     select: { name: true }
                 },
                 variants: {
-                    where: lowStock ? { stock: { lt: lowStock } } : undefined,
-                    select: {
-                        id: true,
-                        sku: true,
-                        stock: true,
-                        costPrice: true,
-                        sellingPrice: true,
-                        status: true
-                    }
-                },
-                _count: {
-                    select: {
-                        variants: true
+                    include: {
+                        attributes: true
                     }
                 }
             }
+        });
+
+        const formattedProducts = products.map(product => {
+            const totalStock = product.variants.reduce((acc, v) => acc + v.stock, 0);
+            
+            // Determine status based on variants
+            let status = 'active';
+            if (totalStock === 0) {
+                status = 'out-of-stock';
+            } else if (product.variants.every(v => v.status === 'IN_ACTIVE')) {
+                status = 'inactive';
+            }
+
+            return {
+                id: product.id,
+                productName: product.name,
+                category: product.category.name,
+                totalStock,
+                variantCount: product.variants.length,
+                status,
+                variants: product.variants.map(v => ({
+                    id: v.id,
+                    sku: v.sku,
+                    barcode: v.barcode,
+                    attributes: v.attributes.reduce((acc: any, attr) => {
+                        acc[attr.name] = attr.value;
+                        return acc;
+                    }, {}),
+                    price: Number(v.sellingPrice),
+                    costPrice: Number(v.costPrice),
+                    stock: v.stock,
+                    lowStock: v.stock < (lowStock || 10), // Use provided threshold or default to 10
+                    status: v.status
+                }))
+            };
         });
 
         const totalPages = Math.ceil(total / limit);
@@ -564,24 +588,15 @@ export class ProductService {
 
         return {
             status: 'success',
-            message: 'Product matching the filters retrieved!',
-            data: products,
+            message: 'Products retrieved successfully',
+            data: formattedProducts,
             meta: {
-                page,
-                limit,
+                page: Number(page),
+                limit: Number(limit),
                 total,
                 totalPages,
                 hasNext,
-                hasPrev,
-                lowStockThreshold: lowStock || null,
-                appliedFilters: {
-                    categoryId: categoryId || null,
-                    search: search || null,
-                    priceRange: {
-                        min: minPrice || null,
-                        max: maxPrice || null
-                    }
-                }
+                hasPrev
             }
         };
     }

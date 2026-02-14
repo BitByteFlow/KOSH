@@ -15,8 +15,10 @@ async function bootstrap() {
 	app.setGlobalPrefix("api/v1");
 
 	app.use(helmet());
+	const cors = configService.get("CORS_ORIGIN")
+	console.log("cors are: ", cors)
 	app.enableCors({
-		origin: configService.get("CORS_ORIGIN") || "*", // Default to * if not set, but should be set in prod
+		// origin: "http://localhost:3000/", 
 		credentials: true,
 	});
 
@@ -40,10 +42,10 @@ async function bootstrap() {
 		await app.listen(port);
 
 		console.log(
-			`🚀 Application is running on: http://localhost:${port}/api/v1`,
+			`Application is running on: http://localhost:${port}/api/v1`,
 		);
 		console.log(
-			`📖 Swagger documentation available at: http://localhost:${port}/api/docs`,
+			`Swagger documentation available at: http://localhost:${port}/api/docs`,
 		);
 	} catch (error) {
 		console.error("❌ Failed to start application:", error);

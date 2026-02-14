@@ -75,9 +75,7 @@ export class CategoryService {
 			return {
 				status: "success",
 				message: "Categories retrieved successfully",
-				data: {
-					categories,
-				},
+				data: categories,
 			};
 		} catch (error) {
 			if (error instanceof ConflictException) {

@@ -17,14 +17,17 @@ export class SalesService {
 		createSaleDto: CreateSaleDto,
 		userId: string,
 	): Promise<SaleResponseDto> {
-		const { discount, paymentType, creditId, items, transactionNote } = createSaleDto;
+		const { discount, paymentType, creditId, items, transactionNote } =
+			createSaleDto;
 
 		if (items.length === 0) {
 			throw new BadRequestException("Sale must have at least one item");
 		}
 
-		if (paymentType === "CREDIT" && !creditId) {
-			throw new BadRequestException("Credit account is required for credit sales");
+		if (paymentType === "CREDIT" && !creditId && !createSaleDto.customerName) {
+			throw new BadRequestException(
+				"Credit account or customer details are required for credit sales",
+			);
 		}
 
 		try {
@@ -38,7 +41,9 @@ export class SalesService {
 					});
 
 					if (!variant) {
-						throw new NotFoundException(`Product variant ${item.variantId} not found`);
+						throw new NotFoundException(
+							`Product variant ${item.variantId} not found`,
+						);
 					}
 
 					if (variant.stock < item.quantity) {
@@ -225,11 +230,53 @@ export class SalesService {
 				};
 			});
 		} catch (error) {
-			if (error instanceof BadRequestException || error instanceof NotFoundException) {
+			if (
+				error instanceof BadRequestException ||
+				error instanceof NotFoundException
+			) {
 				throw error;
 			}
 			console.error("Error creating sale:", error);
 			throw new InternalServerErrorException("Failed to create sale");
+		}
+	}
+
+	async getMetrices(userId: string) {
+		try {
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+
+			const sales = await this.database.prisma.sale.findMany({
+				where: {
+					userId,
+					createdAt: {
+						gte: today,
+					},
+					deletedAt: null,
+				},
+			});
+
+			const totalSales = sales.reduce(
+				(acc, sale) => acc + Number(sale.total),
+				0,
+			);
+			const totalProfit = sales.reduce(
+				(acc, sale) => acc + Number(sale.profit),
+				0,
+			);
+			const totalTransactions = sales.length;
+			const avgSaleValue =
+				totalTransactions > 0 ? totalSales / totalTransactions : 0;
+
+			return {
+				totalSales,
+				totalTransactions,
+				avgSaleValue,
+				totalProfit,
+			};
+		} catch (error) {
+			console.error("Error fetching sales metrics:", error);
+			throw new InternalServerErrorException("Failed to fetch sales metrics");
 		}
 	}
 
