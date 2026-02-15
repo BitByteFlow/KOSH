@@ -59,4 +59,8 @@ export class ProductFilterDto extends PaginationDto {
     @IsBoolean()
     @Type(() => Boolean)
     includeDeleted?: boolean = false;
+
+    @IsOptional()
+    @IsString()
+    status?: string;
 }

@@ -480,7 +480,8 @@ export class ProductService {
             search,
             minPrice,
             maxPrice,
-            includeDeleted = false
+            includeDeleted = false,
+            status
         } = filterDto;
 
         const skip = (page - 1) * limit;
@@ -525,6 +526,28 @@ export class ProductService {
                 }
             };
         }
+
+        if (status) {
+            if (status === 'OUT_OF_STOCK') {
+                where.variants = {
+                    every: { stock: 0 }
+                };
+            } else if (status === 'IN_ACTIVE') {
+                 where.AND = [
+                    ...(where.AND || []),
+                    { variants: { some: { stock: { gt: 0 } } } },
+                    { variants: { every: { status: 'IN_ACTIVE' } } }
+                ];
+            } else if (status === 'ACTIVE') {
+                 where.AND = [
+                    ...(where.AND || []),
+                    { variants: { some: { stock: { gt: 0 } } } },
+                    { variants: { some: { status: 'ACTIVE' } } }
+                ];
+            }
+        }
+
+        console.log("ProductService - Prisma Where:", JSON.stringify(where, null, 2));
 
         const total = await this.database.prisma.product.count({ where });
 
