@@ -151,8 +151,7 @@ export class ProductController {
 		const response = await this.productService.updateProduct(
 			productId,
 			req.user.id,
-			updateProductDto.name,
-			updateProductDto.categoryId,
+			updateProductDto,
 		);
 
 		return response;
