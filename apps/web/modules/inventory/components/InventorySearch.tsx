@@ -1,80 +1,203 @@
-import { Search, Download, ChevronDown, Plus } from "lucide-react";
+import { Search, Download, ChevronDown, Plus, Check, X } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
 import { ProductSheet } from "./ProductSheet";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@kosh/ui/components/tooltip";
+import { Input } from "@kosh/ui/components/input";
+import { useState, useMemo } from "react";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+	DropdownMenuSeparator,
+} from "@kosh/ui/components/dropdown-menu";
+import { useCategoryList } from "../hooks/useProducts";
+import { cn } from "@/lib/utils";
 
 interface InventorySearchProps {
 	onSearch?: (query: string) => void;
-	onCategoryFilter?: () => void;
-	onStatusFilter?: () => void;
-	onExport?: () => void;
+	onCategoryFilter?: (categoryId: string | null) => void;
+	onStatusFilter?: (status: string | null) => void;
+	onGenerateBarcodes?: () => void;
+	selectedCount?: number;
+	activeCategoryId?: string | null;
+	activeStatus?: string | null;
 }
 
 export function InventorySearch({
 	onSearch,
 	onCategoryFilter,
 	onStatusFilter,
-	onExport,
+	onGenerateBarcodes,
+	selectedCount = 0,
+	activeCategoryId,
+	activeStatus,
 }: InventorySearchProps) {
+	const { data } = useCategoryList();
+	const categories = data?.categories || [];
+	const [categorySearch, setCategorySearch] = useState("");
+
+	const filteredCategories = useMemo(() => {
+		if (!categories) return [];
+		if (!categorySearch) return categories;
+		return categories.filter((cat: any) =>
+			cat.name.toLowerCase().includes(categorySearch.toLowerCase())
+		);
+	}, [categories, categorySearch]);
+
+	const selectedCategoryName = useMemo(() => {
+		if (!activeCategoryId || categories.length === 0) return "Category";
+		const cat = categories.find((c: any) => c.id === activeCategoryId);
+		return cat ? cat.name : "Category";
+	}, [activeCategoryId, categories]);
+
+	const statusOptions = [
+		{ label: "Active", value: "ACTIVE" },
+		{ label: "Inactive", value: "IN_ACTIVE" },
+		{ label: "Out of Stock", value: "OUT_OF_STOCK" },
+	];
+
+	const selectedStatusLabel = useMemo(() => {
+		if (!activeStatus) return "Status";
+		const opt = statusOptions.find((o) => o.value === activeStatus);
+		return opt ? opt.label : "Status";
+	}, [activeStatus]);
+
 	return (
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center gap-3">
 				<div className="flex-1 relative">
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-					<input
+					<Input
 						id="inventory-search"
 						type="text"
 						placeholder="Search by name, SKU, or category..."
 						onChange={(e) => onSearch?.(e.target.value)}
-						className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+						className="w-full pl-10 pr-4 py-2 h-10"
 					/>
 				</div>
 
 				<ProductSheet
 					trigger={
-						<Button className="flex items-center gap-2 px-2">
+						<Button className="flex items-center gap-2 h-10 px-4">
 							<Plus className="w-4 h-4" />
 							<span className="text-white">Add Product</span>
 						</Button>
 					}
 				/>
 				<AddCategoryModal />
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={onCategoryFilter}
-					className="flex items-center gap-2 bg-transparent"
-				>
-					Category
-					<ChevronDown className="w-4 h-4" />
-				</Button>
+
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button
+							variant="outline"
+							size="sm"
+							className={cn(
+								"flex items-center gap-2 h-10 px-4 bg-transparent",
+								activeCategoryId && "border-blue-500 text-blue-600 bg-blue-50/50"
+							)}
+						>
+							<span className="max-w-[100px] truncate">{selectedCategoryName}</span>
+							<ChevronDown className="w-4 h-4 opacity-50" />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end" className="w-[200px]">
+						<div className="p-2">
+							<Input
+								placeholder="Search categories..."
+								value={categorySearch}
+								onChange={(e) => setCategorySearch(e.target.value)}
+								className="h-8 text-xs"
+								autoFocus
+							/>
+						</div>
+						<DropdownMenuSeparator />
+						<DropdownMenuItem
+							onClick={() => onCategoryFilter?.(null)}
+							className="flex items-center justify-between"
+						>
+							All Categories
+							{!activeCategoryId && <Check className="w-4 h-4" />}
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+						<div className="max-h-[200px] overflow-auto">
+							{filteredCategories.map((cat: any) => (
+								<DropdownMenuItem
+									key={cat.id}
+									onClick={() => onCategoryFilter?.(cat.id)}
+									className="flex items-center justify-between"
+								>
+									{cat.name}
+									{activeCategoryId === cat.id && <Check className="w-4 h-4" />}
+								</DropdownMenuItem>
+							))}
+							{filteredCategories.length === 0 && (
+								<div className="p-2 text-xs text-muted-foreground text-center">
+									No categories found
+								</div>
+							)}
+						</div>
+					</DropdownMenuContent>
+				</DropdownMenu>
+
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button
+							variant="outline"
+							size="sm"
+							className={cn(
+								"flex items-center gap-2 h-10 px-4 bg-transparent",
+								activeStatus && "border-blue-500 text-blue-600 bg-blue-50/50"
+							)}
+						>
+							{selectedStatusLabel}
+							<ChevronDown className="w-4 h-4 opacity-50" />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end" className="w-[160px]">
+						<DropdownMenuItem
+							onClick={() => onStatusFilter?.(null)}
+							className="flex items-center justify-between"
+						>
+							All Status
+							{!activeStatus && <Check className="w-4 h-4" />}
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+						{statusOptions.map((opt) => (
+							<DropdownMenuItem
+								key={opt.value}
+								onClick={() => onStatusFilter?.(opt.value)}
+								className="flex items-center justify-between"
+							>
+								{opt.label}
+								{activeStatus === opt.value && <Check className="w-4 h-4" />}
+							</DropdownMenuItem>
+						))}
+					</DropdownMenuContent>
+				</DropdownMenu>
 
 				<Button
 					variant="outline"
 					size="sm"
-					onClick={onStatusFilter}
-					className="flex items-center gap-2 bg-transparent"
-				>
-					Status
-					<ChevronDown className="w-4 h-4" />
-				</Button>
-
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={onExport}
-					className="flex items-center gap-2 bg-transparent"
+					onClick={onGenerateBarcodes}
+					disabled={selectedCount === 0}
+					className={cn(
+						"flex items-center gap-2 h-10 px-4 bg-transparent",
+						selectedCount > 0 && "border-green-500 text-green-600 bg-green-50/50"
+					)}
 				>
 					<Tooltip>
 						<TooltipTrigger asChild>
 							<div className="flex items-center gap-2 justify-center">
 								<Download className="w-4 h-4" />
-								Import Barcode
+								<span>Barcodes {selectedCount > 0 && `(${selectedCount})`}</span>
 							</div>
 						</TooltipTrigger>
 						<TooltipContent>
-							Select products for barcode
+							{selectedCount > 0
+								? `Generate barcodes for ${selectedCount} products`
+								: "Select products to generate barcodes"}
 						</TooltipContent>
 					</Tooltip>
 				</Button>

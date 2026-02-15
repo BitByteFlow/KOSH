@@ -39,10 +39,20 @@ export interface PaginatedProducts {
 export const productsService = {
 	getProducts: async (
 		token: string | undefined,
-		params?: { search?: string; limit?: number }
+		params?: { 
+			search?: string; 
+			limit?: number; 
+			page?: number; 
+			categoryId?: string; 
+			status?: string 
+		}
 	): Promise<PaginatedProducts> => {
+		const cleanParams = Object.fromEntries(
+			Object.entries(params || {}).filter(([_, v]) => v !== undefined && v !== null && v !== "undefined")
+		);
+		
 		return clientApiClient.get<PaginatedProducts>(API_ENDPOINTS.products.list, token, {
-			params: params as any,
+			params: cleanParams as any,
 		});
 	},
 

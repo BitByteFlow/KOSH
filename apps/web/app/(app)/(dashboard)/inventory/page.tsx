@@ -7,6 +7,7 @@ import { InventoryPagination } from "@/modules/inventory/components/InventoryPag
 import { ProductSheet } from "@/modules/inventory/components/ProductSheet";
 import { ProductDetailsSheet } from "@/modules/inventory/components/ProductDetailsSheet";
 import { ChangeCategoryDialog } from "@/modules/inventory/components/ChangeCategoryDialog";
+import { BarcodeDialog } from "@/modules/inventory/components/BarcodeDialog";
 import {
 	Table,
 	TableBody,
@@ -25,6 +26,11 @@ export default function InventoryPage() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const debouncedSearch = useDebounce(searchQuery, 500);
 
+	const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+	const [statusFilter, setStatusFilter] = useState<string | null>(null);
+	const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
+	const [isBarcodeDialogOpen, setIsBarcodeDialogOpen] = useState(false);
+
 	const [editingProduct, setEditingProduct] = useState<any>(null);
 	const [viewingProduct, setViewingProduct] = useState<any>(null);
 	const [categoryProduct, setCategoryProduct] = useState<any>(null);
@@ -39,13 +45,46 @@ export default function InventoryPage() {
 		page: currentPage,
 		limit: itemsPerPage,
 		search: debouncedSearch,
+		categoryId: categoryFilter || undefined,
+		status: statusFilter || undefined,
 	});
 
 	const products = inventoryData?.data || [];
-	console.log("products", inventoryData, isError, error)
 	const meta = inventoryData?.meta;
 	const totalPages = meta?.totalPages || 0;
 	const totalItems = meta?.total || 0;
+
+	const handleToggleSelection = (id: string) => {
+		setSelectedProductIds((prev) => {
+			const newSet = new Set(prev);
+			if (newSet.has(id)) {
+				newSet.delete(id);
+			} else {
+				newSet.add(id);
+			}
+			return newSet;
+		});
+	};
+
+	const handleSelectAll = (checked: boolean) => {
+		if (checked) {
+			const allIds = products.map((p) => p.id);
+			setSelectedProductIds(new Set([...Array.from(selectedProductIds), ...allIds]));
+		} else {
+			const currentIds = products.map((p) => p.id);
+			setSelectedProductIds((prev) => {
+				const newSet = new Set(prev);
+				currentIds.forEach((id) => newSet.delete(id));
+				return newSet;
+			});
+		}
+	};
+
+	const isAllSelected = products.length > 0 && products.every((p) => selectedProductIds.has(p.id));
+
+	const selectedProducts = useMemo(() => {
+		return products.filter((p) => selectedProductIds.has(p.id));
+	}, [products, selectedProductIds]);
 
 	const handleEditProduct = (id: string) => {
 		const product = products.find((p) => p.id === id);
@@ -64,49 +103,53 @@ export default function InventoryPage() {
 
 	const handleDeleteProduct = (id: string) => {
 		console.log("Deleting product:", id);
-		// Implement actual delete logic here
 	};
 
 	return (
 		<div className="flex-1 flex flex-col h-screen bg-background">
-			<div className="border-b border-border px-8 py-6 flex items-center justify-between sticky top-0 bg-background">
-				<div className="flex items-center gap-4"></div>
+			<div className="border-b border-border px-8 py-6 flex items-center justify-between sticky top-0 bg-background z-10">
+				<h1 className="text-2xl font-bold">Inventory</h1>
 			</div>
 
 			<div className="flex-1 overflow-auto px-8 py-6">
 				<div className="space-y-6">
 					<InventorySearch
 						onSearch={setSearchQuery}
-						onCategoryFilter={() => console.log("Category filter")}
-						onStatusFilter={() => console.log("Status filter")}
-						onExport={() => console.log("Export")}
+						onCategoryFilter={setCategoryFilter}
+						onStatusFilter={setStatusFilter}
+						onGenerateBarcodes={() => setIsBarcodeDialogOpen(true)}
+						selectedCount={selectedProductIds.size}
+						activeCategoryId={categoryFilter}
+						activeStatus={statusFilter}
 					/>
 					{isPending ? (
 						<TransactionTableSkeleton />
 					) : (
-						<div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+						<div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
 							<Table>
-								<TableHeader className="bg-gray-50">
+								<TableHeader className="bg-gray-50/50">
 									<TableRow className="border-border">
-										<TableHead className="w-12">
+										<TableHead className="w-12 pl-6">
 											<input
 												type="checkbox"
-												className="w-4 h-4 rounded border-gray-300"
+												checked={isAllSelected}
+												onChange={(e) => handleSelectAll(e.target.checked)}
+												className="w-4 h-4 rounded border-gray-300 cursor-pointer"
 											/>
 										</TableHead>
-										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider h-12">
 											Product Name
 										</TableHead>
-										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider h-12">
 											Category
 										</TableHead>
-										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider h-12">
 											Total Stock
 										</TableHead>
-										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider h-12">
 											Status
 										</TableHead>
-										<TableHead className="text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+										<TableHead className="text-right text-xs font-semibold text-gray-600 uppercase tracking-wider h-12 pr-6">
 											Actions
 										</TableHead>
 									</TableRow>
@@ -117,6 +160,8 @@ export default function InventoryPage() {
 										<InventoryItem
 											key={product.id}
 											{...product}
+											isSelected={selectedProductIds.has(product.id)}
+											onToggleSelection={handleToggleSelection}
 											onEdit={handleEditProduct}
 											onViewDetails={handleViewDetails}
 											onChangeCategory={handleChangeCategory}
@@ -175,6 +220,12 @@ export default function InventoryPage() {
 					console.log("Saving category:", id, cat);
 					await new Promise((resolve) => setTimeout(resolve, 500));
 				}}
+			/>
+
+			<BarcodeDialog
+				open={isBarcodeDialogOpen}
+				onOpenChange={setIsBarcodeDialogOpen}
+				products={selectedProducts}
 			/>
 		</div>
 	);

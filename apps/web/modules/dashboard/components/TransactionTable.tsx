@@ -62,7 +62,7 @@ export function TransactionTable() {
 
 	return (
 		<Card className="border border-border gap-2 p-6 overflow-hidden rounded-lg shadow-md">
-			<div className="flex items-center justify-between py-2 border-b border-border">
+			<div className="flex items-center justify-between py-2 ">
 				<h2 className="text-lg font-bold">Recent Transactions</h2>
 				<div className="flex items-center gap-2">
 					<span className="text-sm text-muted-foreground">
@@ -89,7 +89,7 @@ export function TransactionTable() {
 				) : (
 					<>
 						<Table>
-							<TableHeader>
+							<TableHeader className="bg-gray-100 ">
 								<TableRow className="border-bottom border-slate-200 shadow-sm rounded-md">
 									<TableHead className="text-left text-muted-foreground">
 										Transaction Date

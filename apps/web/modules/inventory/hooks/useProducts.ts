@@ -8,6 +8,7 @@ export const useProductList = (params?: {
 	limit?: number; 
 	page?: number; 
 	categoryId?: string;
+	status?: string;
 	lowStock?: number;
 }) => {
 	const { data: session } = useSession();

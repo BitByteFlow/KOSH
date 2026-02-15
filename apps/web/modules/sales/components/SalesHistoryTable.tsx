@@ -10,6 +10,7 @@ import {
 	Eye,
 	MoreHorizontal,
 	Loader2,
+	X,
 } from "lucide-react";
 import {
 	Table,
@@ -22,6 +23,8 @@ import {
 import { Badge } from "@kosh/ui/components/badge";
 import { Button } from "@kosh/ui/components/button";
 import { Input } from "@kosh/ui/components/input";
+import { Label } from "@kosh/ui/components/label";
+import { Checkbox } from "@kosh/ui/components/checkbox";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -29,6 +32,14 @@ import {
 	DropdownMenuTrigger,
 	DropdownMenuSeparator,
 } from "@kosh/ui/components/dropdown-menu";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@kosh/ui/components/dialog";
 import { useSalesList } from "../hooks/useSales";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
@@ -36,16 +47,80 @@ import { TransactionTableSkeleton } from "@/components/TableSkeleton";
 
 export function SalesHistoryTable() {
 	const [searchQuery, setSearchQuery] = useState("");
+	const [isFilterOpen, setIsFilterOpen] = useState(false);
+	const [filters, setFilters] = useState({
+		minTotal: "",
+		maxTotal: "",
+		minProfit: "",
+		maxProfit: "",
+		minItems: "",
+		maxItems: "",
+		paymentTypes: [] as string[],
+	});
+
 	const { data: sales, isLoading, error } = useSalesList();
 
 	const filteredSales = useMemo(() => {
 		if (!sales) return [];
-		return sales.filter(
-			(sale: any) =>
+		return sales.filter((sale: any) => {
+			const matchesSearch =
 				sale.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-				sale.paymentType.toLowerCase().includes(searchQuery.toLowerCase()),
-		);
-	}, [sales, searchQuery]);
+				sale.paymentType.toLowerCase().includes(searchQuery.toLowerCase());
+
+			if (!matchesSearch) return false;
+
+			const total = parseFloat(sale.total);
+			if (filters.minTotal && total < parseFloat(filters.minTotal)) return false;
+			if (filters.maxTotal && total > parseFloat(filters.maxTotal)) return false;
+
+			const profit = parseFloat(sale.profit);
+			if (filters.minProfit && profit < parseFloat(filters.minProfit)) return false;
+			if (filters.maxProfit && profit > parseFloat(filters.maxProfit)) return false;
+
+			const itemCount = sale.items.length;
+			if (filters.minItems && itemCount < parseInt(filters.minItems)) return false;
+			if (filters.maxItems && itemCount > parseInt(filters.maxItems)) return false;
+
+			if (
+				filters.paymentTypes.length > 0 &&
+				!filters.paymentTypes.includes(sale.paymentType)
+			) {
+				return false;
+			}
+
+			return true;
+		});
+	}, [sales, searchQuery, filters]);
+
+	const handlePaymentTypeChange = (type: string, checked: boolean) => {
+		setFilters((prev) => ({
+			...prev,
+			paymentTypes: checked
+				? [...prev.paymentTypes, type]
+				: prev.paymentTypes.filter((t) => t !== type),
+		}));
+	};
+
+	const resetFilters = () => {
+		setFilters({
+			minTotal: "",
+			maxTotal: "",
+			minProfit: "",
+			maxProfit: "",
+			minItems: "",
+			maxItems: "",
+			paymentTypes: [],
+		});
+	};
+
+	const activeFiltersCount = useMemo(() => {
+		let count = 0;
+		if (filters.minTotal || filters.maxTotal) count++;
+		if (filters.minProfit || filters.maxProfit) count++;
+		if (filters.minItems || filters.maxItems) count++;
+		if (filters.paymentTypes.length > 0) count++;
+		return count;
+	}, [filters]);
 
 	if (isLoading) {
 		return <TransactionTableSkeleton />;
@@ -74,10 +149,19 @@ export function SalesHistoryTable() {
 				<div className="flex gap-2">
 					<Button
 						variant="outline"
-						className="flex items-center gap-2 h-10"
+						className="flex items-center gap-2 h-10 relative"
+						onClick={() => setIsFilterOpen(true)}
 					>
 						<SlidersHorizontal className="h-4 w-4" />
 						Filter
+						{activeFiltersCount > 0 && (
+							<Badge
+								variant="default"
+								className="ml-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-blue-600"
+							>
+								{activeFiltersCount}
+							</Badge>
+						)}
 					</Button>
 					<Button
 						variant="outline"
@@ -89,10 +173,10 @@ export function SalesHistoryTable() {
 				</div>
 			</div>
 
-			<div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
-				<Table>
+			<div className="rounded-lg border-border bg-card text-card-foreground shadow-sm overflow-hidden">
+				<Table className="border-border">
 					<TableHeader className="bg-muted/50">
-						<TableRow>
+						<TableRow className="border-border">
 							<TableHead className="w-[120px]">Invoice</TableHead>
 							<TableHead>Date</TableHead>
 							<TableHead className="text-center">Items</TableHead>
@@ -104,7 +188,7 @@ export function SalesHistoryTable() {
 					</TableHeader>
 					<TableBody>
 						{filteredSales.length === 0 ? (
-							<TableRow>
+							<TableRow className="border-border">
 								<TableCell
 									colSpan={7}
 									className="text-center py-12 text-muted-foreground"
@@ -116,29 +200,29 @@ export function SalesHistoryTable() {
 							filteredSales.map((sale: any) => (
 								<TableRow
 									key={sale.id}
-									className="hover:bg-muted/50"
+									className="hover:bg-muted/50 border-border"
 								>
-									<TableCell className="font-medium text-xs truncate max-w-[120px]">
+									<TableCell className="font-medium text-xs truncate max-w-[120px] py-6">
 										#{sale.id.slice(0, 8)}
 									</TableCell>
 									<TableCell className="text-muted-foreground text-xs">
 										{format(new Date(sale.createdAt), "MMM dd, yyyy HH:mm")}
 									</TableCell>
-									<TableCell className="text-center">
+									<TableCell className="text-center text-xs">
 										{sale.items.length}
 									</TableCell>
 									<TableCell>
 										<Badge
 											variant="secondary"
-											className="font-normal"
+											className="font-normal text-[10px] px-2 py-0"
 										>
 											{sale.paymentType}
 										</Badge>
 									</TableCell>
-									<TableCell className="text-right font-medium">
+									<TableCell className="text-right font-medium text-sm">
 										{formatCurrency(parseFloat(sale.total))}
 									</TableCell>
-									<TableCell className="text-right font-medium text-green-600">
+									<TableCell className="text-right font-medium text-green-600 text-sm">
 										{formatCurrency(parseFloat(sale.profit))}
 									</TableCell>
 									<TableCell>
@@ -170,6 +254,161 @@ export function SalesHistoryTable() {
 					</TableBody>
 				</Table>
 			</div>
+
+			<Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+				<DialogContent className="sm:max-w-[425px]">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<SlidersHorizontal className="h-5 w-5" />
+							Filter Sales
+						</DialogTitle>
+						<DialogDescription>
+							Refine your sales history by applying filters below.
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className="grid gap-6 py-4">
+						{/* Total Filter */}
+						<div className="space-y-3">
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+								Total Amount (Rs)
+							</Label>
+							<div className="grid grid-cols-2 gap-4">
+								<div className="space-y-1">
+									<Label className="text-[10px] text-muted-foreground">Min</Label>
+									<Input
+										type="number"
+										placeholder="0"
+										className="h-9"
+										value={filters.minTotal}
+										onChange={(e) =>
+											setFilters((prev) => ({ ...prev, minTotal: e.target.value }))
+										}
+									/>
+								</div>
+								<div className="space-y-1">
+									<Label className="text-[10px] text-muted-foreground">Max</Label>
+									<Input
+										type="number"
+										placeholder="Max"
+										className="h-9"
+										value={filters.maxTotal}
+										onChange={(e) =>
+											setFilters((prev) => ({ ...prev, maxTotal: e.target.value }))
+										}
+									/>
+								</div>
+							</div>
+						</div>
+
+						{/* Profit Filter */}
+						<div className="space-y-3">
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+								Profit (Rs)
+							</Label>
+							<div className="grid grid-cols-2 gap-4">
+								<div className="space-y-1">
+									<Label className="text-[10px] text-muted-foreground">Min</Label>
+									<Input
+										type="number"
+										placeholder="0"
+										className="h-9"
+										value={filters.minProfit}
+										onChange={(e) =>
+											setFilters((prev) => ({ ...prev, minProfit: e.target.value }))
+										}
+									/>
+								</div>
+								<div className="space-y-1">
+									<Label className="text-[10px] text-muted-foreground">Max</Label>
+									<Input
+										type="number"
+										placeholder="Max"
+										className="h-9"
+										value={filters.maxProfit}
+										onChange={(e) =>
+											setFilters((prev) => ({ ...prev, maxProfit: e.target.value }))
+										}
+									/>
+								</div>
+							</div>
+						</div>
+
+						{/* Items Filter */}
+						<div className="space-y-3">
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+								Number of Items
+							</Label>
+							<div className="grid grid-cols-2 gap-4">
+								<div className="space-y-1">
+									<Label className="text-[10px] text-muted-foreground">Min</Label>
+									<Input
+										type="number"
+										placeholder="0"
+										className="h-9"
+										value={filters.minItems}
+										onChange={(e) =>
+											setFilters((prev) => ({ ...prev, minItems: e.target.value }))
+										}
+									/>
+								</div>
+								<div className="space-y-1">
+									<Label className="text-[10px] text-muted-foreground">Max</Label>
+									<Input
+										type="number"
+										placeholder="Max"
+										className="h-9"
+										value={filters.maxItems}
+										onChange={(e) =>
+											setFilters((prev) => ({ ...prev, maxItems: e.target.value }))
+										}
+									/>
+								</div>
+							</div>
+						</div>
+
+						{/* Payment Type Filter */}
+						<div className="space-y-3">
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+								Payment Type
+							</Label>
+							<div className="flex flex-wrap gap-x-6 gap-y-2">
+								{["CASH", "ONLINE", "CREDIT"].map((type) => (
+									<div key={type} className="flex items-center space-x-2">
+										<Checkbox
+											id={`filter-payment-${type}`}
+											checked={filters.paymentTypes.includes(type)}
+											onCheckedChange={(checked) =>
+												handlePaymentTypeChange(type, checked as boolean)
+											}
+										/>
+										<Label
+											htmlFor={`filter-payment-${type}`}
+											className="text-sm font-medium cursor-pointer"
+										>
+											{type === "CREDIT" ? "Credit" : type.charAt(0) + type.slice(1).toLowerCase()}
+										</Label>
+									</div>
+								))}
+							</div>
+						</div>
+					</div>
+
+					<DialogFooter className="gap-2 sm:gap-0">
+						<Button
+							variant="ghost"
+							className="text-muted-foreground hover:text-foreground"
+							onClick={resetFilters}
+						>
+							<X className="mr-2 h-4 w-4" />
+							Reset Filters
+						</Button>
+						<Button onClick={() => setIsFilterOpen(false)} className="bg-blue-600 hover:bg-blue-700">
+							Apply Filters
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

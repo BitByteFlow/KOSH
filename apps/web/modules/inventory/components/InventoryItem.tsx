@@ -58,6 +58,8 @@ interface InventoryItemProps {
 	onViewDetails?: (productId: string) => void;
 	onDelete?: (productId: string) => void;
 	onChangeCategory?: (productId: string) => void;
+	isSelected?: boolean;
+	onToggleSelection?: (productId: string) => void;
 }
 
 const InventoryItem = ({
@@ -74,6 +76,8 @@ const InventoryItem = ({
 	onViewDetails,
 	onDelete,
 	onChangeCategory,
+	isSelected = false,
+	onToggleSelection,
 }: InventoryItemProps) => {
 	const [isExpanded, setIsExpanded] = useState(false);
 	const [editingVariant, setEditingVariant] = useState<Variant | null>(null);
@@ -113,7 +117,10 @@ const InventoryItem = ({
 		<>
 			<TableRow className="hover:bg-muted/50 transition-colors border-b-border [&_td:first-child]:pl-6 [&_td:last-child]:pr-6 [&_td]:py-5">
 				<TableCell className="w-12">
-					<Checkbox />
+					<Checkbox
+						checked={isSelected}
+						onCheckedChange={() => onToggleSelection?.(id)}
+					/>
 				</TableCell>
 
 				<TableCell>
