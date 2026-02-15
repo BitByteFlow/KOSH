@@ -33,6 +33,7 @@ export const API_ENDPOINTS = {
 		create: "products",
 		update: (id: string) => `products/${id}`,
 		delete: (id: string) => `products/${id}`,
+		updateVariant: (id: string) => `products/variants/${id}`,
 	},
 	
 	sales: {

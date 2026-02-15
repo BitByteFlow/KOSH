@@ -33,16 +33,7 @@ import {
 	TableHead,
 	TableBody,
 } from "@kosh/ui/components/table";
-
-interface Variant {
-	id: string;
-	sku: string;
-	barcode: string;
-	attributes: Record<string, string>;
-	price: number;
-	stock: number;
-	lowStock?: boolean;
-}
+import { ProductVariant } from "@/services/products.service";
 
 interface InventoryItemProps {
 	id: string;
@@ -51,7 +42,7 @@ interface InventoryItemProps {
 	totalStock: number;
 	variantCount: number;
 	status: "active" | "inactive" | "out-of-stock";
-	variants: Variant[];
+	variants: ProductVariant[];
 	onEdit?: (productId: string) => void;
 	onEditVariant?: (variantId: string) => void;
 	onUpdateVariant?: (variant: any) => Promise<void>;
@@ -80,7 +71,7 @@ const InventoryItem = ({
 	onToggleSelection,
 }: InventoryItemProps) => {
 	const [isExpanded, setIsExpanded] = useState(false);
-	const [editingVariant, setEditingVariant] = useState<Variant | null>(null);
+	const [editingVariant, setEditingVariant] = useState<ProductVariant | null>(null);
 	const [isSheetOpen, setIsSheetOpen] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -112,6 +103,7 @@ const InventoryItem = ({
 		inactive: "Inactive",
 		"out-of-stock": "Out of Stock",
 	}[status];
+	console.log("vairants:", variants)
 
 	return (
 		<>

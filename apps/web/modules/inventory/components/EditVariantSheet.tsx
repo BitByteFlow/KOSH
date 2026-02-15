@@ -17,19 +17,12 @@ import {
 } from "@kosh/ui/components/sheet";
 import { cn } from "@kosh/ui/lib/utils";
 import { Trash2 } from "lucide-react";
+import { ProductVariant } from "@/services/products.service";
 
 interface EditVariantSheetProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	variant?: {
-		id: string;
-		sku: string;
-		barcode: string;
-		attributes: Record<string, string>;
-		price: number;
-		stock: number;
-		costPrice?: number;
-	};
+	variant?: ProductVariant,
 	onSave: (variant: VariantDtoInput) => Promise<void>;
 }
 
@@ -131,9 +124,11 @@ export function EditVariantSheet({
 			reset({
 				id: variant.id,
 				costPrice: variant.costPrice || 0,
-				attributes: Object.entries(variant.attributes).map(([name, value]) => ({
-					name,
-					value,
+				sellingPrice: variant.price || 0,
+				stock: variant.stock || 0,
+				attributes: variant.attributes.map((attr) => ({
+					name: attr.name,
+					value: attr.value,
 				})),
 			});
 		}
@@ -236,7 +231,7 @@ export function EditVariantSheet({
 						</Button>
 						<Button
 							type="submit"
-							disabled={loading}
+							disabled={loading || !form.formState.isDirty}
 							className="w-full sm:w-auto"
 						>
 							{loading ? "Saving..." : "Save Changes"}

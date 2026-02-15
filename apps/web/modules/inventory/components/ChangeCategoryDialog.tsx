@@ -11,6 +11,10 @@ import {
 	DialogTitle,
 } from "@kosh/ui/components/dialog";
 import { Label } from "@kosh/ui/components/label";
+import { useCategoryList, useUpdateProduct } from "../hooks/useProducts";
+import { Category } from "@/services/categories.service";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 interface ChangeCategoryDialogProps {
 	open: boolean;
@@ -25,19 +29,30 @@ export function ChangeCategoryDialog({
 	product,
 	onSave,
 }: ChangeCategoryDialogProps) {
+	const { data: categoryData, isLoading: categoriesLoading } = useCategoryList();
+	const updateProduct = useUpdateProduct();
 	const [selectedCategory, setSelectedCategory] = useState(product?.category || "");
-	const [loading, setLoading] = useState(false);
+
+	// Reset selection when product changes
+	useEffect(() => {
+		if (product) {
+			setSelectedCategory(product.categoryId || "");
+		}
+	}, [product]);
 
 	const handleSave = async () => {
-		if (!product) return;
-		setLoading(true);
+		if (!product || !selectedCategory) return;
+
 		try {
-			await onSave(product.id, selectedCategory);
+			await updateProduct.mutateAsync({
+				id: product.id,
+				data: { categoryId: selectedCategory }
+			});
+			toast.success("Category updated successfully");
 			onOpenChange(false);
 		} catch (error) {
+			toast.error("Failed to update category");
 			console.error("Failed to change category", error);
-		} finally {
-			setLoading(false);
 		}
 	};
 
@@ -59,11 +74,14 @@ export function ChangeCategoryDialog({
 							className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 							value={selectedCategory}
 							onChange={(e) => setSelectedCategory(e.target.value)}
+							disabled={categoriesLoading}
 						>
-							<option value="electronics">Electronics</option>
-							<option value="clothing">Clothing</option>
-							<option value="groceries">Groceries</option>
-							<option value="furniture">Furniture</option>
+							<option value="" disabled>Select a category</option>
+							{categoryData?.categories.map((cat: Category) => (
+								<option key={cat.id} value={cat.id}>
+									{cat.name}
+								</option>
+							))}
 						</select>
 					</div>
 				</div>
@@ -72,8 +90,8 @@ export function ChangeCategoryDialog({
 					<Button variant="outline" onClick={() => onOpenChange(false)}>
 						Cancel
 					</Button>
-					<Button onClick={handleSave} disabled={loading}>
-						{loading ? "Saving..." : "Save Changes"}
+					<Button onClick={handleSave} disabled={updateProduct.isPending || selectedCategory === product?.categoryId}>
+						{updateProduct.isPending ? "Saving..." : "Save Changes"}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

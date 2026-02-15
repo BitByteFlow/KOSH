@@ -1,37 +1,26 @@
 import { Edit } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
 import { TableRow, TableCell } from "@kosh/ui/components/table";
-
-interface Variant {
-	id: string;
-	sku: string;
-	barcode: string;
-	attributes: Record<string, string>;
-	price: number;
-	stock: number;
-	lowStock?: boolean;
-}
+import { ProductVariant } from "@/services/products.service";
 
 interface VariantRowProps {
-	variant: Variant;
+	variant: ProductVariant;
 	onEdit?: (variantId: string) => void;
 }
 
 export function VariantRow({ variant, onEdit }: VariantRowProps) {
-	const attributeEntries = Object.entries(variant.attributes);
-
 	return (
 		<TableRow className="border-none hover:bg-muted/40">
 			<TableCell className="w-12 pl-6" />
 			<TableCell>
 				<div className="flex flex-wrap gap-x-4 gap-y-1">
-					{attributeEntries.map(([key, value]) => (
+					{variant.attributes.map((attr, index) => (
 						<div
-							key={key}
+							key={index}
 							className="text-sm"
 						>
-							<span className="text-muted-foreground">{key}: </span>
-							<span className="font-medium">{value}</span>
+							<span className="text-muted-foreground">{attr.name}: </span>
+							<span className="font-medium">{attr.value}</span>
 						</div>
 					))}
 				</div>
@@ -54,9 +43,8 @@ export function VariantRow({ variant, onEdit }: VariantRowProps) {
 						</span>
 					)}
 					<span
-						className={`font-medium ${
-							variant.lowStock ? "text-orange-500" : ""
-						}`}
+						className={`font-medium ${variant.lowStock ? "text-orange-500" : ""
+							}`}
 					>
 						{variant.stock} in stock
 					</span>

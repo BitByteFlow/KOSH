@@ -19,6 +19,17 @@ import {
 import { useProductList } from "@/modules/inventory/hooks/useProducts";
 import { useDebounce } from "@/lib/hooks/useDebounce";
 import { TransactionTableSkeleton } from "@/components/TableSkeleton";
+import { useDeleteProduct, useUpdateProduct, useUpdateVariant } from "@/modules/inventory/hooks/useProducts";
+import { toast } from "sonner";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@kosh/ui/components/dialog";
+import { Button } from "@kosh/ui/components/button";
 
 export default function InventoryPage() {
 	const [currentPage, setCurrentPage] = useState(1);
@@ -48,6 +59,10 @@ export default function InventoryPage() {
 		categoryId: categoryFilter || undefined,
 		status: statusFilter || undefined,
 	});
+
+	const deleteProduct = useDeleteProduct();
+	const updateVariant = useUpdateVariant();
+	const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
 	const products = inventoryData?.data || [];
 	const meta = inventoryData?.meta;
@@ -102,7 +117,19 @@ export default function InventoryPage() {
 	};
 
 	const handleDeleteProduct = (id: string) => {
-		console.log("Deleting product:", id);
+		setProductToDelete(id);
+	};
+
+	const confirmDelete = async () => {
+		if (productToDelete) {
+			try {
+				await deleteProduct.mutateAsync(productToDelete);
+				toast.success("Product deleted successfully");
+				setProductToDelete(null);
+			} catch (error) {
+				toast.error("Failed to delete product");
+			}
+		}
 	};
 
 	return (
@@ -167,6 +194,18 @@ export default function InventoryPage() {
 											onChangeCategory={handleChangeCategory}
 											onDelete={handleDeleteProduct}
 											onEditVariant={(id) => console.log("Edit variant:", id)}
+											onUpdateVariant={async (variant) => {
+												try {
+													await updateVariant.mutateAsync({
+														productId: product.id,
+														variantId: variant.id,
+														data: variant,
+													});
+													toast.success("Variant updated successfully");
+												} catch (error) {
+													toast.error("Failed to update variant");
+												}
+											}}
 										/>
 									))}
 									{products.length === 0 && (
@@ -217,10 +256,42 @@ export default function InventoryPage() {
 				onOpenChange={(open) => !open && setCategoryProduct(null)}
 				product={categoryProduct}
 				onSave={async (id, cat) => {
-					console.log("Saving category:", id, cat);
-					await new Promise((resolve) => setTimeout(resolve, 500));
+					// This is now handled inside ChangeCategoryDialog, but we keep the prop for interface compatibility if needed, 
+					// or we can remove it from the component definition if we fully refactored it. 
+					// For now, let's just log or do nothing since the dialog handles the mutation.
+					console.log("Category updated");
 				}}
 			/>
+
+			<Dialog
+				open={!!productToDelete}
+				onOpenChange={(open: boolean) => !open && setProductToDelete(null)}
+			>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Are you absolute sure?</DialogTitle>
+						<DialogDescription>
+							This action cannot be undone. This will permanently delete the
+							product and remove your data from our servers.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setProductToDelete(null)} disabled={deleteProduct.isPending}>
+							Cancel
+						</Button>
+						<Button
+							onClick={(e: React.MouseEvent) => {
+								e.preventDefault();
+								confirmDelete();
+							}}
+							disabled={deleteProduct.isPending}
+							className="bg-red-600 hover:bg-red-700 text-white"
+						>
+							{deleteProduct.isPending ? "Deleting..." : "Delete"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 
 			<BarcodeDialog
 				open={isBarcodeDialogOpen}

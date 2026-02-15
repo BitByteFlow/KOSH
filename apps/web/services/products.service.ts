@@ -5,7 +5,7 @@ export interface ProductVariant {
 	id: string;
 	sku: string;
 	barcode: string;
-	attributes: Record<string, string>;
+	attributes: { name: string; value: string }[];
 	price: number;
 	stock: number;
 	lowStock: boolean;
@@ -64,6 +64,41 @@ export const productsService = {
 			API_ENDPOINTS.products.create,
 			token,
 			data
+		);
+	},
+
+	updateProduct: async (
+		id: string,
+		data: any,
+		token: string | undefined
+	): Promise<{ status: string; message: string }> => {
+		return clientApiClient.patch<{ status: string; message: string }>(
+			API_ENDPOINTS.products.update(id),
+			token,
+			data
+		);
+	},
+
+	deleteProduct: async (
+		id: string,
+		token: string | undefined
+	): Promise<{ status: string; message: string }> => {
+		return clientApiClient.delete<{ status: string; message: string }>(
+			API_ENDPOINTS.products.delete(id),
+			token
+		);
+	},
+
+	updateVariant: async (
+		productId: string,
+		variantId: string,
+		data: any,
+		token: string | undefined
+	): Promise<{ status: string; message: string }> => {
+		return clientApiClient.put<{ status: string; message: string }>(
+			API_ENDPOINTS.products.updateVariant(variantId),
+			token,
+			{ ...data, productId, variantId }
 		);
 	},
 };

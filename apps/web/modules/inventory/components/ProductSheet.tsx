@@ -34,7 +34,7 @@ import {
 	createProductSchema,
 	type CreateProductInput,
 } from "@kosh/validation";
-import { useCreateProduct, useCategoryList } from "../hooks/useProducts";
+import { useCreateProduct, useCategoryList, useUpdateProduct } from "../hooks/useProducts";
 import { toast } from "sonner";
 import { Category } from "@/services/categories.service";
 
@@ -150,6 +150,7 @@ export function ProductSheet({
 	const { data: categoryData, isLoading: categoriesLoading } =
 		useCategoryList();
 	const createProduct = useCreateProduct();
+	const updateProduct = useUpdateProduct();
 
 	const isControlled = open !== undefined && onOpenChange !== undefined;
 	const isOpen = isControlled ? open : internalOpen;
@@ -179,25 +180,46 @@ export function ProductSheet({
 		register,
 		watch,
 		reset,
-		formState: { errors },
+		formState: { errors, isDirty },
 	} = form;
 
 	useEffect(() => {
-		if (isOpen && !product) {
-			reset({
-				name: "",
-				categoryId: "",
-				supplierName: "",
-				keepPurchaseRecord: false,
-				variants: [
-					{
-						costPrice: 0,
-						sellingPrice: 0,
-						stock: 0,
-						attributes: [{ name: "", value: "" }],
-					},
-				],
-			});
+		if (isOpen) {
+			if (product) {
+				reset({
+					name: product.productName,
+					categoryId: product.categoryId || "", // Ensure categoryId is mapped correctly
+					supplierName: "", // Assuming supplier isn't editable or part of product object in this context
+					keepPurchaseRecord: false,
+					variants: product.variants.map((v: any) => ({
+						id: v.id,
+						costPrice: v.costPrice,
+						sellingPrice: v.price, // Mapping price to sellingPrice
+						stock: v.stock,
+						attributes: v.attributes
+							? Object.entries(v.attributes).map(([name, value]) => ({
+								name,
+								value: value as string,
+							}))
+							: [{ name: "", value: "" }],
+					})),
+				});
+			} else {
+				reset({
+					name: "",
+					categoryId: "",
+					supplierName: "",
+					keepPurchaseRecord: false,
+					variants: [
+						{
+							costPrice: 0,
+							sellingPrice: 0,
+							stock: 0,
+							attributes: [{ name: "", value: "" }],
+						},
+					],
+				});
+			}
 		}
 	}, [isOpen, product, reset]);
 
@@ -215,26 +237,40 @@ export function ProductSheet({
 	const onSubmit = async (data: CreateProductInput) => {
 		try {
 			// Format data for backend
-			const payload = {
+			const basePayload = {
 				name: data.name,
 				categoryId: data.categoryId,
-				createPurchaseRecord: data.keepPurchaseRecord,
-				supplierName: data.keepPurchaseRecord ? data.supplierName : undefined,
 				variants: data.variants.map((v) => ({
+					id: v.id,
 					costPrice: v.costPrice,
 					sellingPrice: v.sellingPrice,
 					stock: v.stock,
 					attributes: v.attributes?.filter((attr) => attr.name && attr.value),
-					//TODO: add validation for attributes
 				})),
 			};
 
-			await createProduct.mutateAsync(payload);
-			toast.success("Product created successfully");
+			if (product) {
+				await updateProduct.mutateAsync({
+					id: product.id,
+					data: basePayload,
+				});
+				toast.success("Product updated successfully");
+			} else {
+				const createPayload = {
+					...basePayload,
+					createPurchaseRecord: data.keepPurchaseRecord,
+					supplierName: data.keepPurchaseRecord ? data.supplierName : undefined,
+				};
+				await createProduct.mutateAsync(createPayload);
+				toast.success("Product created successfully");
+			}
 			setIsOpen(false);
 			reset();
 		} catch (error: any) {
-			toast.error(error.response?.data?.message || "Failed to create product");
+			toast.error(
+				error.response?.data?.message ||
+				(product ? "Failed to update product" : "Failed to create product"),
+			);
 		}
 	};
 
@@ -489,32 +525,34 @@ export function ProductSheet({
 						</div>
 
 						<div className="space-y-4 pt-2 border-t border-gray-100">
-							<div className="flex items-start space-x-4 p-4 bg-primary/5 rounded-2xl border border-primary/10 transition-colors">
-								<Controller
-									control={control}
-									name="keepPurchaseRecord"
-									render={({ field }) => (
-										<Checkbox
-											id="keepPurchaseRecord"
-											checked={field.value}
-											onCheckedChange={field.onChange}
-											className="mt-1 border-primary/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-										/>
-									)}
-								/>
-								<div className="grid gap-1.5 leading-none">
-									<Label
-										htmlFor="keepPurchaseRecord"
-										className="text-sm font-bold text-primary cursor-pointer"
-									>
-										Initial Stock Purchase Log
-									</Label>
-									<p className="text-xs text-primary/60">
-										Automatically record a purchase entry for the initial stock.
-										This will subtract from your cash balance.
-									</p>
+							{!product && (
+								<div className="flex items-start space-x-4 p-4 bg-primary/5 rounded-2xl border border-primary/10 transition-colors">
+									<Controller
+										control={control}
+										name="keepPurchaseRecord"
+										render={({ field }) => (
+											<Checkbox
+												id="keepPurchaseRecord"
+												checked={field.value}
+												onCheckedChange={field.onChange}
+												className="mt-1 border-primary/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+											/>
+										)}
+									/>
+									<div className="grid gap-1.5 leading-none">
+										<Label
+											htmlFor="keepPurchaseRecord"
+											className="text-sm font-bold text-primary cursor-pointer"
+										>
+											Initial Stock Purchase Log
+										</Label>
+										<p className="text-xs text-primary/60">
+											Automatically record a purchase entry for the initial
+											stock. This will subtract from your cash balance.
+										</p>
+									</div>
 								</div>
-							</div>
+							)}
 
 							{keepPurchaseRecord && (
 								<div className="grid gap-2 pl-4 animate-in slide-in-from-top-2 fade-in duration-300">
@@ -556,10 +594,14 @@ export function ProductSheet({
 						</Button>
 						<Button
 							type="submit"
-							disabled={createProduct.isPending}
+							disabled={
+								createProduct.isPending ||
+								updateProduct.isPending ||
+								(product && !isDirty)
+							}
 							className="rounded-xl px-8 shadow-md shadow-primary/20 gap-2 min-w-[140px]"
 						>
-							{createProduct.isPending ? (
+							{createProduct.isPending || updateProduct.isPending ? (
 								<>
 									<Loader2 className="h-4 w-4 animate-spin" />
 									Saving...

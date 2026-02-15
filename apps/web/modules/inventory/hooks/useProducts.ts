@@ -35,6 +35,51 @@ export const useCreateProduct = () => {
 	});
 };
 
+export const useUpdateProduct = () => {
+	const queryClient = useQueryClient();
+	const { data: session } = useSession();
+	const token = session?.user?.token;
+
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: any }) =>
+			productsService.updateProduct(id, data, token),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["products"] });
+			queryClient.invalidateQueries({ queryKey: ["daily-balance"] });
+			queryClient.invalidateQueries({ queryKey: ["account-transactions"] });
+		},
+	});
+};
+
+export const useDeleteProduct = () => {
+	const queryClient = useQueryClient();
+	const { data: session } = useSession();
+	const token = session?.user?.token;
+
+	return useMutation({
+		mutationFn: (id: string) => productsService.deleteProduct(id, token),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["products"] });
+			queryClient.invalidateQueries({ queryKey: ["daily-balance"] });
+			queryClient.invalidateQueries({ queryKey: ["account-transactions"] });
+		},
+	});
+};
+
+export const useUpdateVariant = () => {
+	const queryClient = useQueryClient();
+	const { data: session } = useSession();
+	const token = session?.user?.token;
+
+	return useMutation({
+		mutationFn: ({ productId, variantId, data }: { productId: string; variantId: string; data: any }) =>
+			productsService.updateVariant(productId, variantId, data, token),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["products"] });
+		},
+	});
+};
+
 export const useCategoryList = () => {
 	const { data: session } = useSession();
 	const token = session?.user?.token;
