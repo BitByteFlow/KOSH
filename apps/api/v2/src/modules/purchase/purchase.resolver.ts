@@ -16,7 +16,7 @@ export class PurchaseResolver {
 
 	@Mutation(() => PurchaseResponse, { name: 'createPurchase' })
 	async createPurchase(
-		@Args('createPurchase') createPurchase: CreatePurchaseInput,
+		@Args('createPurchaseInput') createPurchase: CreatePurchaseInput,
 		@CurrentUser() user: AuthenticatedUser,
 	): Promise<PurchaseResponse> {
 		return await this.purchaseService.createPurchase(

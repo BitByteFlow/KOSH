@@ -15,7 +15,7 @@ export class PaginationInput {
     sortOrder?: 'asc' | 'desc' = 'desc';
 }
 
-
+@InputType()
 export class ProductFilterInput extends PaginationInput{
     @Field({ nullable: true })
     categoryId?: string;

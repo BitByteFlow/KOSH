@@ -1,33 +1,25 @@
-import { Type } from 'class-transformer';
-import { IsDate, IsEmail, IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { createZodDto } from "nestjs-zod";
+import { updatePurchaseSchema } from "@kosh/validation";
+import { Field, InputType } from "@nestjs/graphql";
+import { PaymentStatus } from "@kosh/db";
 
-export class UpdatePurchaseInput{
-    @IsOptional()
-    @IsString()
+@InputType()
+export class UpdatePurchaseInput extends createZodDto(updatePurchaseSchema){
+    @Field(() => String, { nullable: true })
     supplierName?: string;
 
-    @IsOptional()
-    @IsEmail({}, { message: 'Invalid email format' })
+    @Field(() => String, { nullable: true })
     email?: string;
 
-    @IsOptional()
-    @IsString()
+    @Field(() => String, { nullable: true })
     contact?: string;
 
-    @IsOptional()
-    @IsNumber()
-    @Min(0, { message: 'Amount paid cannot be negative' })
+    @Field(() => Number, { nullable: true })
     amountPaid?: number;
 
-    @IsOptional()
-    @IsDate()
-    @Type(() => Date)
+    @Field(() => Date, { nullable: true })
     dueDate?: Date;
 
-    @IsOptional()
-    @IsString()
-    @IsIn(['PENDING', 'PARTIAL', 'PAID', 'OVERDUE'], {
-        message: 'Status must be one of: PENDING, PARTIAL, PAID, OVERDUE'
-    })
-    status?: string;
+    @Field(() => PaymentStatus, { nullable: true })
+    status?: PaymentStatus;
 }

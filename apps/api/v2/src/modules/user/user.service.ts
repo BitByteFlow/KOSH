@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
-import { UserResponseInput} from "./dto/UserResponseDto";
+import { UserResponse } from "./entities/userResponse.entity";
 
 @Injectable()
 export class UserService {
@@ -8,9 +8,8 @@ export class UserService {
 
     }
 
-    async getCurrentUser(id: string): Promise<UserResponseInput> {
-
-        const user = await this.database.user.findUnique({
+    async getCurrentUser(id: string): Promise<UserResponse> {
+        const user = await this.database.prisma.user.findUnique({
             where: {
                 id: id
             },

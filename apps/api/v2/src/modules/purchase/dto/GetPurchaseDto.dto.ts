@@ -1,11 +1,10 @@
-import { IsDateString, IsOptional } from 'class-validator';
+import {Field, InputType} from "@nestjs/graphql";
 
+@InputType()
 export class GetPurchaseFilter {
-    @IsOptional()
-    @IsDateString()
+    @Field(() => String, { nullable: true })
     from?: string;
 
-    @IsOptional()
-    @IsDateString()
+    @Field(() => String, { nullable: true })
     to?: string;
 }
