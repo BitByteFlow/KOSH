@@ -1,16 +1,16 @@
 import { BadRequestException, ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
-import { CreateTransactionInput } from './dto/create-transaction.input';
 import { AccountTransaction } from './entities/transaction.entity';
 import { Balance } from './entities/balance.entity';
 import { PaginatedTransactions } from './entities/paginated-transactions.entity';
 import { Prisma } from '@kosh/db';
+import { CreateTransactionDto } from './dto/createTransaction.dto';
 
 @Injectable()
 export class AccountsService {
 	constructor(private readonly database: DatabaseService){}
 async createTransaction(
-  createTransactionDto: CreateTransactionInput,
+  createTransactionDto: CreateTransactionDto,
   userId: string,
 ): Promise<AccountTransaction> {
   const { type, amount: rawAmount, note } = createTransactionDto;

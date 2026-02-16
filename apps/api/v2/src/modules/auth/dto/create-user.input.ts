@@ -1,6 +1,15 @@
 import { createZodDto } from 'nestjs-zod';
 import { createUserSchema } from '@kosh/validation';
-import { InputType } from '@nestjs/graphql';
+import { Field, InputType } from '@nestjs/graphql';
 
 @InputType()
-export class CreateUserInput extends createZodDto(createUserSchema) {}
+export class CreateUserInput extends createZodDto(createUserSchema) {
+	@Field()
+  googleId: string;
+  @Field()
+  email: string;
+  @Field()
+  image: string;
+  @Field()
+  username: string;
+}

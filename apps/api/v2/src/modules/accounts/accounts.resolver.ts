@@ -1,37 +1,42 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { AccountsService } from './accounts.service';
 import { AccountTransaction } from './entities/transaction.entity';
-import { CreateTransactionInput } from './dto/create-transaction.input';
+import { CreateTransactionDto } from './dto/createTransaction.dto';
 import { Balance } from './entities/balance.entity';
 import { PaginatedTransactions } from './entities/paginated-transactions.entity';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/utils/jwt.guard';
+import { CurrentUser } from 'src/utils/currentUser.decorator';
 
 @Resolver(() => AccountTransaction)
+@UseGuards(JwtAuthGuard)
 export class AccountsResolver {
   constructor(private readonly accountsService: AccountsService) {}
 
   @Mutation(() => AccountTransaction)
   async createTransaction(
-    @Args('createTransactionInput') createTransactionInput: CreateTransactionInput,
+    @Args('input') createTransactionDto: CreateTransactionDto,
+	@CurrentUser() user: any,
   ) {
-    // TODO: Get userId from context/auth
-    const userId = "cmp73b3p00000u80t51025a5p"; 
-    return this.accountsService.createTransaction(createTransactionInput, userId);
+    const userId = user.id; 
+    return this.accountsService.createTransaction(createTransactionDto, userId);
   }
 
   @Query(() => Balance)
-  async getCurrentCashBalance() {
-    const userId = "cmp73b3p00000u80t51025a5p";
+  async getCurrentCashBalance(@CurrentUser() user: any) {
+    const userId = user.id;
     return this.accountsService.getCurrentCashBalance(userId);
   }
 
   @Query(() => PaginatedTransactions)
   async getAccountTransactions(
+		@CurrentUser() user: any,
     @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
     @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
     @Args('sortBy', { nullable: true, defaultValue: 'createdAt' }) sortBy: string,
     @Args('sortOrder', { nullable: true, defaultValue: 'desc' }) sortOrder: string,
   ) {
-    const userId = "cmp73b3p00000u80t51025a5p";
+    const userId = user.id;
     return this.accountsService.getAccountTransactions(
       userId,
       page,

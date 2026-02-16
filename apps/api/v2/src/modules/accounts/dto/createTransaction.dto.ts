@@ -1,4 +1,15 @@
 import {createZodDto} from "nestjs-zod"
 import {createTransactionSchema} from "@kosh/validation"
+import { Field, Float, InputType } from "@nestjs/graphql"
 
-export class CreateTransactionDto extends createZodDto(createTransactionSchema) {}
+@InputType()
+export class CreateTransactionDto extends createZodDto(createTransactionSchema) {
+	@Field()
+	type: string;
+
+	@Field(() => Float)
+	amount: number;
+
+	@Field(() => String, { nullable: true })
+	note?: string;
+}
