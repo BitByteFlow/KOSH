@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsDate, IsEmail, IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
-export class UpdatePurchaseDto {
+export class UpdatePurchaseInput{
     @IsOptional()
     @IsString()
     supplierName?: string;

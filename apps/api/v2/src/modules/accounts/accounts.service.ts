@@ -2,15 +2,15 @@ import { BadRequestException, ConflictException, Injectable, InternalServerError
 import { DatabaseService } from '../../database/database.service';
 import { AccountTransaction } from './entities/transaction.entity';
 import { Balance } from './entities/balance.entity';
-import { PaginatedTransactions } from './entities/paginated-transactions.entity';
+import { PaginatedTransactions } from './entities/paginatedTransactions.entity';
 import { Prisma } from '@kosh/db';
-import { CreateTransactionDto } from './dto/createTransaction.dto';
+import { CreateTransactionInput} from './dto/createTransaction.dto';
 
 @Injectable()
 export class AccountsService {
 	constructor(private readonly database: DatabaseService){}
 async createTransaction(
-  createTransactionDto: CreateTransactionDto,
+  createTransactionDto: CreateTransactionInput,
   userId: string,
 ): Promise<AccountTransaction> {
   const { type, amount: rawAmount, note } = createTransactionDto;

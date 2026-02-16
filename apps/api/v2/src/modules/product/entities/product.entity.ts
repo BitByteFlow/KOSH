@@ -1,5 +1,5 @@
 import { Field, ObjectType, ID } from '@nestjs/graphql';
-import { ProductVariant } from './product-variant.entity';
+import { ProductVariant } from './productVariant.entity';
 
 @ObjectType()
 export class Product {

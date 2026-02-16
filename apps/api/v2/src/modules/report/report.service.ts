@@ -1,11 +1,12 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
+import { AnalyticsMetrics } from "./entities/analyticsMetrics.entity";
 
 @Injectable()
 export class ReportService {
 	constructor(private readonly database: DatabaseService) {}
 
-	async getAnalyticsMetrics(userId: string, startDate: Date, endDate: Date) {
+	async getAnalyticsMetrics(userId: string, startDate: Date, endDate: Date): Promise<AnalyticsMetrics[]> {
 		try {
 			const currentMetrics = await this.calculateMetrics(userId, startDate, endDate);
 
@@ -19,27 +20,27 @@ export class ReportService {
 			return [
 				{
 					label: "TOTAL SALES",
-					value: `Rs. ${currentMetrics.totalSales.toLocaleString()}`,
+					value: currentMetrics.totalSales,
 					trend: this.calculateTrend(currentMetrics.totalSales, prevMetrics.totalSales),
 					trendLabel: `vs. Rs. ${prevMetrics.totalSales.toLocaleString()} last period`,
 					isPositive: currentMetrics.totalSales >= prevMetrics.totalSales,
 				},
 				{
 					label: "TOTAL PROFIT",
-					value: `Rs. ${currentMetrics.totalProfit.toLocaleString()}`,
+					value: currentMetrics.totalProfit,
 					trend: this.calculateTrend(currentMetrics.totalProfit, prevMetrics.totalProfit),
 					trendLabel: `Net profit margin: ${currentMetrics.totalSales > 0 ? Math.round((currentMetrics.totalProfit / currentMetrics.totalSales) * 100) : 0}%`,
 					isPositive: currentMetrics.totalProfit >= prevMetrics.totalProfit,
 				},
 				{
 					label: "TRANSACTIONS",
-					value: currentMetrics.transactions.toString(),
+					value: currentMetrics.transactions,
 					subtitle: `Daily Avg: ${(currentMetrics.transactions / (duration / (1000 * 60 * 60 * 24) || 1)).toFixed(1)} sales`,
 					isPositive: currentMetrics.transactions >= prevMetrics.transactions,
 				},
 				{
 					label: "AVG BILL VALUE",
-					value: `Rs. ${currentMetrics.avgBillValue.toLocaleString()}`,
+					value: currentMetrics.avgBillValue,
 					trend: this.calculateTrend(currentMetrics.avgBillValue, prevMetrics.avgBillValue),
 					trendLabel: "Per transaction",
 					isPositive: currentMetrics.avgBillValue >= prevMetrics.avgBillValue,

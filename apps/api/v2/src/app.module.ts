@@ -11,15 +11,10 @@ import {ConfigModule} from "@nestjs/config"
 import { ZodValidationPipe } from 'nestjs-zod';
 import { UtilsModule } from './utils/utils.module';
 import { Request } from 'express';
-import { ProductService } from './modules/product/product.service';
 import { ProductModule } from './modules/product/product.module';
-import { ServiceResolver } from './module/service/service.resolver';
 import { PurchaseModule } from './modules/purchase/purchase.module';
-import { ReportService } from './modules/report/report.service';
 import { ReportModule } from './modules/report/report.module';
-import { SaleService } from './modules/sale/sale.service';
 import { SaleModule } from './modules/sale/sale.module';
-import { UserResolver } from './modules/user/user.resolver';
 import { UserModule } from './modules/user/user.module';
 
 @Module({
@@ -52,11 +47,6 @@ import { UserModule } from './modules/user/user.module';
       provide: "APP_PIPE",
       useClass: ZodValidationPipe,
     },
-    ProductService,
-    ServiceResolver,
-    ReportService,
-    SaleService,
-    UserResolver,
   ],
 })
 export class AppModule {}

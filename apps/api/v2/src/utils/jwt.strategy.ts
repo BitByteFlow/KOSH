@@ -3,7 +3,7 @@ import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { ConfigService } from "@nestjs/config";
 import { DatabaseService } from "src/database/database.service";
-import { UserResponseDto } from '../modules/user/dto/UserResponseDto';
+import type { JwtPayload, AuthenticatedUser } from '../types/jwt.types';
 
 @Injectable()
 export class JWTStrategy extends PassportStrategy(Strategy) {
@@ -18,23 +18,21 @@ export class JWTStrategy extends PassportStrategy(Strategy) {
             secretOrKey: configService.get<string>('JWT_SECRET')!,
         });
     }
-    async validate(payload:any): Promise<UserResponseDto> {
 
+    async validate(payload: JwtPayload): Promise<AuthenticatedUser> {
         const user_id = payload.sub;
 
-        const user = await this.database.prisma.user.findFirst({
+        const user = await this.database.user.findFirst({
             where: {
                 id: user_id
             }
-        }
-        )
+        });
+
         if (!user) {
             throw new UnauthorizedException('User not found');
         }
 
         return user;
-
-
     }
 
 }

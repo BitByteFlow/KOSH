@@ -1,16 +1,18 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PaymentStatus, Prisma } from '@kosh/db';
 import { DatabaseService } from 'src/database/database.service';
-import { CreatePurchaseDto } from './dto/CreatePurchaseDto.dto';
-import { UpdatePurchaseDto } from './dto/UpdatePurchaseDto.dto';
+import { CreatePurchaseInput } from './dto/CreatePurchaseDto.dto';
+import { UpdatePurchaseInput } from './dto/UpdatePurchaseDto.dto';
+import { Purchase } from './entities/purchase.entity';
+import { PurchaseResponse } from './entities/purchaseResponse.entity';
 
 
 @Injectable()
 export class PurchasesService {
     constructor(private readonly database: DatabaseService) { }
 
-    async createPurchase(createPurchaseDto: CreatePurchaseDto, userId: string) {
-        return this.database.$transaction(async (tsx: Prisma.TransactionClient) => {
+    async createPurchase(createPurchaseDto: CreatePurchaseInput, userId: string): Promise<PurchaseResponse> {
+        return this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
             const variantDetails: Array<{ variant: any; quantity: number; price: number }> = [];
 
             for (const item of createPurchaseDto.variants) {
@@ -174,7 +176,7 @@ export class PurchasesService {
             }
 
             return {
-                status: 'success',
+                success: true,
                 message: 'Purchase created successfully'
             };
 
@@ -196,8 +198,8 @@ export class PurchasesService {
     }
 
 
-    async updatePurchase(updatePurchaseDto: UpdatePurchaseDto, purchaseID: string, userId: string): Promise<any> {
-        return this.database.$transaction(async (tsx: Prisma.TransactionClient) => {
+    async updatePurchase(updatePurchaseDto: UpdatePurchaseInput, purchaseID: string, userId: string): Promise<any> {
+        return this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
 
             const purchase = await tsx.purchase.findUnique({
                 where: {
@@ -335,8 +337,7 @@ export class PurchasesService {
         });
     }
 
-    async getPurchasesByDateRange(userId: string, from?: string, to?: string) {
-
+    async getPurchasesByDateRange(userId: string, from?: string, to?: string): Promise<Purchase[]> {
         try {
 
             const where: any = { userId };
@@ -375,11 +376,7 @@ export class PurchasesService {
                 }
             });
 
-            return {
-                status: "success",
-                message: "purhcase records retrieved",
-                purchases: purchases
-            };
+            return purchases;
 
         } catch (error) {
             console.error('Get purchases error:', error);

@@ -1,14 +1,14 @@
 import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
-import { CategoryResponseDto } from "../categories/dto/CategoryResponseDto";
-import { ProductFilterDto } from "./dto/ProductFilterDto.dto";
 import { Prisma } from "@kosh/db";
+import { ProductResponse } from "./entities/productResponse.entity";
+import { ProductFilterInput } from "./dto/productFilter.input";
 
 @Injectable()
 export class ProductService {
     constructor(private readonly database: DatabaseService) { }
 
-    async createProduct(userId: string, productDetail: any): Promise<CategoryResponseDto> {
+    async createProduct(userId: string, productDetail: any): Promise<ProductResponse> {
         try {
             return await this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
                 const categoryExists = await tsx.category.findUnique({
@@ -178,7 +178,7 @@ export class ProductService {
                 }
 
                 return {
-                    status: "success",
+                    success: true,
                     message: existingProduct ? "Product Reactivated and Variants Added!" : "Product Addition Successful!"
                 };
             });
@@ -189,7 +189,7 @@ export class ProductService {
         }
     }
 
-    async deleteProduct(productId: string, userId: string): Promise<CategoryResponseDto> {
+    async deleteProduct(productId: string, userId: string): Promise<ProductResponse> {
         try {
             await this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
                 const product = await tsx.product.findUnique({
@@ -229,7 +229,7 @@ export class ProductService {
             });
 
             return {
-                status: "success",
+                success: true,
                 message: "Product Deleted Successfully",
             };
         } catch (error: any) {
@@ -243,7 +243,7 @@ export class ProductService {
         }
     }
 
-    async updateProduct(productId: string, userId: string, updateData: any): Promise<CategoryResponseDto> {
+    async updateProduct(productId: string, userId: string, updateData: any): Promise<ProductResponse> {
         try {
             await this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
                 const product = await tsx.product.findUnique({
@@ -405,7 +405,7 @@ export class ProductService {
             });
 
             return {
-                status: "success",
+                success: true,
                 message: "Product updated successfully"
             };
         } catch (error: any) {
@@ -421,7 +421,7 @@ export class ProductService {
         }
     }
 
-    async addVariant(variantDetail: any, productId: string, userId: string): Promise<CategoryResponseDto> {
+    async addVariant(variantDetail: any, productId: string, userId: string): Promise<ProductResponse> {
         try {
             await this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
                 const product = await tsx.product.findUnique({
@@ -479,7 +479,7 @@ export class ProductService {
             });
 
             return {
-                status: "success",
+                success: true,
                 message: "Variant added successfully",
             };
         } catch (error: any) {
@@ -530,7 +530,7 @@ export class ProductService {
         }
     }
 
-    async updateProductVariant(updateProductVariantDto: any, userId: string, productVariantId: string): Promise<CategoryResponseDto> {
+    async updateProductVariant(updateProductVariantDto: any, userId: string, productVariantId: string): Promise<ProductResponse> {
         try {
             return await this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
                 const product = await tsx.product.findUnique({
@@ -576,7 +576,7 @@ export class ProductService {
 								}
 
                 return {
-                    status: "success",
+                    success: true,
                     message: "Variant updated successfully",
                 };
             });
@@ -589,7 +589,7 @@ export class ProductService {
         }
     }
 
-    async deleteProductVariant(productId: string, userId: string, productVariantId: string): Promise<CategoryResponseDto> {
+    async deleteProductVariant(productId: string, userId: string, productVariantId: string): Promise<ProductResponse> {
         try {
             return await this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
                 const product = await tsx.product.findUnique({
@@ -616,7 +616,7 @@ export class ProductService {
                 });
 
                 return {
-                    status: "success",
+                    success: true,
                     message: "Variant deleted successfully",
                 };
             });
@@ -629,7 +629,7 @@ export class ProductService {
         }
     }
 
-    async listProductsWithFilters(userId: string, filterDto: ProductFilterDto): Promise<any> {
+    async listProductsWithFilters(userId: string, filterDto: ProductFilterInput): Promise<any> {
         const {
             page = 1,
             limit = 10,
@@ -706,8 +706,6 @@ export class ProductService {
                 ];
             }
         }
-
-        console.log("ProductService - Prisma Where:", JSON.stringify(where, null, 2));
 
         const total = await this.database.prisma.product.count({ where });
 

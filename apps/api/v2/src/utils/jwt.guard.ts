@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { AuthGuard } from '@nestjs/passport';
+import type { AuthenticatedUser } from '../types/jwt.types';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -13,8 +14,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         return ctx.getContext().req;
     }
 
-    handleRequest(err: any, user: any, info: any):any {
-        
+    handleRequest<TUser = AuthenticatedUser>(
+        err: Error | null,
+        user: TUser | null,
+        info: { name?: string; message?: string } | undefined,
+        context: ExecutionContext,
+        status?: number
+    ): TUser {
         if (err || !user) {
             if (info?.name === 'TokenExpiredError') {
                 throw new UnauthorizedException('Token expired. Please login again.');

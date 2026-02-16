@@ -3,7 +3,7 @@ import {createTransactionSchema} from "@kosh/validation"
 import { Field, Float, InputType } from "@nestjs/graphql"
 
 @InputType()
-export class CreateTransactionDto extends createZodDto(createTransactionSchema) {
+export class CreateTransactionInput extends createZodDto(createTransactionSchema) {
 	@Field()
 	type: string;
 

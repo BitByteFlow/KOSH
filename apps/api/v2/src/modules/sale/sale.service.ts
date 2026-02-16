@@ -6,17 +6,18 @@ import {
 } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
 import { TransactionType } from "@kosh/db";
-import { CreateSaleDto } from "./dto/CreateSaleDto.dto";
-import { SaleResponseDto } from "./dto/SaleResponseDto.dto";
+import { CreateSaleInput} from "./dto/CreateSaleDto.dto";
+import { Sale } from "./entities/sale.entity";
+import { SalesMetrics } from "./entities/salesMetrics.entity";
 
 @Injectable()
 export class SalesService {
 	constructor(private readonly database: DatabaseService) {}
 
 	async createSale(
-		createSaleDto: CreateSaleDto,
+		createSaleDto: CreateSaleInput,
 		userId: string,
-	): Promise<SaleResponseDto> {
+	): Promise<Sale> {
 		const { discount, paymentType, creditId, items, transactionNote } =
 			createSaleDto;
 
@@ -32,8 +33,8 @@ export class SalesService {
 
 		try {
 			return await this.database.prisma.$transaction(async (tsx) => {
-				let subtotal = 0;
-				let totalProfit = 0;
+				let subtotal: number = 0;
+				let totalProfit: number = 0;
 
 				for (const item of items) {
 					const variant = await tsx.productVariant.findUnique({
@@ -213,16 +214,16 @@ export class SalesService {
 
 				return {
 					id: sale.id,
-					total: sale.total.toString(),
-					discount: sale.discount.toString(),
-					profit: sale.profit.toString(),
+					total: sale.total,
+					discount: sale.discount,
+					profit: sale.profit,
 					paymentType: sale.paymentType,
 					creditId: sale.creditId,
 					items: sale.items.map((item) => ({
 						id: item.id,
 						quantity: item.quantity,
-						sellPrice: item.sellPrice.toString(),
-						costPrice: item.costPrice.toString(),
+						sellPrice: item.sellPrice,
+						costPrice: item.costPrice,
 						variantId: item.variantId,
 					})),
 					createdAt: sale.createdAt,
@@ -241,7 +242,7 @@ export class SalesService {
 		}
 	}
 
-	async getMetrices(userId: string) {
+	async getMetrices(userId: string):Promise<SalesMetrics> {
 		try {
 			const today = new Date();
 			today.setHours(0, 0, 0, 0);
@@ -280,7 +281,7 @@ export class SalesService {
 		}
 	}
 
-	async getSales(userId: string): Promise<SaleResponseDto[]> {
+	async getSales(userId: string): Promise<Sale[]> {
 		try {
 			const sales = await this.database.prisma.sale.findMany({
 				where: { userId, deletedAt: null },

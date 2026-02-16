@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
-import { UserResponseDto } from "./dto/UserResponseDto";
+import { UserResponseInput} from "./dto/UserResponseDto";
 
 @Injectable()
 export class UserService {
@@ -8,7 +8,7 @@ export class UserService {
 
     }
 
-    async getCurrentUser(id: string): Promise<UserResponseDto> {
+    async getCurrentUser(id: string): Promise<UserResponseInput> {
 
         const user = await this.database.user.findUnique({
             where: {

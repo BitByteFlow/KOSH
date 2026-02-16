@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { createPurchaseSchema, payPurchaseDebtSchema } from '@kosh/validation';
 
-export class CreatePurchaseDto extends createZodDto(createPurchaseSchema) {}
+export class CreatePurchaseInput extends createZodDto(createPurchaseSchema) {}
 
-export class PayPurchaseDebtDto extends createZodDto(payPurchaseDebtSchema) {}
+export class PayPurchaseDebtInput extends createZodDto(payPurchaseDebtSchema) {}

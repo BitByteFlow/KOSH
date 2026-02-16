@@ -4,10 +4,10 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
-import { CategoryResponse } from './entities/category-response.entity';
+import { CategoryResponse } from './entities/categoryResponse.entity';
 import { Category } from './entities/category.entity';
-import { CreateCategoryInput } from './dto/create-category.input';
-import { UpdateCategoryInput } from './dto/update-category.input';
+import { CreateCategoryInput } from './dto/createCategory.input';
+import { UpdateCategoryInput } from './dto/updateCategory.input';
 
 @Injectable()
 export class CategoriesService {
