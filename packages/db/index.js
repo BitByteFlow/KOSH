@@ -1,6 +1,6 @@
 import { PrismaClient } from "./prisma/generated/prisma/index.js";
 export * from "./prisma/generated/prisma/index.js";
-export { PaymentStatus } from "./prisma/generated/prisma/index.js";
+export { PaymentStatus, PaymentType } from "./prisma/generated/prisma/index.js";
 export { Prisma } from "./prisma/generated/prisma/index.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 const connectionString = process.env.DATABASE_URL;
