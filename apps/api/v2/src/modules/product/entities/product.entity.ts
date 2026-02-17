@@ -7,26 +7,21 @@ export class Product {
   id: string;
 
   @Field()
-  name: string;
+  productName: string;
 
   @Field(() => ID)
-  categoryId: string;
-
-  @Field({ nullable: true })
-  supplierName?: string;
+  category: string;
 
   @Field()
-  keepPurchaseRecord: boolean;
+  totalStock: number
+
+  @Field()
+  variantCount: number
+
+  @Field()
+  status: string;
 
   @Field(() => [ProductVariant])
   variants: ProductVariant[];
 
-  @Field({ nullable: true })
-  deletedAt?: Date;
-
-  @Field()
-  createdAt: Date;
-
-  @Field()
-  updatedAt: Date;
 }

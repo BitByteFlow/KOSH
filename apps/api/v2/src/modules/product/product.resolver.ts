@@ -27,7 +27,7 @@ export class ProductResolver {
 	async listProductsWithFilter(
 		@CurrentUser() user: AuthenticatedUser,
 		@Args('filterInput') filterInput: ProductFilterInput,
-	): Promise<ProductsResponse> {
+	): Promise<ProductResponse> {
 		return await this.productService.listProductsWithFilters(user.id, filterInput);
 	}
 

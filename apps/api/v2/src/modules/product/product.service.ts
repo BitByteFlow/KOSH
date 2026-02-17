@@ -629,7 +629,7 @@ export class ProductService {
         }
     }
 
-    async listProductsWithFilters(userId: string, filterDto: ProductFilterInput): Promise<any> {
+    async listProductsWithFilters(userId: string, filterDto: ProductFilterInput): Promise<ProductResponse> {
         const {
             page = 1,
             limit = 10,
@@ -769,7 +769,7 @@ export class ProductService {
         const hasPrev = page > 1;
 
         return {
-            status: 'success',
+            success: true,
             message: 'Products retrieved successfully',
             data: formattedProducts,
             meta: {

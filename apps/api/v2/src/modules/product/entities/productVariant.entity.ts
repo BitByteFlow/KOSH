@@ -6,11 +6,17 @@ export class ProductVariant {
   @Field(() => ID)
   id: string;
 
+  @Field()
+  sku: string;
+
+  @Field()
+  barcode: string;
+
   @Field(() => Float)
   costPrice: number;
 
   @Field(() => Float)
-  sellingPrice: number;
+  price: number;
 
   @Field(() => Int)
   stock: number;
@@ -22,8 +28,6 @@ export class ProductVariant {
   status: string;
 
   @Field()
-  createdAt: Date;
+  lowStock: boolean;
 
-  @Field()
-  updatedAt: Date;
 }

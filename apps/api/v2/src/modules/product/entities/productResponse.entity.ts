@@ -1,5 +1,6 @@
 import { Field, ObjectType, Int } from '@nestjs/graphql';
 import { Product } from './product.entity';
+import { PaginationMeta } from 'src/modules/accounts/entities/paginatedTransactions.entity';
 
 @ObjectType()
 export class ProductResponse {
@@ -10,7 +11,10 @@ export class ProductResponse {
   message: string;
 
   @Field(() => Product, { nullable: true })
-  product?: Product;
+  data?: Product[];
+
+  @Field(() => PaginationMeta, { nullable: true })
+  meta?: PaginationMeta;
 }
 
 @ObjectType()
