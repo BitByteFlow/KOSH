@@ -9,7 +9,9 @@
 		"start": "next start",
 		"lint": "biome lint .",
 		"lint:fix": "biome lint --write .",
-		"check-types": "next typegen && tsc --noEmit"
+		"check-types": "next typegen && tsc --noEmit",
+		"codegen": "graphql-codegen",
+		"codegen:watch": "graphql-codegen --watch"
 	},
 	"dependencies": {
 		"@apollo/client": "^4.1.4",
@@ -47,6 +49,9 @@
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {
+		"@graphql-codegen/cli": "^6.1.1",
+		"@graphql-codegen/typescript": "^5.0.7",
+		"@graphql-codegen/typescript-operations": "^5.0.7",
 		"@kosh/eslint-config": "*",
 		"@kosh/typescript-config": "*",
 		"@tanstack/react-query-devtools": "^5.91.3",
