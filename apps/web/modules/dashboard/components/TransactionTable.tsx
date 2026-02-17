@@ -13,11 +13,11 @@ import {
 	TableHeader,
 	TableRow,
 } from "@kosh/ui/components/table";
-import { useAccountTransactions } from "../hooks/useAccount";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
-import type { Transaction } from "@/services/account.service";
 import { TransactionTableSkeleton } from "@/components/TableSkeleton";
+import { gql } from "@/gql";
+import { useQuery } from "@apollo/client/react";
 
 const TRANSACTION_TYPE_CONFIG: Record<
 	string,
@@ -37,25 +37,57 @@ const TRANSACTION_TYPE_CONFIG: Record<
 	DEBT: { label: "Debt", variant: "outline" },
 };
 
+const GET_TRANSACTIONS = gql(`
+	query GetTransactions($page: Int, $limit: Int, $sortBy: String, $sortOrder: String) {
+		getAccountTransactions(page: $page, limit: $limit, sortBy: $sortBy, sortOrder: $sortOrder) {
+			data {
+				id
+				type
+				amount
+				note
+				createdAt
+				updatedAt
+			}
+			meta {
+				total
+				page
+				limit
+				totalPages
+				hasNext
+				hasPrev
+			}
+		}
+	}
+`)
+
 export function TransactionTable() {
 	const [page, setPage] = useState(1);
 	const limit = 10;
 
-	const { data, isLoading, error } = useAccountTransactions({
-		page,
-		limit,
-		sortBy: "createdAt",
-		sortOrder: "desc",
+	const { data, loading, error } = useQuery(GET_TRANSACTIONS, {
+		variables: {
+			page,
+			limit,
+			sortBy: "createdAt",
+			sortOrder: "desc",
+		},
 	});
 
+	// const { data, isLoading, error } = useAccountTransactions({
+	// 	page,
+	// 	limit,
+	// 	sortBy: "createdAt",
+	// 	sortOrder: "desc",
+	// });
+
 	const handlePreviousPage = () => {
-		if (data?.meta.hasPrev) {
+		if (data?.getAccountTransactions?.meta.hasPrev) {
 			setPage((prev) => prev - 1);
 		}
 	};
 
 	const handleNextPage = () => {
-		if (data?.meta.hasNext) {
+		if (data?.getAccountTransactions?.meta.hasNext) {
 			setPage((prev) => prev + 1);
 		}
 	};
@@ -66,13 +98,13 @@ export function TransactionTable() {
 				<h2 className="text-lg font-bold">Recent Transactions</h2>
 				<div className="flex items-center gap-2">
 					<span className="text-sm text-muted-foreground">
-						{data?.meta.total ? `${data.meta.total} total` : ""}
+						{data?.getAccountTransactions?.meta.total ? `${data.getAccountTransactions.meta.total} total` : ""}
 					</span>
 				</div>
 			</div>
 
 			<div className="overflow-x-auto">
-				{isLoading ? (
+				{loading ? (
 					<TransactionTableSkeleton />
 				) : error ? (
 					<div className="flex items-center justify-center py-12">
@@ -80,7 +112,7 @@ export function TransactionTable() {
 							Failed to load transactions
 						</p>
 					</div>
-				) : !data?.data.length ? (
+				) : !data?.getAccountTransactions?.data.length ? (
 					<div className="flex items-center justify-center py-12">
 						<p className="text-sm text-muted-foreground">
 							No transactions found
@@ -109,7 +141,7 @@ export function TransactionTable() {
 								</TableRow>
 							</TableHeader>
 							<TableBody className="gap-4 [&_tr_td]:py-4">
-								{data.data.map((transaction: Transaction) => {
+								{data.getAccountTransactions.data.map((transaction) => {
 									const typeConfig = TRANSACTION_TYPE_CONFIG[
 										transaction.type
 									] || {
@@ -158,17 +190,17 @@ export function TransactionTable() {
 							</TableBody>
 						</Table>
 
-						{data.meta.totalPages > 1 && (
+						{data.getAccountTransactions.meta.totalPages > 1 && (
 							<div className="flex items-center justify-between pt-4 border-t border-border mt-4">
 								<p className="text-sm text-muted-foreground">
-									Page {data.meta.page} of {data.meta.totalPages}
+									Page {data.getAccountTransactions.meta.page} of {data.getAccountTransactions.meta.totalPages}
 								</p>
 								<div className="flex gap-2">
 									<Button
 										variant="outline"
 										size="sm"
 										onClick={handlePreviousPage}
-										disabled={!data.meta.hasPrev}
+										disabled={!data.getAccountTransactions.meta.hasPrev}
 									>
 										<ChevronLeft className="h-4 w-4 mr-1" />
 										Previous
@@ -177,7 +209,7 @@ export function TransactionTable() {
 										variant="outline"
 										size="sm"
 										onClick={handleNextPage}
-										disabled={!data.meta.hasNext}
+										disabled={!data.getAccountTransactions.meta.hasNext}
 									>
 										Next
 										<ChevronRight className="h-4 w-4 ml-1" />

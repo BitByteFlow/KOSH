@@ -44,6 +44,30 @@ import { useSalesList } from "../hooks/useSales";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import { TransactionTableSkeleton } from "@/components/TableSkeleton";
+import { gql } from "@/gql";
+import { useQuery } from "@apollo/client/react";
+
+const GET_SALES_HISTORY = gql(`
+	query getSalesHistory{
+		getSales {
+			id
+			total
+			discount
+			profit
+			paymentType
+			items {
+				id
+				quantity
+				sellPrice
+				costPrice
+				variantId
+			}
+			createdAt
+			updatedAt
+			deletedAt
+		}
+	}
+`)
 
 export function SalesHistoryTable() {
 	const [searchQuery, setSearchQuery] = useState("");
@@ -58,11 +82,11 @@ export function SalesHistoryTable() {
 		paymentTypes: [] as string[],
 	});
 
-	const { data: sales, isLoading, error } = useSalesList();
+	const {data: sales, loading, error} = useQuery(GET_SALES_HISTORY)
 
 	const filteredSales = useMemo(() => {
 		if (!sales) return [];
-		return sales.filter((sale: any) => {
+		return sales.getSales.filter((sale: any) => {
 			const matchesSearch =
 				sale.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				sale.paymentType.toLowerCase().includes(searchQuery.toLowerCase());
@@ -122,7 +146,7 @@ export function SalesHistoryTable() {
 		return count;
 	}, [filters]);
 
-	if (isLoading) {
+	if (loading) {
 		return <TransactionTableSkeleton />;
 	}
 

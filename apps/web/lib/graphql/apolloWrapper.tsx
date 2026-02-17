@@ -3,6 +3,7 @@
 import { ApolloLink, HttpLink } from "@apollo/client"
 import { ApolloNextAppProvider, ApolloClient, InMemoryCache, SSRMultipartLink } from "@apollo/client-integration-nextjs"
 import { useSession } from "next-auth/react"
+import { useEffect } from "react"
 
 const makeClient = (accessToken?: string) => {
 	const httpLink = new HttpLink({
@@ -22,10 +23,10 @@ const makeClient = (accessToken?: string) => {
 }
 
 export function ApolloWrapper({ children }: { children: React.ReactNode }) {
-	const { data: session } = useSession()
+	const session  = useSession()
 
 	return (
-		<ApolloNextAppProvider makeClient={() => makeClient(session?.user?.token)}>
+		<ApolloNextAppProvider makeClient={() => makeClient(session?.data?.user?.token)}>
 			{children}
 		</ApolloNextAppProvider>
 	)

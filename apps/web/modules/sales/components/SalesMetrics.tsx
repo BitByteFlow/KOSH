@@ -3,11 +3,25 @@ import { MetricCard } from "@/modules/dashboard/components/MetricCard";
 import { DollarSign, Files, TrendingUp, Wallet } from "lucide-react";
 import { useSalesMetrics } from "../hooks/useSales";
 import { MetricCardSkeleton } from "@/components/MetricCardSkeletion";
+import { gql } from "@/gql";
+import { useQuery } from "@apollo/client/react";
+
+
+const GET_SALES_METRICS = gql(`
+	query getSalesMetrics{
+		getSalesMetrics {
+			totalTransactions
+			totalProfit
+			totalSales
+			avgSaleValue
+		}
+	}
+`)
 
 const SalesMetrics = () => {
-	const { data: metrics, isLoading, isPending } = useSalesMetrics();
+	const {data: metrics, loading} = useQuery(GET_SALES_METRICS)
 
-	if (isPending) {
+	if (loading) {
 		return (
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 				<MetricCardSkeleton />
@@ -21,31 +35,31 @@ const SalesMetrics = () => {
 	const salesMetrics = [
 		{
 			label: "Total Sales",
-			value: isLoading
+			value:loading 
 				? "..."
-				: `Rs ${metrics?.totalSales?.toLocaleString() || 0}`,
+				: `Rs ${metrics?.getSalesMetrics.totalSales?.toLocaleString() || 0}`,
 			change: { value: 0, label: "Today", positive: true },
 			icon: DollarSign,
 		},
 		{
 			label: "Transactions",
-			value: isLoading ? "..." : (metrics?.totalTransactions || 0).toString(),
+			value: loading? "..." : (metrics?.getSalesMetrics.totalTransactions || 0).toString(),
 			sublabel: "Today's sales count",
 			icon: Files,
 		},
 		{
 			label: "Avg. Sale Value",
-			value: isLoading
+			value: loading 
 				? "..."
-				: `Rs ${Math.round(metrics?.avgSaleValue || 0).toLocaleString()}`,
+				: `Rs ${Math.round(metrics?.getSalesMetrics.avgSaleValue || 0).toLocaleString()}`,
 			change: { value: 0, label: "Today", positive: true },
 			icon: TrendingUp,
 		},
 		{
 			label: "Total Profit",
-			value: isLoading
+			value: loading 
 				? "..."
-				: `Rs ${metrics?.totalProfit?.toLocaleString() || 0}`,
+				: `Rs ${metrics?.getSalesMetrics.totalProfit?.toLocaleString() || 0}`,
 			sublabel: "Today's net profit",
 			icon: Wallet,
 		},

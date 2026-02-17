@@ -34,3 +34,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+/gql/graphql.ts
+/gql/gql.ts
+/gql/fragment-maskingt.ts
+/gql/*
+!/gql/index.ts
+!/gql/codegen.ts
