@@ -17,7 +17,7 @@ import {
 	TableRow,
 } from "@kosh/ui/components/table";
 import { useProductList } from "@/modules/inventory/hooks/useProducts";
-import { useDebounce } from "@/lib/hooks/useDebounce";
+import { useDebounce } from "@/components/useDebounce";
 import { TransactionTableSkeleton } from "@/components/TableSkeleton";
 import { useDeleteProduct, useUpdateProduct, useUpdateVariant } from "@/modules/inventory/hooks/useProducts";
 import { toast } from "sonner";
