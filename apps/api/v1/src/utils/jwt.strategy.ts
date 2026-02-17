@@ -19,7 +19,7 @@ export class JWTStrategy extends PassportStrategy(Strategy) {
         });
     }
     async validate(payload:any): Promise<UserResponseDto> {
-
+        console.log("im here in jwt strategy")
         const user_id = payload.sub;
 
         const user = await this.database.prisma.user.findFirst({
