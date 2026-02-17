@@ -30,7 +30,7 @@ export class SaleResolver {
 
 	@Query(() => SalesMetrics, { name: 'getSalesMetrics' })
 	@UseGuards(JwtAuthGuard)
-	async getSalesMetrices(@CurrentUser() user: AuthenticatedUser): Promise<SalesMetrics> {
+	async getSalesMetrics(@CurrentUser() user: AuthenticatedUser): Promise<SalesMetrics> {
 		return this.salesService.getMetrices(user.id);
 	}
 }
