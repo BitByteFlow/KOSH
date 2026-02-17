@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useForm, useFieldArray, Controller, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createSaleSchema, PaymentType, type CreateSaleInput } from "@kosh/validation";
+import { createSaleSchema, type PaymentType, type CreateSaleInput } from "@kosh/validation";
 import {
 	Sheet,
 	SheetContent,
@@ -217,7 +217,7 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 	} = useForm<CreateSaleInput>({
 		resolver: zodResolver(createSaleSchema),
 		defaultValues: {
-			paymentType: PaymentType.CASH,
+			paymentType: "CASH" as PaymentType,
 			discount: 0,
 			transactionNote: "",
 			items: [],
