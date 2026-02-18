@@ -9,12 +9,13 @@ import { SalesReportTable } from "@/modules/reports/components/SalesReportTable"
 import { ProductPerformanceTable } from "@/modules/reports/components/ProductPerformanceTable";
 import { InventoryReportTable } from "@/modules/reports/components/InventoryReportTable";
 import { DateRangeSelector } from "@/modules/reports/components/DateRangeSelector";
-import { salesTrendData, topProducts, transactions } from "@/data/mockData";
+import { topProducts, transactions } from "@/data/mockData";
 import ReportMetrics from "@/modules/reports/components/ReportMetrics";
 
 const ReportAnalyticsPage = () => {
 	const [activeReport, setActiveReport] = useState("Sales Report");
 	const [dateRange, setDateRange] = useState("This Month");
+
 
 	const handleReportChange = (report: string) => {
 		setActiveReport(report);
@@ -33,9 +34,9 @@ const ReportAnalyticsPage = () => {
 
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="lg:col-span-2">
-					<SalesTrendChart data={salesTrendData} />
+					<SalesTrendChart dateRange={dateRange} />
 				</div>
-				<TopProductsChart data={topProducts} />
+				<TopProductsChart dateRange={dateRange} />
 			</div>
 
 			<div className="space-y-6 rounded-lg shadow-md border border-border bg-card p-6">

@@ -180,27 +180,27 @@ export const transactions = [
 export const analyticsMetricValues: AnalyticsMetricCardProps[] = [
 	{
 		label: "TOTAL SALES",
-		value: "Rs. 4,24,500",
+		value: 424500,
 		trend: 12.5,
 		trendLabel: "vs. Rs. 3,77,200 last month",
 		isPositive: true,
 	},
 	{
 		label: "TOTAL PROFIT",
-		value: "Rs. 89,450",
+		value: 89450,
 		trend: 8.2,
 		trendLabel: "Net profit margin: 21%",
 		isPositive: true,
 	},
 	{
 		label: "TRANSACTIONS",
-		value: "342",
+		value: 342,
 		subtitle: "Daily Avg: 11.4 sales",
 		isPositive: true,
 	},
 	{
 		label: "AVG BILL VALUE",
-		value: "Rs. 1,241",
+		value:  1241,
 		trend: -2.1,
 		trendLabel: "Per transaction",
 		isPositive: false,
