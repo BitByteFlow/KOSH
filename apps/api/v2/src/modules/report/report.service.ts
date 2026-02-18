@@ -1,10 +1,12 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
 import { AnalyticsMetrics } from "./entities/analyticsMetrics.entity";
+import { AnalyticsTrend } from "./entities/analyticsTrend.entity";
+import { TopProduct } from "./entities/topProduct.entity";
 
 @Injectable()
 export class ReportService {
-	constructor(private readonly database: DatabaseService) {}
+	constructor(private readonly database: DatabaseService) { }
 
 	async getAnalyticsMetrics(userId: string, startDate: Date, endDate: Date): Promise<AnalyticsMetrics[]> {
 		try {
@@ -75,6 +77,97 @@ export class ReportService {
 			transactions,
 			avgBillValue,
 		};
+	}
+
+	async getSalesTrend(userId: string, startDate: Date, endDate: Date): Promise<AnalyticsTrend[]> {
+		try {
+			const sales = await this.database.prisma.sale.findMany({
+				where: {
+					userId,
+					createdAt: {
+						gte: startDate,
+						lte: endDate,
+					},
+					deletedAt: null,
+				},
+				select: {
+					total: true,
+					createdAt: true,
+				},
+				orderBy: {
+					createdAt: 'asc',
+				},
+			});
+
+			const salesMap = new Map<string, number>();
+			sales.forEach((sale) => {
+				const dateKey = sale.createdAt.toISOString().split('T')[0];
+				salesMap.set(dateKey, (salesMap.get(dateKey) || 0) + Number(sale.total));
+			});
+
+			const trend: AnalyticsTrend[] = [];
+			const current = new Date(startDate);
+			const end = new Date(endDate);
+
+			while (current <= end) {
+				const dateKey = current.toISOString().split('T')[0];
+				trend.push({
+					label: dateKey,
+					value: salesMap.get(dateKey) || 0,
+				});
+				current.setDate(current.getDate() + 1);
+			}
+
+			return trend;
+		} catch (error) {
+			console.error("Error fetching sales trend:", error);
+			throw new InternalServerErrorException("Failed to fetch sales trend");
+		}
+	}
+
+	async getTopProducts(userId: string, startDate: Date, endDate: Date): Promise<TopProduct[]> {
+		try {
+			const saleItems = await this.database.prisma.saleItem.findMany({
+				where: {
+					sale: {
+						userId,
+						createdAt: {
+							gte: startDate,
+							lte: endDate,
+						},
+						deletedAt: null,
+					},
+				},
+				include: {
+					variant: {
+						include: {
+							product: true,
+						},
+					},
+				},
+			});
+
+			const aggregation = new Map<string, number>();
+			saleItems.forEach((item) => {
+				const productName = item.variant.product.name;
+				const revenue = Number(item.sellPrice) * item.quantity;
+				aggregation.set(productName, (aggregation.get(productName) || 0) + revenue);
+			});
+
+			const topProducts: TopProduct[] = Array.from(aggregation.entries())
+				.map(([name, value]) => ({
+					name,
+					value,
+					revenue: `Rs. ${value.toLocaleString()}`,
+				}))
+				.sort((a, b) => b.value - a.value)
+				.slice(0, 5); // Return top 5
+
+			return topProducts;
+		} catch (error) {
+			console.error("Error fetching top products:", error);
+			throw new InternalServerErrorException("Failed to fetch top products");
+		}
 	}
 
 	private calculateTrend(current: number, previous: number): number {

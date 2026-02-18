@@ -19,7 +19,7 @@ export class ProductVariant {
   price: number;
 
   @Field(() => Float)
-  sellPrice: number;
+  sellingPrice: number;
 
   @Field(() => Int)
   stock: number;

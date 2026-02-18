@@ -1,10 +1,11 @@
 import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
-import { Prisma } from "@kosh/db";
+import { Prisma, ProductStatus } from "@kosh/db";
 import { ProductResponse } from "./entities/productResponse.entity";
 import { ProductFilterInput } from "./dto/productFilter.input";
 import { CreateProductInput } from "./dto/createProductInput";
 import { UpdateProductInput } from "./dto/updateProductInput";
+import { UpdateProductVariantInput } from "./dto/updateProductVariant.input";
 
 @Injectable()
 export class ProductService {
@@ -434,7 +435,7 @@ export class ProductService {
         }
     }
     async updateProductVariant(
-        updateProductVariantDto: any,
+        updateProductVariantDto: UpdateProductVariantInput,
         userId: string,
         productVariantId: string
     ): Promise<ProductResponse> {
@@ -460,7 +461,7 @@ export class ProductService {
                         costPrice: updateProductVariantDto.costPrice,
                         sellingPrice: updateProductVariantDto.sellingPrice,
                         stock: updateProductVariantDto.stock,
-                        status: updateProductVariantDto.status,
+                        status: updateProductVariantDto.status as ProductStatus || ProductStatus.ACTIVE,
                         attributes: updateProductVariantDto.attributes ? {
                             deleteMany: {}, 
                             create: updateProductVariantDto.attributes
@@ -756,7 +757,7 @@ export class ProductService {
                 })),
                 price: Number(v.sellingPrice),
                 costPrice: Number(v.costPrice),
-                sellPrice: Number(v.sellingPrice),
+                sellingPrice: Number(v.sellingPrice),
                 stock: Number(v.stock),
                 lowStock: v.stock < (lowStockThreshold || 10),
                 status: v.status
