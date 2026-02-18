@@ -27,7 +27,7 @@ const GET_INVENTORY_DATA = gql(`
 					stock
 					lowStock
 					status
-					sellPrice
+					sellingPrice
 					costPrice
 				}
 			}

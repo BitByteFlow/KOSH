@@ -103,7 +103,6 @@ const InventoryItem = ({
 		[Status.Inactive]: "Inactive",
 		[Status.OutOfStock]: "Out of Stock",
 	}[status];
-	console.log("vairants:", variants)
 
 	return (
 		<>

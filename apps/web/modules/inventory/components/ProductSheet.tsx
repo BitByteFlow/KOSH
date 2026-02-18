@@ -155,6 +155,32 @@ const CREATE_PRODUCT = gql(`
 		createProduct(createProductInput: $createProductInput) {
 			success
 			message
+			data {
+				id
+				productName
+				category {
+					id
+					name
+				}
+				totalStock
+				variantCount
+				status
+				variants {
+					id
+					sku
+					barcode
+					attributes {
+						name
+						value
+					}
+					price
+					stock
+					lowStock
+					status
+					sellingPrice
+					costPrice
+				}
+			}
 		}
 	}
 `);
@@ -164,6 +190,32 @@ const UPDATE_PRODUCT_DETAILS = gql(`
 		updateProduct(productId: $productId, updateProductInput: $updateProductInput) {
 			success
 			message
+			data {
+				id
+				productName
+				category {
+					id
+					name
+				}
+				totalStock
+				variantCount
+				status
+				variants {
+					id
+					sku
+					barcode
+					attributes {
+						name
+						value
+					}
+					price
+					stock
+					lowStock
+					status
+					sellingPrice
+					costPrice
+				}
+			}
 		}
 	}
 `);
@@ -177,8 +229,31 @@ export function ProductSheet({
 	const client = useApolloClient();
 	const [internalOpen, setInternalOpen] = useState(false);
 	const { data: categoryData, loading: categoriesLoading } = useQuery(GET_CATEGORIES);
-	const [createProductMutation, { loading: isCreating }] = useMutation(CREATE_PRODUCT);
-	const [updateProductMutation, { loading: isUpdating }] = useMutation(UPDATE_PRODUCT_DETAILS);
+	const [createProductMutation, { loading: isCreating }] = useMutation(CREATE_PRODUCT as any, {
+		update(cache, { data }: any) {
+			const newProduct = data?.createProduct?.data?.[0];
+			if (newProduct) {
+				cache.modify({
+					fields: {
+						listProductsWithFilter(existingData, { storeFieldName }) {
+							// We can filter by storeFieldName if we want to target specific filters,
+							// but for now we update all cached lists to ensure consistency.
+							if (!existingData) return existingData;
+							return {
+								...existingData,
+								data: [newProduct, ...existingData.data],
+								meta: {
+									...existingData.meta,
+									total: (existingData.meta?.total || 0) + 1
+								}
+							};
+						}
+					}
+				});
+			}
+		}
+	});
+	const [updateProductMutation, { loading: isUpdating }] = useMutation(UPDATE_PRODUCT_DETAILS as any);
 
 	const isControlled = open !== undefined && onOpenChange !== undefined;
 	const isOpen = isControlled ? open : internalOpen;
@@ -324,8 +399,6 @@ export function ProductSheet({
 			}
 			setIsOpen(false);
 			reset();
-			// Refetch inventory data
-			client.refetchQueries({ include: ["getInventoryData"] });
 		} catch (error: any) {
 			toast.error(
 				error.message ||

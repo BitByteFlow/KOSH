@@ -37,6 +37,32 @@ const UPDATE_PRODUCT_CATEGORY = gql(`
 		updateProduct(productId: $productId, updateProductInput: $updateProductInput) {
 			success
 			message
+			data {
+				id
+				productName
+				category {
+					id
+					name
+				}
+				totalStock
+				variantCount
+				status
+				variants {
+					id
+					sku
+					barcode
+					attributes {
+						name
+						value
+					}
+					price
+					stock
+					lowStock
+					status
+					sellingPrice
+					costPrice
+				}
+			}
 		}
 	}
 `);
@@ -47,7 +73,7 @@ export function ChangeCategoryDialog({
 	product,
 }: ChangeCategoryDialogProps) {
 	const { data: categoryData, loading: categoriesLoading } = useQuery(GET_CATEGORIES);
-	const [updateProductMutation, { loading: isUpdating }] = useMutation(UPDATE_PRODUCT_CATEGORY);
+	const [updateProductMutation, { loading: isUpdating }] = useMutation(UPDATE_PRODUCT_CATEGORY as any);
 	const [selectedCategory, setSelectedCategory] = useState(product?.category || "");
 
 	// Reset selection when product changes
@@ -68,8 +94,7 @@ export function ChangeCategoryDialog({
 						name: product.productName,
 						categoryId: selectedCategory
 					}
-				},
-				refetchQueries: ["getInventoryDate"]
+				}
 			});
 
 			if (data?.updateProduct?.success) {

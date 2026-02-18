@@ -29,7 +29,7 @@ import {
 } from "@kosh/ui/components/dialog";
 import { Button } from "@kosh/ui/components/button";
 import { useQuery, useMutation } from "@apollo/client/react";
-import { Status } from "@/gql/graphql";
+import { ProductVariant, Status } from "@/gql/graphql";
 import { gql } from "@/gql";
 import { Product } from "@/gql/graphql";
 
@@ -58,7 +58,7 @@ const GET_INVENTORY_DATA = gql(`
 					stock
 					lowStock
 					status
-					sellPrice
+					sellingPrice
 					costPrice
 				}
 			}
@@ -89,6 +89,32 @@ const UPDATE_PRODUCT_VARIANT = gql(`
 		updateProductVariant(updateProductVariantInput: $updateProductVariantInput, productVariantId: $productVariantId) {
 			success
 			message
+			data {
+				id
+				productName
+				category {
+					id
+					name
+				}
+				totalStock
+				variantCount
+				status
+				variants {
+					id
+					sku
+					barcode
+					attributes {
+						name
+						value
+					}
+					price
+					stock
+					lowStock
+					status
+					sellingPrice
+					costPrice
+				}
+			}
 		}
 	}
 `);
@@ -122,12 +148,15 @@ const InventoryPage = () => {
 	})
 
 	const [deleteProductMutation] = useMutation(DELETE_PRODUCT, {
-		onCompleted: () => refetch()
+		update(cache, { data }, { variables }) {
+			if (data?.deleteProduct?.success && variables?.productId) {
+				cache.evict({ id: cache.identify({ __typename: "Product", id: variables.productId }) });
+				cache.gc();
+			}
+		}
 	});
 
-	const [updateProductVariantMutation] = useMutation(UPDATE_PRODUCT_VARIANT, {
-		onCompleted: () => refetch()
-	});
+	const [updateProductVariantMutation] = useMutation(UPDATE_PRODUCT_VARIANT as any);
 
 	const [productToDelete, setProductToDelete] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
@@ -271,15 +300,16 @@ const InventoryPage = () => {
 											onChangeCategory={handleChangeCategory}
 											onDelete={handleDeleteProduct}
 											onEditVariant={(id) => console.log("Edit variant:", id)}
-											onUpdateVariant={async (variant: any) => {
+											onUpdateVariant={async (variant: ProductVariant) => {
 												try {
+													alert(variant.sellingPrice)
 													await updateProductVariantMutation({
 														variables: {
 															productVariantId: variant.id,
 															updateProductVariantInput: {
 																productId: product.id,
 																costPrice: variant.costPrice,
-																sellingPrice: variant.sellPrice,
+																sellingPrice: variant.sellingPrice,
 																stock: variant.stock,
 																status: variant.status,
 																attributes: variant.attributes?.map((attr: any) => ({
