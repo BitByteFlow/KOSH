@@ -19,7 +19,6 @@ export class ProductService {
                     throw new ConflictException("Category doesn't exist");
                 }
 
-                // Check if product exists (including soft deleted)
                 const existingProduct = await tsx.product.findFirst({
                     where: {
                         name: productDetail.name,
@@ -34,7 +33,6 @@ export class ProductService {
                     if (existingProduct.deletedAt === null) {
                         throw new ConflictException("Product with this name already exists in this category");
                     } else {
-                        // Revive the product
                         product = await tsx.product.update({
                             where: { id: existingProduct.id },
                             data: {
@@ -43,7 +41,6 @@ export class ProductService {
                         });
                     }
                 } else {
-                    // Create new product
                     product = await tsx.product.create({
                         data: {
                             name: productDetail.name,
@@ -119,7 +116,6 @@ export class ProductService {
                         }
                     });
 
-                    // Update Daily Balance and Create Transaction
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
                     const tomorrow = new Date(today);
@@ -492,16 +488,19 @@ export class ProductService {
         }
     }
 
-    async listProductsWithVariant(userId: string): Promise<any> {
+    async listProductsWithVariant(userId: string): Promise<ProductResponse> {
         try {
             const products = await this.database.prisma.product.findMany({
                 where: {
                     userId: userId,
-                    deletedAt: null // Filter out deleted products
+                    deletedAt: null 
                 },
                 include: {
+                    category: {
+                        select: { name: true }
+                    },
                     variants: {
-                        where: { deletedAt: null }, // Filter out deleted variants
+                        where: { deletedAt: null }, 
                         include: {
                             attributes: true
                         }
@@ -511,15 +510,17 @@ export class ProductService {
 
             if (!products) {
                 throw new NotFoundException({
-                    status: "error",
+                    success: false,
                     message: "Product Not found"
                 });
             }
 
+            const formattedProducts = products.map(product => this.formatProduct(product));
+
             return {
-                status: "success",
+                success: true,
                 message: "Product Returned Successfully",
-                data: products
+                data: formattedProducts
             };
         } catch (error: any) {
             console.log(error);
@@ -718,7 +719,7 @@ export class ProductService {
             },
             include: {
                 category: {
-                    select: { name: true }
+                    select: {id: true, name: true }
                 },
                 variants: {
                     where: { status: "ACTIVE" },
@@ -729,40 +730,7 @@ export class ProductService {
             }
         });
 
-        const formattedProducts = products.map(product => {
-            const totalStock = product.variants.reduce((acc, v) => acc + v.stock, 0);
-            
-            // Determine status based on variants
-            let status = 'active';
-            if (totalStock === 0) {
-                status = 'out-of-stock';
-            } else if (product.variants.every(v => v.status === 'IN_ACTIVE')) {
-                status = 'inactive';
-            }
-
-            return {
-                id: product.id,
-                productName: product.name,
-                category: product.category.name,
-                totalStock,
-                variantCount: product.variants.length,
-                status,
-                variants: product.variants.map(v => ({
-                    id: v.id,
-                    sku: v.sku,
-                    barcode: v.barcode,
-                    attributes: v.attributes.map(attr => ({
-                        name: attr.name,
-                        value: attr.value
-                    })),
-                    price: Number(v.sellingPrice),
-                    costPrice: Number(v.costPrice),
-                    stock: v.stock,
-                    lowStock: v.stock < (lowStock || 10), // Use provided threshold or default to 10
-                    status: v.status
-                }))
-            };
-        });
+        const formattedProducts = products.map(product => this.formatProduct(product, lowStock));
 
         const totalPages = Math.ceil(total / limit);
         const hasNext = page < totalPages;
@@ -838,5 +806,43 @@ export class ProductService {
         const timestamp = Date.now().toString().slice(-9);
         const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
         return `INT${timestamp}${random}`;
+    }
+
+    private formatProduct(product: any, lowStockThreshold?: number): any {
+        const totalStock = product.variants.reduce((acc: number, v: any) => acc + (v.stock || 0), 0);
+
+        let status = 'active';
+        if (totalStock === 0) {
+            status = 'out-of-stock';
+        } else if (product.variants.every((v: any) => v.status === 'IN_ACTIVE')) {
+            status = 'inactive';
+        }
+        console.log("what's the seeling price: ", Number(product.variants[0].sellingPrice))
+        return {
+            id: product.id,
+            productName: product.name,
+            category: {
+                id: product.category.id,
+                name: product.category.name || "uncategorized"
+            },
+            totalStock,
+            variantCount: product.variants.length,
+            status,
+            variants: product.variants.map((v: any) => ({
+                id: v.id,
+                sku: v.sku,
+                barcode: v.barcode,
+                attributes: v.attributes.map((attr: any) => ({
+                    name: attr.name,
+                    value: attr.value
+                })),
+                price: Number(v.sellingPrice),
+                costPrice: Number(v.costPrice),
+                sellPrice: Number(v.sellingPrice),
+                stock: Number(v.stock),
+                lowStock: v.stock < (lowStockThreshold || 10),
+                status: v.status
+            }))
+        }
     }
 }

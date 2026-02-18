@@ -40,7 +40,7 @@ export class CategoriesService {
       });
 
       return {
-        status: 'success',
+        success: true,
         message: `New Category ${name} created!`,
       };
     } catch (error) {
@@ -94,7 +94,7 @@ export class CategoriesService {
       });
 
       return {
-        status: 'success',
+        success: true,
         message: 'Deleted successfully!',
       };
     } catch (error) {
@@ -133,7 +133,7 @@ export class CategoriesService {
       });
 
       return {
-        status: 'success',
+        success: true,
         message: 'Category Updated',
       };
     } catch (error) {

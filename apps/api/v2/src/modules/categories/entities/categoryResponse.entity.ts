@@ -3,7 +3,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 @ObjectType()
 export class CategoryResponse {
   @Field()
-  status: string;
+  success: boolean
 
   @Field()
   message: string;

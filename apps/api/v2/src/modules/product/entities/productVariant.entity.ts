@@ -18,6 +18,9 @@ export class ProductVariant {
   @Field(() => Float)
   price: number;
 
+  @Field(() => Float)
+  sellPrice: number;
+
   @Field(() => Int)
   stock: number;
 

@@ -5,25 +5,27 @@ import { ProductService } from './product.service';
 import { CurrentUser } from 'src/utils/currentUser.decorator';
 import type { AuthenticatedUser } from 'src/types/jwt.types';
 import { Product } from './entities/product.entity';
-import { ProductResponse, ProductsResponse } from './entities/productResponse.entity';
+import { ProductResponse} from './entities/productResponse.entity';
 import { CreateProductInput } from './dto/createProductInput';
 import { UpdateProductInput } from './dto/updateProductInput';
 import { VariantInput } from './dto/variant.input';
 import { ProductFilterInput } from './dto/productFilter.input';
+
+import { UpdateProductVariantInput } from './dto/updateProductVariant.input';
 
 @Resolver(() => Product)
 	@UseGuards(JwtAuthGuard)
 export class ProductResolver {
 	constructor(private productService: ProductService) {}
 
-	@Query(() => ProductsResponse, { name: 'getProductsWithVariants' })
+	@Query(() => ProductResponse, { name: 'getProductsWithVariants' })
 	async getProductWithVariant(
 		@CurrentUser() user: AuthenticatedUser,
-	): Promise<ProductsResponse> {
+	): Promise<ProductResponse> {
 		return await this.productService.listProductsWithVariant(user.id);
 	}
 
-	@Query(() => ProductsResponse, { name: 'listProductsWithFilter' })
+	@Query(() => ProductResponse, { name: 'listProductsWithFilter' })
 	async listProductsWithFilter(
 		@CurrentUser() user: AuthenticatedUser,
 		@Args('filterInput') filterInput: ProductFilterInput,
@@ -60,7 +62,7 @@ export class ProductResolver {
 	@Mutation(() => ProductResponse, { name: 'updateProductVariant' })
 	async updateProductVariant(
 		@CurrentUser() user: AuthenticatedUser,
-		@Args('updateProductVariantInput') updateProductVariantDto: UpdateProductInput,
+		@Args('updateProductVariantInput') updateProductVariantDto: UpdateProductVariantInput,
 		@Args('productVariantId', { type: () => ID }) productVariantId: string,
 	): Promise<ProductResponse> {
 		return await this.productService.updateProductVariant(

@@ -10,18 +10,13 @@ export class ProductResponse {
   @Field()
   message: string;
 
-  @Field(() => Product, { nullable: true })
+  @Field(() => [Product], { nullable: true })
   data?: Product[];
 
   @Field(() => PaginationMeta, { nullable: true })
   meta?: PaginationMeta;
-}
 
-@ObjectType()
-export class ProductsResponse {
-  @Field(() => [Product])
-  products: Product[];
 
-  @Field(() => Int)
-  count: number;
+  @Field(() => Int, { nullable: true })
+  count?: number;
 }
