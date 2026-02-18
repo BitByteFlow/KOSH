@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { InventorySearch } from "@/modules/inventory/components/InventorySearch";
+import InventorySearch from "@/modules/inventory/components/InventorySearch";
 import InventoryItem from "@/modules/inventory/components/InventoryItem";
 import { InventoryPagination } from "@/modules/inventory/components/InventoryPagination";
 import { ProductSheet } from "@/modules/inventory/components/ProductSheet";
@@ -16,10 +16,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "@kosh/ui/components/table";
-import { useProductList } from "@/modules/inventory/hooks/useProducts";
 import { useDebounce } from "@/components/useDebounce";
 import { TransactionTableSkeleton } from "@/components/TableSkeleton";
-import { useDeleteProduct, useUpdateProduct, useUpdateVariant } from "@/modules/inventory/hooks/useProducts";
 import { toast } from "sonner";
 import {
 	Dialog,
@@ -30,6 +28,70 @@ import {
 	DialogTitle,
 } from "@kosh/ui/components/dialog";
 import { Button } from "@kosh/ui/components/button";
+import { useQuery, useMutation } from "@apollo/client/react";
+import { Status } from "@/gql/graphql";
+import { gql } from "@/gql";
+import { Product } from "@/gql/graphql";
+
+const GET_INVENTORY_DATA = gql(`
+	query GetInventoryList ($filterInput: ProductFilterInput!) {
+		listProductsWithFilter (filterInput: $filterInput) {
+			data {
+				id
+				productName
+				category {
+					id
+					name
+				} 
+				totalStock
+				variantCount
+				status
+				variants {
+					id
+					sku
+					barcode
+					attributes {
+						name
+						value
+					}
+					price
+					stock
+					lowStock
+					status
+					sellPrice
+					costPrice
+				}
+			}
+			meta {
+				page
+				limit
+				total
+				totalPages
+				hasNext
+				hasPrev
+			}	
+		}
+	}
+`)
+
+
+const DELETE_PRODUCT = gql(`
+	mutation DeleteProductFromInventory($productId: ID!) {
+		deleteProduct(productId: $productId) {
+			success
+			message
+		}
+	}
+`);
+
+const UPDATE_PRODUCT_VARIANT = gql(`
+	mutation UpdateVariantFromInventory($updateProductVariantInput: UpdateProductVariantInput!, $productVariantId: ID!) {
+		updateProductVariant(updateProductVariantInput: $updateProductVariantInput, productVariantId: $productVariantId) {
+			success
+			message
+		}
+	}
+`);
 
 const InventoryPage = () => {
 	const [currentPage, setCurrentPage] = useState(1);
@@ -38,34 +100,40 @@ const InventoryPage = () => {
 	const debouncedSearch = useDebounce(searchQuery, 500);
 
 	const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
-	const [statusFilter, setStatusFilter] = useState<string | null>(null);
+	const [statusFilter, setStatusFilter] = useState<Status | null>(null);
 	const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
 	const [isBarcodeDialogOpen, setIsBarcodeDialogOpen] = useState(false);
 
-	const [editingProduct, setEditingProduct] = useState<any>(null);
-	const [viewingProduct, setViewingProduct] = useState<any>(null);
-	const [categoryProduct, setCategoryProduct] = useState<any>(null);
+	const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+	const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
+	const [categoryProduct, setCategoryProduct] = useState<Product | null>(null);
 
-	const {
-		data: inventoryData,
-		isLoading,
-		isError,
-		isPending,
-		error
-	} = useProductList({
-		page: currentPage,
-		limit: itemsPerPage,
-		search: debouncedSearch,
-		categoryId: categoryFilter || undefined,
-		status: statusFilter || undefined,
+
+	const { data: inventoryData, loading, error, refetch } = useQuery(GET_INVENTORY_DATA, {
+		variables: {
+			filterInput: {
+				page: currentPage,
+				limit: itemsPerPage,
+				search: debouncedSearch,
+				categoryId: categoryFilter || undefined,
+				status: statusFilter || undefined
+			}
+		}
+	})
+
+	const [deleteProductMutation] = useMutation(DELETE_PRODUCT, {
+		onCompleted: () => refetch()
 	});
 
-	const deleteProduct = useDeleteProduct();
-	const updateVariant = useUpdateVariant();
-	const [productToDelete, setProductToDelete] = useState<string | null>(null);
+	const [updateProductVariantMutation] = useMutation(UPDATE_PRODUCT_VARIANT, {
+		onCompleted: () => refetch()
+	});
 
-	const products = inventoryData?.data || [];
-	const meta = inventoryData?.meta;
+	const [productToDelete, setProductToDelete] = useState<string | null>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
+
+	const products = (inventoryData as any)?.listProductsWithFilter?.data || [];
+	const meta = (inventoryData as any)?.listProductsWithFilter?.meta;
 	const totalPages = meta?.totalPages || 0;
 	const totalItems = meta?.total || 0;
 
@@ -83,36 +151,36 @@ const InventoryPage = () => {
 
 	const handleSelectAll = (checked: boolean) => {
 		if (checked) {
-			const allIds = products.map((p) => p.id);
+			const allIds = products.map((p: any) => p.id);
 			setSelectedProductIds(new Set([...Array.from(selectedProductIds), ...allIds]));
 		} else {
-			const currentIds = products.map((p) => p.id);
+			const currentIds = products.map((p: Product) => p.id);
 			setSelectedProductIds((prev) => {
 				const newSet = new Set(prev);
-				currentIds.forEach((id) => newSet.delete(id));
+				currentIds.forEach((id: string) => newSet.delete(id));
 				return newSet;
 			});
 		}
 	};
 
-	const isAllSelected = products.length > 0 && products.every((p) => selectedProductIds.has(p.id));
+	const isAllSelected = products.length > 0 && products.every((p: any) => selectedProductIds.has(p.id));
 
 	const selectedProducts = useMemo(() => {
-		return products.filter((p) => selectedProductIds.has(p.id));
+		return products.filter((p: any) => selectedProductIds.has(p.id));
 	}, [products, selectedProductIds]);
 
 	const handleEditProduct = (id: string) => {
-		const product = products.find((p) => p.id === id);
+		const product = products.find((p: any) => p.id === id);
 		if (product) setEditingProduct(product);
 	};
 
 	const handleViewDetails = (id: string) => {
-		const product = products.find((p) => p.id === id);
+		const product = products.find((p: any) => p.id === id);
 		if (product) setViewingProduct(product);
 	};
 
 	const handleChangeCategory = (id: string) => {
-		const product = products.find((p) => p.id === id);
+		const product = products.find((p: Product) => p.id === id);
 		if (product) setCategoryProduct(product);
 	};
 
@@ -123,11 +191,20 @@ const InventoryPage = () => {
 	const confirmDelete = async () => {
 		if (productToDelete) {
 			try {
-				await deleteProduct.mutateAsync(productToDelete);
-				toast.success("Product deleted successfully");
+				setIsDeleting(true);
+				const { data } = await deleteProductMutation({
+					variables: { productId: productToDelete }
+				});
+				if (data?.deleteProduct?.success) {
+					toast.success("Product deleted successfully");
+				} else {
+					toast.error(data?.deleteProduct?.message || "Failed to delete product");
+				}
 				setProductToDelete(null);
 			} catch (error) {
 				toast.error("Failed to delete product");
+			} finally {
+				setIsDeleting(false);
 			}
 		}
 	};
@@ -143,13 +220,13 @@ const InventoryPage = () => {
 					<InventorySearch
 						onSearch={setSearchQuery}
 						onCategoryFilter={setCategoryFilter}
-						onStatusFilter={setStatusFilter}
+						onStatusFilter={(status) => setStatusFilter(status as Status | null)}
 						onGenerateBarcodes={() => setIsBarcodeDialogOpen(true)}
 						selectedCount={selectedProductIds.size}
 						activeCategoryId={categoryFilter}
 						activeStatus={statusFilter}
 					/>
-					{isPending ? (
+					{loading ? (
 						<TransactionTableSkeleton />
 					) : (
 						<div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
@@ -183,7 +260,7 @@ const InventoryPage = () => {
 								</TableHeader>
 
 								<TableBody>
-									{products.map((product) => (
+									{products.map((product: Product) => (
 										<InventoryItem
 											key={product.id}
 											{...product}
@@ -194,12 +271,23 @@ const InventoryPage = () => {
 											onChangeCategory={handleChangeCategory}
 											onDelete={handleDeleteProduct}
 											onEditVariant={(id) => console.log("Edit variant:", id)}
-											onUpdateVariant={async (variant) => {
+											onUpdateVariant={async (variant: any) => {
 												try {
-													await updateVariant.mutateAsync({
-														productId: product.id,
-														variantId: variant.id,
-														data: variant,
+													await updateProductVariantMutation({
+														variables: {
+															productVariantId: variant.id,
+															updateProductVariantInput: {
+																productId: product.id,
+																costPrice: variant.costPrice,
+																sellingPrice: variant.sellPrice,
+																stock: variant.stock,
+																status: variant.status,
+																attributes: variant.attributes?.map((attr: any) => ({
+																	name: attr.name,
+																	value: attr.value
+																}))
+															}
+														}
 													});
 													toast.success("Variant updated successfully");
 												} catch (error) {
@@ -223,7 +311,7 @@ const InventoryPage = () => {
 						</div>
 					)}
 
-					{!isLoading && !isError && products.length > 0 && (
+					{!loading && products.length > 0 && (
 						<InventoryPagination
 							currentPage={currentPage}
 							totalPages={totalPages}
@@ -276,7 +364,7 @@ const InventoryPage = () => {
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setProductToDelete(null)} disabled={deleteProduct.isPending}>
+						<Button variant="outline" onClick={() => setProductToDelete(null)} disabled={isDeleting}>
 							Cancel
 						</Button>
 						<Button
@@ -284,10 +372,10 @@ const InventoryPage = () => {
 								e.preventDefault();
 								confirmDelete();
 							}}
-							disabled={deleteProduct.isPending}
+							disabled={isDeleting}
 							className="bg-red-600 hover:bg-red-700 text-white"
 						>
-							{deleteProduct.isPending ? "Deleting..." : "Delete"}
+							{isDeleting ? "Deleting..." : "Delete"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

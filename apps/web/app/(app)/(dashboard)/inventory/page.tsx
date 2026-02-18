@@ -3,19 +3,32 @@ import { PreloadQuery } from "@/lib/graphql/apolloServer"
 import InventoryPage from "@/modules/inventory/pages/InventoryPage"
 
 const GET_INVENTORY_DATA = gql(`
-	query getInventoryDate ($page: Int, $limit: Int, $search: String, $sortBy: String, $sortOrder: String, $status: String, $categoryId: String, $lowStock: Int, $minPrice: Int, $maxPrice: Int, $includeDeleted: Boolean) {
-		listProductsWithFilter (page: $page, limit: $limit, search: $search, sortBy: $sortBy, sortOrder: $sortOrder, status: $status, categoryId: $categoryId, lowStock: $lowStock, minPrice: $minPrice, maxPrice: $maxPrice, includeDeleted: $includeDeleted) {
+	query GetInventoryPage ($filterInput: ProductFilterInput!) {
+		listProductsWithFilter (filterInput: $filterInput) {
 			data {
 				id
-				name
+				productName
 				category {
-					id
+					id 
 					name
-				}
+				} 
+				totalStock
+				variantCount
+				status
 				variants {
 					id
-					name
+					sku
+					barcode
+					attributes {
+						name
+						value
+					}
+					price
 					stock
+					lowStock
+					status
+					sellPrice
+					costPrice
 				}
 			}
 			meta {
@@ -32,7 +45,7 @@ const GET_INVENTORY_DATA = gql(`
 
 const page = () => {
 	return (
-		<PreloadQuery query={GET_INVENTORY_DATA} variables={{ page: 1, limit: 10 }}>
+		<PreloadQuery query={GET_INVENTORY_DATA} variables={{ filterInput: { page: 1, limit: 10 } }}>
 			<InventoryPage />
 		</PreloadQuery>
 	)

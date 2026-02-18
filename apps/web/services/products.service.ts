@@ -1,3 +1,4 @@
+import { Status } from "@/gql/graphql";
 import { clientApiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/config";
 
@@ -20,7 +21,7 @@ export interface Product {
 	category: string;
 	totalStock: number;
 	variantCount: number;
-	status: "active" | "inactive" | "out-of-stock";
+	status: Status 
 	variants: ProductVariant[];
 }
 

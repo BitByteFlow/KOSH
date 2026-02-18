@@ -5,6 +5,7 @@ const proxy = async (req: NextRequest) => {
 	const path = req.nextUrl.pathname
 	const session = await auth()
 	const isPublicPath = path === "/auth/get-started"  || path === "/"
+	console.log(isPublicPath, path)
 	if (isPublicPath && session && session.user) {
 		return NextResponse.redirect(new URL("/dashboard", req.url));
 	}
@@ -15,7 +16,7 @@ const proxy = async (req: NextRequest) => {
 	if (isPrivateRoute && !session) {
 		return NextResponse.redirect(new URL("/auth/get-started", req.url));
 	}
-
+	console.log("no after session")
 	return NextResponse.next()
 }
 

@@ -9,6 +9,8 @@ import {
 	Loader2,
 	Package,
 } from "lucide-react";
+import { useQuery, useMutation, useApolloClient } from "@apollo/client/react";
+import { gql } from "@/gql";
 import { Button } from "@kosh/ui/components/button";
 import {
 	Sheet,
@@ -34,9 +36,8 @@ import {
 	createProductSchema,
 	type CreateProductInput,
 } from "@kosh/validation";
-import { useCreateProduct, useCategoryList, useUpdateProduct } from "../hooks/useProducts";
 import { toast } from "sonner";
-import { Category } from "@/services/categories.service";
+import { Product } from "@/gql/graphql";
 
 interface AttributeListProps {
 	variantIndex: number;
@@ -54,7 +55,7 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 			<Label className="text-xs font-semibold text-gray-500">Attributes</Label>
 			{fields.map((attr, attrIndex) => (
 				<div
-					key={attr.id}
+					key={attr.value}
 					className="flex gap-2 items-start"
 				>
 					<div className="flex-1">
@@ -137,8 +138,35 @@ interface ProductSheetProps {
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
 	trigger?: React.ReactNode;
-	product?: any;
+	product: Product | null;
 }
+
+const GET_CATEGORIES = gql(`
+	query GetCategoriesSheet {
+		getCategories {
+			id
+			name
+		}
+	}
+`);
+
+const CREATE_PRODUCT = gql(`
+	mutation CreateProductInSheet($createProductInput: CreateProductInput!) {
+		createProduct(createProductInput: $createProductInput) {
+			success
+			message
+		}
+	}
+`);
+
+const UPDATE_PRODUCT_DETAILS = gql(`
+	mutation UpdateProductInSheet($productId: ID!, $updateProductInput: UpdateProductInput!) {
+		updateProduct(productId: $productId, updateProductInput: $updateProductInput) {
+			success
+			message
+		}
+	}
+`);
 
 export function ProductSheet({
 	open,
@@ -146,11 +174,11 @@ export function ProductSheet({
 	trigger,
 	product,
 }: ProductSheetProps) {
+	const client = useApolloClient();
 	const [internalOpen, setInternalOpen] = useState(false);
-	const { data: categoryData, isLoading: categoriesLoading } =
-		useCategoryList();
-	const createProduct = useCreateProduct();
-	const updateProduct = useUpdateProduct();
+	const { data: categoryData, loading: categoriesLoading } = useQuery(GET_CATEGORIES);
+	const [createProductMutation, { loading: isCreating }] = useMutation(CREATE_PRODUCT);
+	const [updateProductMutation, { loading: isUpdating }] = useMutation(UPDATE_PRODUCT_DETAILS);
 
 	const isControlled = open !== undefined && onOpenChange !== undefined;
 	const isOpen = isControlled ? open : internalOpen;
@@ -188,20 +216,15 @@ export function ProductSheet({
 			if (product) {
 				reset({
 					name: product.productName,
-					categoryId: product.categoryId || "", // Ensure categoryId is mapped correctly
-					supplierName: "", // Assuming supplier isn't editable or part of product object in this context
+					categoryId: product.category.id || "",
+					supplierName: "",
 					keepPurchaseRecord: false,
 					variants: product.variants.map((v: any) => ({
 						id: v.id,
 						costPrice: v.costPrice,
-						sellingPrice: v.price, // Mapping price to sellingPrice
+						sellingPrice: v.price,
 						stock: v.stock,
-						attributes: v.attributes
-							? Object.entries(v.attributes).map(([name, value]) => ({
-								name,
-								value: value as string,
-							}))
-							: [{ name: "", value: "" }],
+						attributes: v.attributes.length > 0 ? v.attributes : [{ name: "", value: "" }],
 					})),
 				});
 			} else {
@@ -236,7 +259,6 @@ export function ProductSheet({
 
 	const onSubmit = async (data: CreateProductInput) => {
 		try {
-			// Format data for backend
 			const basePayload = {
 				name: data.name,
 				categoryId: data.categoryId,
@@ -250,25 +272,63 @@ export function ProductSheet({
 			};
 
 			if (product) {
-				await updateProduct.mutateAsync({
-					id: product.id,
-					data: basePayload,
+				const { data: updateResult } = await updateProductMutation({
+					variables: {
+						productId: product.id,
+						updateProductInput: {
+							name: basePayload.name,
+							categoryId: basePayload.categoryId,
+							variants: basePayload.variants.map((v: any) => ({
+								id: v.id,
+								costPrice: v.costPrice,
+								sellingPrice: v.sellingPrice,
+								stock: v.stock,
+								attributes: v.attributes?.map((attr: any) => ({
+									name: attr.name,
+									value: attr.value
+								}))
+							}))
+						}
+					}
 				});
-				toast.success("Product updated successfully");
+				if ((updateResult as any)?.updateProduct?.success) {
+					toast.success("Product updated successfully");
+				} else {
+					toast.error((updateResult as any)?.updateProduct?.message || "Failed to update product");
+				}
 			} else {
-				const createPayload = {
-					...basePayload,
-					createPurchaseRecord: data.keepPurchaseRecord,
-					supplierName: data.keepPurchaseRecord ? data.supplierName : undefined,
-				};
-				await createProduct.mutateAsync(createPayload);
-				toast.success("Product created successfully");
+				const { data: createResult } = await createProductMutation({
+					variables: {
+						createProductInput: {
+							name: basePayload.name,
+							categoryId: basePayload.categoryId,
+							variants: basePayload.variants.map((v: any) => ({
+								costPrice: v.costPrice,
+								sellingPrice: v.sellingPrice,
+								stock: v.stock,
+								attributes: v.attributes?.map((attr: any) => ({
+									name: attr.name,
+									value: attr.value
+								}))
+							})),
+							keepPurchaseRecord: data.keepPurchaseRecord,
+							supplierName: data.keepPurchaseRecord ? data.supplierName : undefined,
+						}
+					}
+				});
+				if ((createResult as any)?.createProduct?.success) {
+					toast.success("Product created successfully");
+				} else {
+					toast.error((createResult as any)?.createProduct?.message || "Failed to create product");
+				}
 			}
 			setIsOpen(false);
 			reset();
+			// Refetch inventory data
+			client.refetchQueries({ include: ["getInventoryData"] });
 		} catch (error: any) {
 			toast.error(
-				error.response?.data?.message ||
+				error.message ||
 				(product ? "Failed to update product" : "Failed to create product"),
 			);
 		}
@@ -364,9 +424,8 @@ export function ProductSheet({
 														? "Loading..."
 														: "Select a category"}
 												</option>
-												{/* TODO: Fix this */}
 												{categoryData &&
-													categoryData?.categories.map((cat: Category) => (
+													categoryData?.getCategories.map((cat: any) => (
 														<option
 															key={cat.id}
 															value={cat.id}
@@ -595,13 +654,15 @@ export function ProductSheet({
 						<Button
 							type="submit"
 							disabled={
-								createProduct.isPending ||
-								updateProduct.isPending ||
-								(product && !isDirty)
+								!!(
+									isCreating ||
+									isUpdating ||
+									(product && !isDirty)
+								)
 							}
 							className="rounded-xl px-8 shadow-md shadow-primary/20 gap-2 min-w-[140px]"
 						>
-							{createProduct.isPending || updateProduct.isPending ? (
+							{isCreating || isUpdating ? (
 								<>
 									<Loader2 className="h-4 w-4 animate-spin" />
 									Saving...

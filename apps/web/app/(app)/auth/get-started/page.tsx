@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Button } from "@kosh/ui/components/button";
-import { Card, CardContent } from "@kosh/ui/components/card";
+import { Card} from "@kosh/ui/components/card";
 import { Zap, Loader2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";

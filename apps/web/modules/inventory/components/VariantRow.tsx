@@ -1,10 +1,10 @@
 import { Edit } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
 import { TableRow, TableCell } from "@kosh/ui/components/table";
-import { ProductVariant } from "@/services/products.service";
+import { ProductVariant } from "@/gql/graphql";
 
 interface VariantRowProps {
-	variant: ProductVariant;
+	variant: any; // Using any or a partial type because the query returns a subset of ProductVariant
 	onEdit?: (variantId: string) => void;
 }
 
@@ -14,7 +14,7 @@ export function VariantRow({ variant, onEdit }: VariantRowProps) {
 			<TableCell className="w-12 pl-6" />
 			<TableCell>
 				<div className="flex flex-wrap gap-x-4 gap-y-1">
-					{variant.attributes.map((attr, index) => (
+					{variant.attributes?.map((attr: any, index: number) => (
 						<div
 							key={index}
 							className="text-sm"

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import Loading from "./Loading";
 
@@ -12,6 +12,7 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 	const { data: session, status } = useSession();
 	const router = useRouter();
+	const pathname = usePathname();
 
 	useEffect(() => {
 		if (status === "unauthenticated") {
@@ -24,6 +25,10 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 	}
 
 	if (status === "authenticated") {
+		return <>{children}</>;
+	}
+
+	if (pathname === "/auth/get-started") {
 		return <>{children}</>;
 	}
 
