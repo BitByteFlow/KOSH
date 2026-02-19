@@ -1,5 +1,8 @@
-import { useState, useMemo } from "react";
-import { Search, SlidersHorizontal, Upload } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Search, SlidersHorizontal, Upload, ChevronLeft, ChevronRight } from "lucide-react";
+import { useQuery } from "@apollo/client/react";
+import { gql } from "@/gql";
+import { getDateRange } from "@/lib/date-utils";
 import {
 	Table,
 	TableBody,
@@ -23,53 +26,130 @@ import {
 } from "@kosh/ui/components/dialog";
 import { cn } from "@/lib/utils";
 
-const MOCK_PRODUCTS = [
-	{ id: "PROD-001", name: "Cotton T-Shirt", sku: "TS-001", category: "Clothing", sold: 154, revenue: 46200.00, margin: 32, status: "Active" },
-	{ id: "PROD-002", name: "Leather Wallet", sku: "WL-002", category: "Accessories", sold: 89, revenue: 66750.00, margin: 45, status: "Active" },
-	{ id: "PROD-003", name: "Wireless Earbuds", sku: "EB-003", category: "Electronics", sold: 210, revenue: 315000.00, margin: 28, status: "Active" },
-	{ id: "PROD-004", name: "Running Shoes", sku: "SH-004", category: "Footwear", sold: 42, revenue: 147000.00, margin: 15, status: "Out of Stock" },
-];
+interface ProductPerformance {
+	id: string;
+	name: string;
+	sku: string;
+	category: string;
+	sold: number;
+	revenue: number;
+	margin: number;
+	status: string;
+}
 
-export function ProductPerformanceTable() {
+interface ProductPerformanceTableProps {
+	dateRange: string;
+}
+
+const GET_PRODUCT_PERFORMANCE = gql(`
+	query getProductPerformance ($filters: ProductPerformanceFilter!){
+		getProductPerformance (filters: $filters) {
+			items {
+				id
+				name
+				sku
+				category
+				sold
+				revenue
+				margin
+				status
+			}
+			totalCount
+		}
+	}
+`) as any;
+
+export function ProductPerformanceTable({ dateRange }: ProductPerformanceTableProps) {
 	const [searchQuery, setSearchQuery] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [isFilterOpen, setIsFilterOpen] = useState(false);
-	const [filters, setFilters] = useState({
+
+	const [currentPage, setCurrentPage] = useState(1);
+	const pageSize = 10;
+
+	// State for filters that are currently applied to the query
+	const [appliedFilters, setAppliedFilters] = useState({
 		categories: [] as string[],
 		statuses: [] as string[],
 		minSold: "",
 		maxSold: "",
 	});
 
-	const filteredProducts = useMemo(() => {
-		return MOCK_PRODUCTS.filter(product => {
-			const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-				product.sku.toLowerCase().includes(searchQuery.toLowerCase());
+	// State for filters currently being edited in the dialog
+	const [tempFilters, setTempFilters] = useState({
+		categories: [] as string[],
+		statuses: [] as string[],
+		minSold: "",
+		maxSold: "",
+	});
 
-			const matchesCategory = filters.categories.length === 0 || filters.categories.includes(product.category);
-			const matchesStatus = filters.statuses.length === 0 || filters.statuses.includes(product.status);
-			const matchesMinSold = !filters.minSold || product.sold >= parseInt(filters.minSold);
-			const matchesMaxSold = !filters.maxSold || product.sold <= parseInt(filters.maxSold);
+	// Debounce logic for search
+	useEffect(() => {
+		const handler = setTimeout(() => {
+			setDebouncedSearch(searchQuery);
+			setCurrentPage(1); // Reset to first page on search
+		}, 500);
+		return () => clearTimeout(handler);
+	}, [searchQuery]);
 
-			return matchesSearch && matchesCategory && matchesStatus && matchesMinSold && matchesMaxSold;
-		});
-	}, [searchQuery, filters]);
+	// Convert dateRange prop to actual dates
+	const { startDate, endDate } = useMemo(() => getDateRange(dateRange), [dateRange]);
+
+	const { data, loading } = useQuery<{ getProductPerformance: { items: ProductPerformance[], totalCount: number } }>(GET_PRODUCT_PERFORMANCE, {
+		variables: {
+			filters: {
+				startDate,
+				endDate,
+				categories: appliedFilters.categories.length > 0 ? appliedFilters.categories : undefined,
+				statuses: appliedFilters.statuses.length > 0 ? appliedFilters.statuses : undefined,
+				minSold: appliedFilters.minSold ? parseInt(appliedFilters.minSold) : undefined,
+				maxSold: appliedFilters.maxSold ? parseInt(appliedFilters.maxSold) : undefined,
+				searchQuery: debouncedSearch || undefined,
+				skip: (currentPage - 1) * pageSize,
+				take: pageSize,
+			}
+		}
+	});
+
+	const products = data?.getProductPerformance?.items || [];
+	const totalCount = data?.getProductPerformance?.totalCount || 0;
+	const totalPages = Math.ceil(totalCount / pageSize);
 
 	const handleCategoryChange = (category: string, checked: boolean) => {
-		setFilters(prev => ({
+		setTempFilters((prev) => ({
 			...prev,
 			categories: checked
 				? [...prev.categories, category]
-				: prev.categories.filter(c => c !== category)
+				: prev.categories.filter((c: string) => c !== category)
 		}));
 	};
 
 	const handleStatusChange = (status: string, checked: boolean) => {
-		setFilters(prev => ({
+		setTempFilters((prev) => ({
 			...prev,
 			statuses: checked
 				? [...prev.statuses, status]
-				: prev.statuses.filter(s => s !== status)
+				: prev.statuses.filter((s: string) => s !== status)
 		}));
+	};
+
+	const handleApplyFilters = () => {
+		setAppliedFilters(tempFilters);
+		setIsFilterOpen(false);
+		setCurrentPage(1);
+	};
+
+	const handleResetFilters = () => {
+		const defaultFilters = {
+			categories: [],
+			statuses: [],
+			minSold: "",
+			maxSold: "",
+		};
+		setTempFilters(defaultFilters);
+		setAppliedFilters(defaultFilters);
+		setIsFilterOpen(false);
+		setCurrentPage(1);
 	};
 
 	return (
@@ -114,14 +194,23 @@ export function ProductPerformanceTable() {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{filteredProducts.length === 0 ? (
+						{loading ? (
+							<TableRow>
+								<TableCell colSpan={6} className="h-24 text-center">
+									<div className="flex items-center justify-center gap-2 text-muted-foreground">
+										<div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+										Loading performance data...
+									</div>
+								</TableCell>
+							</TableRow>
+						) : products.length === 0 ? (
 							<TableRow>
 								<TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
 									No products found matching your criteria.
 								</TableCell>
 							</TableRow>
 						) : (
-							filteredProducts.map((product) => (
+							products.map((product) => (
 								<TableRow key={product.id} className="hover:bg-muted/30 border-border [&_td]:py-4 transition-colors">
 									<TableCell className="font-medium text-foreground">{product.name}</TableCell>
 									<TableCell className="text-muted-foreground text-sm font-mono">{product.sku}</TableCell>
@@ -146,6 +235,40 @@ export function ProductPerformanceTable() {
 				</Table>
 			</div>
 
+			{/* Pagination Controls */}
+			{totalPages > 1 && (
+				<div className="flex items-center justify-between px-2">
+					<p className="text-sm text-muted-foreground">
+						Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{" "}
+						<span className="font-medium">{Math.min(currentPage * pageSize, totalCount)}</span> of{" "}
+						<span className="font-medium">{totalCount}</span> results
+					</p>
+					<div className="flex items-center gap-2">
+						<Button
+							variant="outline"
+							size="icon"
+							className="h-8 w-8"
+							onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+							disabled={currentPage === 1}
+						>
+							<ChevronLeft className="h-4 w-4" />
+						</Button>
+						<span className="text-sm font-medium">
+							Page {currentPage} of {totalPages}
+						</span>
+						<Button
+							variant="outline"
+							size="icon"
+							className="h-8 w-8"
+							onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+							disabled={currentPage === totalPages}
+						>
+							<ChevronRight className="h-4 w-4" />
+						</Button>
+					</div>
+				</div>
+			)}
+
 			<Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
 				<DialogContent className="sm:max-w-[425px]">
 					<DialogHeader>
@@ -163,7 +286,7 @@ export function ProductPerformanceTable() {
 									<div key={cat} className="flex items-center space-x-2">
 										<Checkbox
 											id={`cat-${cat}`}
-											checked={filters.categories.includes(cat)}
+											checked={tempFilters.categories.includes(cat)}
 											onCheckedChange={(checked) => handleCategoryChange(cat, checked as boolean)}
 										/>
 										<label
@@ -184,7 +307,7 @@ export function ProductPerformanceTable() {
 									<div key={status} className="flex items-center space-x-2">
 										<Checkbox
 											id={`status-${status}`}
-											checked={filters.statuses.includes(status)}
+											checked={tempFilters.statuses.includes(status)}
 											onCheckedChange={(checked) => handleStatusChange(status, checked as boolean)}
 										/>
 										<label
@@ -208,8 +331,8 @@ export function ProductPerformanceTable() {
 										type="number"
 										placeholder="0"
 										className="h-9"
-										value={filters.minSold}
-										onChange={(e) => setFilters(prev => ({ ...prev, minSold: e.target.value }))}
+										value={tempFilters.minSold}
+										onChange={(e) => setTempFilters(prev => ({ ...prev, minSold: e.target.value }))}
 									/>
 								</div>
 								<div className="space-y-1.5">
@@ -219,8 +342,8 @@ export function ProductPerformanceTable() {
 										type="number"
 										placeholder="Any"
 										className="h-9"
-										value={filters.maxSold}
-										onChange={(e) => setFilters(prev => ({ ...prev, maxSold: e.target.value }))}
+										value={tempFilters.maxSold}
+										onChange={(e) => setTempFilters(prev => ({ ...prev, maxSold: e.target.value }))}
 									/>
 								</div>
 							</div>
@@ -228,17 +351,10 @@ export function ProductPerformanceTable() {
 					</div>
 
 					<DialogFooter>
-						<Button variant="outline" onClick={() => {
-							setFilters({
-								categories: [],
-								statuses: [],
-								minSold: "",
-								maxSold: "",
-							});
-						}}>
+						<Button variant="outline" onClick={handleResetFilters}>
 							Reset
 						</Button>
-						<Button onClick={() => setIsFilterOpen(false)}>Apply Filters</Button>
+						<Button onClick={handleApplyFilters}>Apply Filters</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>

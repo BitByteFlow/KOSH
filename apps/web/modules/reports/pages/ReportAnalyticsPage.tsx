@@ -53,7 +53,7 @@ const ReportAnalyticsPage = () => {
 				<div className="mt-6">
 					{activeReport === "Sales Report" && <SalesReportTable dateRange={dateRange} />}
 					{activeReport === "Product Performance" && (
-						<ProductPerformanceTable />
+						<ProductPerformanceTable dateRange={dateRange} />
 					)}
 					{activeReport === "Inventory Report" && <InventoryReportTable />}
 					{activeReport === "Cash Report" && (

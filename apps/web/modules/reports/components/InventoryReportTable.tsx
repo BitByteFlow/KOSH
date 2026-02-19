@@ -1,5 +1,7 @@
-import { useState, useMemo } from "react";
-import { Search, SlidersHorizontal, Upload } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Search, SlidersHorizontal, Upload, ChevronLeft, ChevronRight } from "lucide-react";
+import { useQuery } from "@apollo/client/react";
+import { gql } from "@/gql";
 import {
 	Table,
 	TableBody,
@@ -23,39 +25,86 @@ import {
 } from "@kosh/ui/components/dialog";
 import { cn } from "@/lib/utils";
 
-const MOCK_ITEMS = [
-	{ id: "ITEM-001", name: "Cotton T-Shirt", category: "Clothing", stock: 450, value: 135000.00, status: "In Stock" },
-	{ id: "ITEM-002", name: "Leather Wallet", category: "Accessories", stock: 12, value: 18000.00, status: "Low Stock" },
-	{ id: "ITEM-003", name: "Wireless Earbuds", category: "Electronics", stock: 85, value: 127500.00, status: "In Stock" },
-	{ id: "ITEM-004", name: "Running Shoes", category: "Footwear", stock: 0, value: 0.00, status: "Out of Stock" },
-];
+interface InventoryReport {
+	id: string;
+	name: string;
+	sku: string;
+	category: string;
+	stock: number;
+	value: number;
+	status: string;
+}
+
+const GET_INVENTORY_REPORT = gql(`
+	query getInventoryReport ($filters: InventoryReportFilter!){
+		getInventoryReport (filters: $filters) {
+			items {
+				id
+				name
+				sku
+				category
+				stock
+				value
+				status
+			}
+			totalCount
+		}
+	}
+`) as any;
 
 export function InventoryReportTable() {
 	const [searchQuery, setSearchQuery] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [isFilterOpen, setIsFilterOpen] = useState(false);
-	const [filters, setFilters] = useState({
+
+	const [currentPage, setCurrentPage] = useState(1);
+	const pageSize = 10;
+
+	// State for filters that are currently applied to the query
+	const [appliedFilters, setAppliedFilters] = useState({
 		categories: [] as string[],
 		statuses: [] as string[],
 		minStock: "",
 		maxStock: "",
 	});
 
-	const filteredItems = useMemo(() => {
-		return MOCK_ITEMS.filter(item => {
-			const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-				item.category.toLowerCase().includes(searchQuery.toLowerCase());
+	// State for filters currently being edited in the dialog
+	const [tempFilters, setTempFilters] = useState({
+		categories: [] as string[],
+		statuses: [] as string[],
+		minStock: "",
+		maxStock: "",
+	});
 
-			const matchesCategory = filters.categories.length === 0 || filters.categories.includes(item.category);
-			const matchesStatus = filters.statuses.length === 0 || filters.statuses.includes(item.status);
-			const matchesMinStock = !filters.minStock || item.stock >= parseInt(filters.minStock);
-			const matchesMaxStock = !filters.maxStock || item.stock <= parseInt(filters.maxStock);
+	// Debounce logic for search
+	useEffect(() => {
+		const handler = setTimeout(() => {
+			setDebouncedSearch(searchQuery);
+			setCurrentPage(1); // Reset to first page on search
+		}, 500);
+		return () => clearTimeout(handler);
+	}, [searchQuery]);
 
-			return matchesSearch && matchesCategory && matchesStatus && matchesMinStock && matchesMaxStock;
-		});
-	}, [searchQuery, filters]);
+	const { data, loading } = useQuery<{ getInventoryReport: { items: InventoryReport[], totalCount: number } }>(GET_INVENTORY_REPORT, {
+		variables: {
+			filters: {
+				categories: appliedFilters.categories.length > 0 ? appliedFilters.categories : undefined,
+				statuses: appliedFilters.statuses.length > 0 ? appliedFilters.statuses : undefined,
+				minStock: appliedFilters.minStock ? parseInt(appliedFilters.minStock) : undefined,
+				maxStock: appliedFilters.maxStock ? parseInt(appliedFilters.maxStock) : undefined,
+				searchQuery: debouncedSearch || undefined,
+				skip: (currentPage - 1) * pageSize,
+				take: pageSize,
+			}
+		}
+	});
+
+	const items = data?.getInventoryReport?.items || [];
+	const totalCount = data?.getInventoryReport?.totalCount || 0;
+	const totalPages = Math.ceil(totalCount / pageSize);
 
 	const handleCategoryChange = (category: string, checked: boolean) => {
-		setFilters(prev => ({
+		setTempFilters(prev => ({
 			...prev,
 			categories: checked
 				? [...prev.categories, category]
@@ -64,12 +113,31 @@ export function InventoryReportTable() {
 	};
 
 	const handleStatusChange = (status: string, checked: boolean) => {
-		setFilters(prev => ({
+		setTempFilters(prev => ({
 			...prev,
 			statuses: checked
 				? [...prev.statuses, status]
 				: prev.statuses.filter(s => s !== status)
 		}));
+	};
+
+	const handleApplyFilters = () => {
+		setAppliedFilters(tempFilters);
+		setIsFilterOpen(false);
+		setCurrentPage(1);
+	};
+
+	const handleResetFilters = () => {
+		const defaultFilters = {
+			categories: [],
+			statuses: [],
+			minStock: "",
+			maxStock: "",
+		};
+		setTempFilters(defaultFilters);
+		setAppliedFilters(defaultFilters);
+		setIsFilterOpen(false);
+		setCurrentPage(1);
 	};
 
 	return (
@@ -113,14 +181,23 @@ export function InventoryReportTable() {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{filteredItems.length === 0 ? (
+						{loading ? (
+							<TableRow>
+								<TableCell colSpan={5} className="h-24 text-center">
+									<div className="flex items-center justify-center gap-2 text-muted-foreground">
+										<div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+										Loading inventory data...
+									</div>
+								</TableCell>
+							</TableRow>
+						) : items.length === 0 ? (
 							<TableRow>
 								<TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
 									No inventory items found matching your criteria.
 								</TableCell>
 							</TableRow>
 						) : (
-							filteredItems.map((item) => (
+							items.map((item) => (
 								<TableRow key={item.id} className="hover:bg-muted/30 border-border [&_td]:py-4 transition-colors">
 									<TableCell className="font-medium text-foreground">{item.name}</TableCell>
 									<TableCell className="text-muted-foreground text-sm">{item.category}</TableCell>
@@ -146,6 +223,40 @@ export function InventoryReportTable() {
 				</Table>
 			</div>
 
+			{/* Pagination Controls */}
+			{totalPages > 1 && (
+				<div className="flex items-center justify-between px-2">
+					<p className="text-sm text-muted-foreground">
+						Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{" "}
+						<span className="font-medium">{Math.min(currentPage * pageSize, totalCount)}</span> of{" "}
+						<span className="font-medium">{totalCount}</span> results
+					</p>
+					<div className="flex items-center gap-2">
+						<Button
+							variant="outline"
+							size="icon"
+							className="h-8 w-8"
+							onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+							disabled={currentPage === 1}
+						>
+							<ChevronLeft className="h-4 w-4" />
+						</Button>
+						<span className="text-sm font-medium">
+							Page {currentPage} of {totalPages}
+						</span>
+						<Button
+							variant="outline"
+							size="icon"
+							className="h-8 w-8"
+							onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+							disabled={currentPage === totalPages}
+						>
+							<ChevronRight className="h-4 w-4" />
+						</Button>
+					</div>
+				</div>
+			)}
+
 			<Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
 				<DialogContent className="sm:max-w-[425px]">
 					<DialogHeader>
@@ -163,7 +274,7 @@ export function InventoryReportTable() {
 									<div key={cat} className="flex items-center space-x-2">
 										<Checkbox
 											id={`cat-${cat}`}
-											checked={filters.categories.includes(cat)}
+											checked={tempFilters.categories.includes(cat)}
 											onCheckedChange={(checked) => handleCategoryChange(cat, checked as boolean)}
 										/>
 										<label
@@ -184,7 +295,7 @@ export function InventoryReportTable() {
 									<div key={status} className="flex items-center space-x-2">
 										<Checkbox
 											id={`status-${status}`}
-											checked={filters.statuses.includes(status)}
+											checked={tempFilters.statuses.includes(status)}
 											onCheckedChange={(checked) => handleStatusChange(status, checked as boolean)}
 										/>
 										<label
@@ -208,8 +319,8 @@ export function InventoryReportTable() {
 										type="number"
 										placeholder="0"
 										className="h-9"
-										value={filters.minStock}
-										onChange={(e) => setFilters(prev => ({ ...prev, minStock: e.target.value }))}
+										value={tempFilters.minStock}
+										onChange={(e) => setTempFilters(prev => ({ ...prev, minStock: e.target.value }))}
 									/>
 								</div>
 								<div className="space-y-1.5">
@@ -219,8 +330,8 @@ export function InventoryReportTable() {
 										type="number"
 										placeholder="Any"
 										className="h-9"
-										value={filters.maxStock}
-										onChange={(e) => setFilters(prev => ({ ...prev, maxStock: e.target.value }))}
+										value={tempFilters.maxStock}
+										onChange={(e) => setTempFilters(prev => ({ ...prev, maxStock: e.target.value }))}
 									/>
 								</div>
 							</div>
@@ -228,17 +339,10 @@ export function InventoryReportTable() {
 					</div>
 
 					<DialogFooter>
-						<Button variant="outline" onClick={() => {
-							setFilters({
-								categories: [],
-								statuses: [],
-								minStock: "",
-								maxStock: "",
-							});
-						}}>
+						<Button variant="outline" onClick={handleResetFilters}>
 							Reset
 						</Button>
-						<Button onClick={() => setIsFilterOpen(false)}>Apply Filters</Button>
+						<Button onClick={handleApplyFilters}>Apply Filters</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
