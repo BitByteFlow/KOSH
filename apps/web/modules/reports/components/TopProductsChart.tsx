@@ -75,7 +75,7 @@ export function TopProductsChart({ dateRange }: TopProductsChartProps) {
 										}}
 									/>
 								</div>
-								<span className="w-16 text-right text-sm font-semibold text-foreground">
+								<span className="w-24 text-right text-sm font-semibold text-foreground">
 									{product.revenue}
 								</span>
 							</div>
