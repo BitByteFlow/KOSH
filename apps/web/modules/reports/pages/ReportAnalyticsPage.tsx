@@ -57,7 +57,7 @@ const ReportAnalyticsPage = () => {
 					)}
 					{activeReport === "Inventory Report" && <InventoryReportTable />}
 					{activeReport === "Cash Report" && (
-						<AnalyticsTransactionTable transactions={transactions} />
+						<AnalyticsTransactionTable dateRange={dateRange} />
 					)}
 				</div>
 			</div>

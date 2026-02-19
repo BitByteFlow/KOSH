@@ -1,5 +1,8 @@
-import { useState } from "react";
-import { Search, SlidersHorizontal, Upload, X } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Search, SlidersHorizontal, Upload, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { useQuery } from "@apollo/client/react";
+import { gql } from "@/gql";
+import { getDateRange } from "@/lib/date-utils";
 import {
 	Table,
 	TableBody,
@@ -28,36 +31,96 @@ interface Transaction {
 	date: string;
 	time: string;
 	paymentType: "Online" | "Cash" | "Credit";
-	amount: string;
-	profit: string;
+	amount: number;
+	profit: number;
 	status: "Completed" | "Pending";
 }
 
 interface AnalyticsTransactionTableProps {
-	transactions: Transaction[];
+	dateRange: string;
 }
 
 interface FilterState {
-	dateFrom: string;
-	dateTo: string;
 	paymentTypes: string[];
 	status: string;
 	minAmount: string;
 	maxAmount: string;
 }
 
+const GET_ANALYTICS_TRANSACTIONS = gql(`
+	query getAnalyticsTransactions ($filters: AnalyticsTransactionFilter!){
+		getAnalyticsTransactions (filters: $filters) {
+			items {
+				id
+				date
+				time
+				paymentType
+				amount
+				profit
+				status
+			}
+			totalCount
+		}
+	}
+`) as any;
+
 export function AnalyticsTransactionTable({
-	transactions,
+	dateRange,
 }: AnalyticsTransactionTableProps) {
+	const [searchQuery, setSearchQuery] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [isFilterOpen, setIsFilterOpen] = useState(false);
-	const [filters, setFilters] = useState<FilterState>({
-		dateFrom: "",
-		dateTo: "",
+
+	const [currentPage, setCurrentPage] = useState(1);
+	const pageSize = 10;
+
+	// State for filters that are currently applied to the query
+	const [appliedFilters, setAppliedFilters] = useState<FilterState>({
 		paymentTypes: [],
 		status: "all",
 		minAmount: "",
 		maxAmount: "",
 	});
+
+	// State for filters currently being edited in the dialog
+	const [tempFilters, setTempFilters] = useState<FilterState>({
+		paymentTypes: [],
+		status: "all",
+		minAmount: "",
+		maxAmount: "",
+	});
+
+	// Debounce logic for search
+	useEffect(() => {
+		const handler = setTimeout(() => {
+			setDebouncedSearch(searchQuery);
+			setCurrentPage(1); // Reset to first page on search
+		}, 500);
+		return () => clearTimeout(handler);
+	}, [searchQuery]);
+
+	// Convert dateRange prop to actual dates
+	const { startDate, endDate } = useMemo(() => getDateRange(dateRange), [dateRange]);
+
+	const { data, loading } = useQuery<{ getAnalyticsTransactions: { items: Transaction[], totalCount: number } }>(GET_ANALYTICS_TRANSACTIONS, {
+		variables: {
+			filters: {
+				startDate,
+				endDate,
+				paymentTypes: appliedFilters.paymentTypes.length > 0 ? appliedFilters.paymentTypes : undefined,
+				status: appliedFilters.status !== 'all' ? appliedFilters.status : undefined,
+				minAmount: appliedFilters.minAmount ? parseFloat(appliedFilters.minAmount) : undefined,
+				maxAmount: appliedFilters.maxAmount ? parseFloat(appliedFilters.maxAmount) : undefined,
+				searchQuery: debouncedSearch || undefined,
+				skip: (currentPage - 1) * pageSize,
+				take: pageSize,
+			}
+		}
+	});
+
+	const transactions = data?.getAnalyticsTransactions?.items || [];
+	const totalCount = data?.getAnalyticsTransactions?.totalCount || 0;
+	const totalPages = Math.ceil(totalCount / pageSize);
 
 	const getPaymentVariant = (
 		type: string
@@ -75,7 +138,7 @@ export function AnalyticsTransactionTable({
 	};
 
 	const handlePaymentTypeChange = (type: string, checked: boolean) => {
-		setFilters(prev => {
+		setTempFilters(prev => {
 			const types = checked
 				? [...prev.paymentTypes, type]
 				: prev.paymentTypes.filter(t => t !== type);
@@ -84,20 +147,22 @@ export function AnalyticsTransactionTable({
 	};
 
 	const handleApplyFilters = () => {
-		console.log("Applying filters:", filters);
+		setAppliedFilters(tempFilters);
 		setIsFilterOpen(false);
-		// Implement actual filtering logic here
+		setCurrentPage(1);
 	};
 
 	const handleResetFilters = () => {
-		setFilters({
-			dateFrom: "",
-			dateTo: "",
+		const defaultFilters = {
 			paymentTypes: [],
 			status: "all",
 			minAmount: "",
 			maxAmount: "",
-		});
+		};
+		setTempFilters(defaultFilters);
+		setAppliedFilters(defaultFilters);
+		setIsFilterOpen(false);
+		setCurrentPage(1);
 	};
 
 	return (
@@ -109,6 +174,8 @@ export function AnalyticsTransactionTable({
 						type="text"
 						placeholder="Search transactions..."
 						className="w-full pl-10 h-10"
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
 					/>
 				</div>
 				<div className="flex gap-2">
@@ -143,48 +210,99 @@ export function AnalyticsTransactionTable({
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{transactions.map((transaction) => (
-							<TableRow
-								key={transaction.id}
-								className="hover:bg-muted/30 border-border [&_td]:py-4 transition-colors"
-							>
-								<TableCell className="font-medium text-foreground">{transaction.id}</TableCell>
-								<TableCell className="text-muted-foreground text-sm">
-									{transaction.date} <span className="text-muted-foreground/60 ml-1">{transaction.time}</span>
-								</TableCell>
-								<TableCell>
-									<Badge variant={getPaymentVariant(transaction.paymentType)} className="font-normal">
-										{transaction.paymentType}
-									</Badge>
-								</TableCell>
-								<TableCell className="font-medium">
-									{transaction.amount}
-								</TableCell>
-								<TableCell
-									className={cn(
-										"font-medium",
-										transaction.profit.startsWith("-")
-											? "text-red-600"
-											: "text-green-600"
-									)}
-								>
-									{transaction.profit}
-								</TableCell>
-								<TableCell>
-									<div className={cn(
-										"inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
-										transaction.status === "Completed"
-											? "bg-green-50 text-green-700"
-											: "bg-orange-50 text-orange-700"
-									)}>
-										{transaction.status}
+						{loading ? (
+							<TableRow>
+								<TableCell colSpan={6} className="h-24 text-center">
+									<div className="flex items-center justify-center gap-2 text-muted-foreground">
+										<div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+										Loading transactions...
 									</div>
 								</TableCell>
 							</TableRow>
-						))}
+						) : transactions.length === 0 ? (
+							<TableRow>
+								<TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+									No transactions found matching your criteria.
+								</TableCell>
+							</TableRow>
+						) : (
+							transactions.map((transaction) => (
+								<TableRow
+									key={transaction.id}
+									className="hover:bg-muted/30 border-border [&_td]:py-4 transition-colors"
+								>
+									<TableCell className="font-medium text-foreground">{transaction.id}</TableCell>
+									<TableCell className="text-muted-foreground text-sm">
+										{transaction.date} <span className="text-muted-foreground/60 ml-1">{transaction.time}</span>
+									</TableCell>
+									<TableCell>
+										<Badge variant={getPaymentVariant(transaction.paymentType)} className="font-normal">
+											{transaction.paymentType}
+										</Badge>
+									</TableCell>
+									<TableCell className="font-medium">
+										Rs {transaction.amount.toLocaleString()}
+									</TableCell>
+									<TableCell
+										className={cn(
+											"font-medium",
+											transaction.profit < 0
+												? "text-red-600"
+												: "text-green-600"
+										)}
+									>
+										Rs {transaction.profit.toLocaleString()}
+									</TableCell>
+									<TableCell>
+										<div className={cn(
+											"inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
+											transaction.status === "Completed"
+												? "bg-green-50 text-green-700"
+												: "bg-orange-50 text-orange-700"
+										)}>
+											{transaction.status}
+										</div>
+									</TableCell>
+								</TableRow>
+							))
+						)}
 					</TableBody>
 				</Table>
 			</div>
+
+			{/* Pagination Controls */}
+			{totalPages > 1 && (
+				<div className="flex items-center justify-between px-2">
+					<p className="text-sm text-muted-foreground">
+						Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{" "}
+						<span className="font-medium">{Math.min(currentPage * pageSize, totalCount)}</span> of{" "}
+						<span className="font-medium">{totalCount}</span> results
+					</p>
+					<div className="flex items-center gap-2">
+						<Button
+							variant="outline"
+							size="icon"
+							className="h-8 w-8"
+							onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+							disabled={currentPage === 1}
+						>
+							<ChevronLeft className="h-4 w-4" />
+						</Button>
+						<span className="text-sm font-medium">
+							Page {currentPage} of {totalPages}
+						</span>
+						<Button
+							variant="outline"
+							size="icon"
+							className="h-8 w-8"
+							onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+							disabled={currentPage === totalPages}
+						>
+							<ChevronRight className="h-4 w-4" />
+						</Button>
+					</div>
+				</div>
+			)}
 
 			<Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
 				<DialogContent className="sm:max-w-[425px]">
@@ -196,31 +314,6 @@ export function AnalyticsTransactionTable({
 					</DialogHeader>
 
 					<div className="grid gap-6 py-4">
-						<div className="space-y-3">
-							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date Range</Label>
-							<div className="grid grid-cols-2 gap-4">
-								<div className="space-y-1.5">
-									<Label htmlFor="dateFrom" className="text-xs">From</Label>
-									<Input
-										id="dateFrom"
-										type="date"
-										className="h-9"
-										value={filters.dateFrom}
-										onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
-									/>
-								</div>
-								<div className="space-y-1.5">
-									<Label htmlFor="dateTo" className="text-xs">To</Label>
-									<Input
-										id="dateTo"
-										type="date"
-										className="h-9"
-										value={filters.dateTo}
-										onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-									/>
-								</div>
-							</div>
-						</div>
 
 						<div className="space-y-3">
 							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Payment Type</Label>
@@ -229,7 +322,7 @@ export function AnalyticsTransactionTable({
 									<div key={type} className="flex items-center space-x-2">
 										<Checkbox
 											id={`payment-${type}`}
-											checked={filters.paymentTypes.includes(type)}
+											checked={tempFilters.paymentTypes.includes(type)}
 											onCheckedChange={(checked) => handlePaymentTypeChange(type, checked as boolean)}
 										/>
 										<label
@@ -248,10 +341,10 @@ export function AnalyticsTransactionTable({
 							<select
 								id="status"
 								className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-								value={filters.status}
-								onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+								value={tempFilters.status}
+								onChange={(e) => setTempFilters(prev => ({ ...prev, status: e.target.value }))}
 							>
-								<option value="all">All Statuses</option>
+								<option value="all">All Status</option>
 								<option value="Completed">Completed</option>
 								<option value="Pending">Pending</option>
 							</select>
@@ -269,8 +362,8 @@ export function AnalyticsTransactionTable({
 											type="number"
 											placeholder="0"
 											className="h-9 pl-7"
-											value={filters.minAmount}
-											onChange={(e) => setFilters(prev => ({ ...prev, minAmount: e.target.value }))}
+											value={tempFilters.minAmount}
+											onChange={(e) => setTempFilters(prev => ({ ...prev, minAmount: e.target.value }))}
 										/>
 									</div>
 								</div>
@@ -283,8 +376,8 @@ export function AnalyticsTransactionTable({
 											type="number"
 											placeholder="Any"
 											className="h-9 pl-7"
-											value={filters.maxAmount}
-											onChange={(e) => setFilters(prev => ({ ...prev, maxAmount: e.target.value }))}
+											value={tempFilters.maxAmount}
+											onChange={(e) => setTempFilters(prev => ({ ...prev, maxAmount: e.target.value }))}
 										/>
 									</div>
 								</div>
