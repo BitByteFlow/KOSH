@@ -3,6 +3,10 @@ import { DatabaseService } from "src/database/database.service";
 import { AnalyticsMetrics } from "./entities/analyticsMetrics.entity";
 import { AnalyticsTrend } from "./entities/analyticsTrend.entity";
 import { TopProduct } from "./entities/topProduct.entity";
+import { SaleReport, SaleReportFilter } from "./entities/saleReport.entity";
+import { ProductPerformanceFilter, ProductPerformanceResult, ProductPerformance } from "./entities/productPerformance.entity";
+import { InventoryReportFilter, InventoryReportResult, InventoryReport } from "./entities/inventoryReport.entity";
+import { PaymentType, Prisma } from "@kosh/db";
 
 @Injectable()
 export class ReportService {
@@ -167,6 +171,313 @@ export class ReportService {
 		} catch (error) {
 			console.error("Error fetching top products:", error);
 			throw new InternalServerErrorException("Failed to fetch top products");
+		}
+	}
+
+	async getSalesReport(userId: string, filters: SaleReportFilter): Promise<SaleReport[]> {
+		try {
+			const { startDate, endDate, paymentMethods, statuses, searchQuery } = filters;
+
+			const where: any = {
+				userId,
+				deletedAt: null,
+			};
+
+			if (startDate || endDate) {
+				where.createdAt = {};
+				if (startDate) where.createdAt.gte = new Date(startDate);
+				if (endDate) where.createdAt.lte = new Date(endDate);
+			}
+
+			if (paymentMethods && paymentMethods.length > 0) {
+				where.paymentType = { in: paymentMethods };
+			}
+
+			if (statuses && statuses.length > 0) {
+				const statusConditions: any[] = [];
+				if (statuses.includes("Pending")) {
+					statusConditions.push({ NOT: { creditId: null } });
+				}
+				if (statuses.includes("Completed")) {
+					statusConditions.push({ creditId: null });
+				}
+
+				if (statusConditions.length > 0) {
+					if (where.OR) {
+						// Merge with existing search OR if necessary, but simpler to just use AND for status
+						where.AND = [
+							{ OR: where.OR },
+							{ OR: statusConditions }
+						];
+						delete where.OR;
+					} else {
+						where.OR = statusConditions;
+					}
+				}
+			}
+
+			if (searchQuery) {
+				const searchOR = [
+					{ id: { contains: searchQuery, mode: 'insensitive' } },
+					{
+						credit: {
+							customerName: { contains: searchQuery, mode: 'insensitive' }
+						}
+					}
+				];
+				if (where.AND) {
+					where.AND.push({ OR: searchOR });
+				} else if (where.OR) {
+					// This would be the status OR, so we need to AND it
+					const statusOR = where.OR;
+					delete where.OR;
+					where.AND = [
+						{ OR: statusOR },
+						{ OR: searchOR }
+					];
+				} else {
+					where.OR = searchOR;
+				}
+			}
+
+			const sales = await this.database.prisma.sale.findMany({
+				where,
+				include: {
+					credit: true,
+					_count: {
+						select: { items: true }
+					}
+				},
+				orderBy: {
+					createdAt: 'desc',
+				},
+			});
+
+			return sales.map((sale) => ({
+				id: sale.id,
+				date: sale.createdAt.toISOString().split('T')[0],
+				customer: sale.credit?.customerName || "Walk-in Customer",
+				items: sale._count.items,
+				total: Number(sale.total),
+				payment: sale.paymentType,
+				status: sale.creditId ? "Pending" : "Completed", // Simplified status logic
+			}));
+		} catch (error) {
+			console.error("Error fetching sales report:", error);
+			throw new InternalServerErrorException("Failed to fetch sales report");
+		}
+	}
+
+	async getProductPerformance(userId: string, filters: ProductPerformanceFilter): Promise<ProductPerformanceResult> {
+		try {
+			const {
+				startDate,
+				endDate,
+				categories,
+				statuses,
+				minSold,
+				maxSold,
+				searchQuery,
+				skip,
+				take
+			} = filters;
+
+			const where: any = {
+				userId,
+				deletedAt: null,
+			};
+
+			if (searchQuery) {
+				where.OR = [
+					{ name: { contains: searchQuery, mode: 'insensitive' } },
+					{ sku: { contains: searchQuery, mode: 'insensitive' } },
+				];
+			}
+
+			if (categories && categories.length > 0) {
+				where.category = {
+					name: { in: categories }
+				};
+			}
+
+			// Status filter needs to handle "Active" / "Out of Stock"
+			// This depends on how status is defined in your DB, assuming a 'status' field or similar
+			// If it's derived, we might need more complex logic. 
+			// For now assuming a direct 'status' field if provided, otherwise generic filtering.
+			if (statuses && statuses.length > 0) {
+				// Adjust based on actual DB schema. If status is a field:
+				// where.status = { in: statuses };
+			}
+
+			// Fetch products and their sales within the period
+			const products = await this.database.prisma.product.findMany({
+				where,
+				include: {
+					category: true,
+					variants: {
+						include: {
+							saleItems: {
+								where: {
+									sale: {
+										createdAt: {
+											gte: startDate ? new Date(startDate) : undefined,
+											lte: endDate ? new Date(endDate) : undefined,
+										}
+									}
+								},
+								include: {
+									sale: true
+								}
+							}
+						}
+					}
+				},
+				orderBy: {
+					name: 'asc'
+				}
+			});
+
+			let performanceData: ProductPerformance[] = products.map(product => {
+				let totalSold = 0;
+				let totalRevenue = 0;
+				let totalCost = 0;
+
+				product.variants.forEach(variant => {
+					variant.saleItems.forEach(item => {
+						totalSold += item.quantity;
+						totalRevenue += Number(item.sellPrice) * item.quantity;
+						totalCost += Number(item.costPrice) * item.quantity;
+					});
+				});
+
+				const margin = totalRevenue > 0 ? ((totalRevenue - totalCost) / totalRevenue) * 100 : 0;
+
+				return {
+					id: product.id,
+					name: product.name,
+					sku: product.variants[0]?.sku || "N/A",
+					category: product.category?.name || "Uncategorized",
+					sold: totalSold,
+					revenue: totalRevenue,
+					margin: Math.round(margin * 100) / 100,
+					status: product.deletedAt ? "Inactive" : "Active", // Simplified
+				};
+			});
+
+			// Post-fetch filters for aggregated values
+			if (minSold !== undefined) {
+				performanceData = performanceData.filter(p => p.sold >= minSold);
+			}
+			if (maxSold !== undefined) {
+				performanceData = performanceData.filter(p => p.sold <= maxSold);
+			}
+
+			const totalCount = performanceData.length;
+			const paginatedItems = performanceData.slice(skip, skip + take);
+
+			return {
+				items: paginatedItems,
+				totalCount
+			};
+
+		} catch (error) {
+			console.error("Error fetching product performance:", error);
+			throw new InternalServerErrorException("Failed to fetch product performance");
+		}
+	}
+
+	async getInventoryReport(userId: string, filters: InventoryReportFilter): Promise<InventoryReportResult> {
+		try {
+			const {
+				categories,
+				statuses,
+				minStock,
+				maxStock,
+				searchQuery,
+				skip,
+				take
+			} = filters;
+
+			const where: any = {
+				userId,
+				deletedAt: null,
+			};
+
+			if (searchQuery) {
+				where.OR = [
+					{ name: { contains: searchQuery, mode: 'insensitive' } },
+					{ variants: { some: { sku: { contains: searchQuery, mode: 'insensitive' } } } },
+				];
+			}
+
+			if (categories && categories.length > 0) {
+				where.category = {
+					name: { in: categories }
+				};
+			}
+
+			// Fetch products and their variants to calculate stock and status
+			const products = await this.database.prisma.product.findMany({
+				where,
+				include: {
+					category: true,
+					variants: true,
+				},
+				orderBy: {
+					name: 'asc'
+				}
+			});
+
+			let reportData: InventoryReport[] = products.map(product => {
+				const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
+				const totalValue = product.variants.reduce((sum, v) => sum + (v.stock * Number(v.costPrice)), 0);
+
+				// Determine status based on variants
+				let status = "In Stock";
+				const hasLowStock = product.variants.some(v => v.lowStock || (v.stock <= 5 && v.stock > 0));
+				const isOutOfStock = product.variants.every(v => v.stock === 0);
+
+				if (isOutOfStock) {
+					status = "Out of Stock";
+				} else if (hasLowStock) {
+					status = "Low Stock";
+				}
+
+				return {
+					id: product.id,
+					name: product.name,
+					sku: product.variants[0]?.sku || "N/A",
+					category: product.category?.name || "Uncategorized",
+					stock: totalStock,
+					value: totalValue,
+					status,
+				};
+			});
+
+			// Filter by status (client-side for derived statuses)
+			if (statuses && statuses.length > 0) {
+				reportData = reportData.filter(item => statuses.includes(item.status));
+			}
+
+			// Filter by stock range
+			if (minStock !== undefined) {
+				reportData = reportData.filter(item => item.stock >= minStock);
+			}
+			if (maxStock !== undefined) {
+				reportData = reportData.filter(item => item.stock <= maxStock);
+			}
+
+			const totalCount = reportData.length;
+			const paginatedItems = reportData.slice(skip, skip + take);
+
+			return {
+				items: paginatedItems,
+				totalCount
+			};
+
+		} catch (error) {
+			console.error("Error fetching inventory report:", error);
+			throw new InternalServerErrorException("Failed to fetch inventory report");
 		}
 	}
 
