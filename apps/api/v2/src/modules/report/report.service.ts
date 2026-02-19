@@ -6,6 +6,7 @@ import { TopProduct } from "./entities/topProduct.entity";
 import { SaleReport, SaleReportFilter } from "./entities/saleReport.entity";
 import { ProductPerformanceFilter, ProductPerformanceResult, ProductPerformance } from "./entities/productPerformance.entity";
 import { InventoryReportFilter, InventoryReportResult, InventoryReport } from "./entities/inventoryReport.entity";
+import { AnalyticsTransactionFilter, AnalyticsTransactionResult, AnalyticsTransaction } from "./entities/analyticsTransaction.entity";
 import { PaymentType, Prisma } from "@kosh/db";
 
 @Injectable()
@@ -478,6 +479,93 @@ export class ReportService {
 		} catch (error) {
 			console.error("Error fetching inventory report:", error);
 			throw new InternalServerErrorException("Failed to fetch inventory report");
+		}
+	}
+
+	async getAnalyticsTransactions(userId: string, filters: AnalyticsTransactionFilter): Promise<AnalyticsTransactionResult> {
+		try {
+			const {
+				startDate,
+				endDate,
+				paymentTypes,
+				status,
+				minAmount,
+				maxAmount,
+				searchQuery,
+				skip,
+				take
+			} = filters;
+
+			const where: any = {
+				userId,
+				deletedAt: null,
+			};
+
+			if (startDate || endDate) {
+				where.createdAt = {};
+				if (startDate) where.createdAt.gte = startDate;
+				if (endDate) where.createdAt.lte = endDate;
+			}
+
+			if (paymentTypes && paymentTypes.length > 0) {
+				where.paymentType = { in: paymentTypes };
+			}
+
+			if (searchQuery) {
+				where.id = { contains: searchQuery, mode: 'insensitive' };
+			}
+
+			if (status && status !== 'all') {
+				if (status === 'Completed') {
+					where.isCredit = false;
+				} else if (status === 'Pending') {
+					where.isCredit = true;
+				}
+			}
+
+			if (minAmount !== undefined || maxAmount !== undefined) {
+				where.totalAmount = {};
+				if (minAmount !== undefined) where.totalAmount.gte = minAmount;
+				if (maxAmount !== undefined) where.totalAmount.lte = maxAmount;
+			}
+
+			const [items, totalCount] = await Promise.all([
+				this.database.prisma.sale.findMany({
+					where,
+					skip,
+					take,
+					orderBy: { createdAt: 'desc' },
+					include: {
+						saleItems: true,
+					}
+				}),
+				this.database.prisma.sale.count({ where })
+			]);
+
+			const reportData: AnalyticsTransaction[] = items.map(sale => {
+				const profit = sale.saleItems.reduce((sum, item) => {
+					return sum + (Number(item.sellPrice) - Number(item.costPrice)) * item.quantity;
+				}, 0);
+
+				return {
+					id: sale.id,
+					date: sale.createdAt.toLocaleDateString(),
+					time: sale.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+					paymentType: sale.paymentType,
+					amount: Number(sale.totalAmount),
+					profit: Number(profit),
+					status: sale.isCredit ? "Pending" : "Completed",
+				};
+			});
+
+			return {
+				items: reportData,
+				totalCount
+			};
+
+		} catch (error) {
+			console.error("Error fetching analytics transactions:", error);
+			throw new InternalServerErrorException("Failed to fetch analytics transactions");
 		}
 	}
 

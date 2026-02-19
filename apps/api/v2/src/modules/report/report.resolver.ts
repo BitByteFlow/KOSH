@@ -10,6 +10,7 @@ import { TopProduct } from './entities/topProduct.entity';
 import { SaleReport, SaleReportFilter } from './entities/saleReport.entity';
 import { ProductPerformanceResult, ProductPerformanceFilter } from "./entities/productPerformance.entity";
 import { InventoryReportResult, InventoryReportFilter } from "./entities/inventoryReport.entity";
+import { AnalyticsTransactionResult, AnalyticsTransactionFilter } from "./entities/analyticsTransaction.entity";
 
 @Resolver(() => AnalyticsMetrics)
 export class ReportResolver {
@@ -82,5 +83,14 @@ export class ReportResolver {
 		@Args("filters") filters: InventoryReportFilter,
 	): Promise<InventoryReportResult> {
 		return this.reportService.getInventoryReport(user.id, filters);
+	}
+
+	@Query(() => AnalyticsTransactionResult)
+	@UseGuards(JwtAuthGuard)
+	async getAnalyticsTransactions(
+		@CurrentUser() user: AuthenticatedUser,
+		@Args("filters") filters: AnalyticsTransactionFilter,
+	): Promise<AnalyticsTransactionResult> {
+		return this.reportService.getAnalyticsTransactions(user.id, filters);
 	}
 }
