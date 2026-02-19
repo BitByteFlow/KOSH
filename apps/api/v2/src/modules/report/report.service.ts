@@ -536,14 +536,14 @@ export class ReportService {
 					take,
 					orderBy: { createdAt: 'desc' },
 					include: {
-						saleItems: true,
+						items: true,
 					}
 				}),
 				this.database.prisma.sale.count({ where })
 			]);
 
 			const reportData: AnalyticsTransaction[] = items.map(sale => {
-				const profit = sale.saleItems.reduce((sum, item) => {
+				const profit = sale.items.reduce((sum, item) => {
 					return sum + (Number(item.sellPrice) - Number(item.costPrice)) * item.quantity;
 				}, 0);
 
@@ -552,9 +552,9 @@ export class ReportService {
 					date: sale.createdAt.toLocaleDateString(),
 					time: sale.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
 					paymentType: sale.paymentType,
-					amount: Number(sale.totalAmount),
+					amount: Number(sale.total),
 					profit: Number(profit),
-					status: sale.isCredit ? "Pending" : "Completed",
+					status: sale.creditId ? "Pending" : "Completed",
 				};
 			});
 
