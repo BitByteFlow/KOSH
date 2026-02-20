@@ -6,13 +6,13 @@ import {
 } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
 import { TransactionType } from "@kosh/db";
-import { CreateSaleInput} from "./dto/CreateSaleDto.dto";
-import { Sale } from "./entities/sale.entity";
-import { SalesMetrics } from "./entities/salesMetrics.entity";
+import { CreateSaleInput } from "./dto/CreateSaleDto.dto";
+import { Sale, SaleResponse } from "./entities/sale.entity";
+import { SalesMetricsResponse } from "./entities/salesMetrics.entity";
 
 @Injectable()
 export class SalesService {
-	constructor(private readonly database: DatabaseService) {}
+	constructor(private readonly database: DatabaseService) { }
 
 	async createSale(
 		createSaleDto: CreateSaleInput,
@@ -242,7 +242,7 @@ export class SalesService {
 		}
 	}
 
-	async getMetrices(userId: string):Promise<SalesMetrics> {
+	async getMetrices(userId: string): Promise<SalesMetricsResponse> {
 		try {
 			const today = new Date();
 			today.setHours(0, 0, 0, 0);
@@ -270,10 +270,14 @@ export class SalesService {
 				totalTransactions > 0 ? totalSales / totalTransactions : 0;
 
 			return {
-				totalSales,
-				totalTransactions,
-				avgSaleValue,
-				totalProfit,
+				success: true,
+				message: "Sales metrics fetched successfully",
+				data: {
+					totalSales,
+					totalTransactions,
+					avgSaleValue,
+					totalProfit,
+				}
 			};
 		} catch (error) {
 			console.error("Error fetching sales metrics:", error);
@@ -281,7 +285,7 @@ export class SalesService {
 		}
 	}
 
-	async getSales(userId: string): Promise<Sale[]> {
+	async getSales(userId: string): Promise<SaleResponse> {
 		try {
 			const sales = await this.database.prisma.sale.findMany({
 				where: { userId, deletedAt: null },
@@ -293,7 +297,7 @@ export class SalesService {
 				},
 			});
 
-			return sales.map((sale: any) => ({
+			const salesData = sales.map((sale: any) => ({
 				id: sale.id,
 				total: sale.total.toString(),
 				discount: sale.discount.toString(),
@@ -310,6 +314,12 @@ export class SalesService {
 				createdAt: sale.createdAt,
 				updatedAt: sale.updatedAt,
 			}));
+
+			return {
+				success: true,
+				message: "Sales fetched successfully",
+				data: salesData,
+			}
 		} catch (error) {
 			console.error("Error fetching sales:", error);
 			throw new InternalServerErrorException("Failed to fetch sales");

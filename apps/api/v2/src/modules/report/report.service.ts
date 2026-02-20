@@ -1,19 +1,18 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
-import { AnalyticsMetrics } from "./entities/analyticsMetrics.entity";
-import { AnalyticsTrend } from "./entities/analyticsTrend.entity";
-import { TopProduct } from "./entities/topProduct.entity";
-import { SaleReport, SaleReportFilter } from "./entities/saleReport.entity";
+import { AnalyticsMetricsResponse } from "./entities/analyticsMetrics.entity";
+import { AnalyticsTrend, AnalyticsTrendResponse } from "./entities/analyticsTrend.entity";
+import { TopProduct, TopProductResponse } from "./entities/topProduct.entity";
+import { SaleReportFilter, SaleReportResponse } from "./entities/saleReport.entity";
 import { ProductPerformanceFilter, ProductPerformanceResult, ProductPerformance } from "./entities/productPerformance.entity";
 import { InventoryReportFilter, InventoryReportResult, InventoryReport } from "./entities/inventoryReport.entity";
 import { AnalyticsTransactionFilter, AnalyticsTransactionResult, AnalyticsTransaction } from "./entities/analyticsTransaction.entity";
-import { PaymentType, Prisma } from "@kosh/db";
 
 @Injectable()
 export class ReportService {
 	constructor(private readonly database: DatabaseService) { }
 
-	async getAnalyticsMetrics(userId: string, startDate: Date, endDate: Date): Promise<AnalyticsMetrics[]> {
+	async getAnalyticsMetrics(userId: string, startDate: Date, endDate: Date): Promise<AnalyticsMetricsResponse> {
 		try {
 			const currentMetrics = await this.calculateMetrics(userId, startDate, endDate);
 
@@ -24,35 +23,39 @@ export class ReportService {
 
 			const prevMetrics = await this.calculateMetrics(userId, prevStartDate, prevEndDate);
 
-			return [
-				{
-					label: "TOTAL SALES",
-					value: currentMetrics.totalSales,
-					trend: this.calculateTrend(currentMetrics.totalSales, prevMetrics.totalSales),
-					trendLabel: `vs. Rs. ${prevMetrics.totalSales.toLocaleString()} last period`,
-					isPositive: currentMetrics.totalSales >= prevMetrics.totalSales,
-				},
-				{
-					label: "TOTAL PROFIT",
-					value: currentMetrics.totalProfit,
-					trend: this.calculateTrend(currentMetrics.totalProfit, prevMetrics.totalProfit),
-					trendLabel: `Net profit margin: ${currentMetrics.totalSales > 0 ? Math.round((currentMetrics.totalProfit / currentMetrics.totalSales) * 100) : 0}%`,
-					isPositive: currentMetrics.totalProfit >= prevMetrics.totalProfit,
-				},
-				{
-					label: "TRANSACTIONS",
-					value: currentMetrics.transactions,
-					subtitle: `Daily Avg: ${(currentMetrics.transactions / (duration / (1000 * 60 * 60 * 24) || 1)).toFixed(1)} sales`,
-					isPositive: currentMetrics.transactions >= prevMetrics.transactions,
-				},
-				{
-					label: "AVG BILL VALUE",
-					value: currentMetrics.avgBillValue,
-					trend: this.calculateTrend(currentMetrics.avgBillValue, prevMetrics.avgBillValue),
-					trendLabel: "Per transaction",
-					isPositive: currentMetrics.avgBillValue >= prevMetrics.avgBillValue,
-				},
-			];
+			return {
+				success: true,
+				message: "Analytics metrics fetched successfully",
+				data: [
+					{
+						label: "TOTAL SALES",
+						value: currentMetrics.totalSales,
+						trend: this.calculateTrend(currentMetrics.totalSales, prevMetrics.totalSales),
+						trendLabel: `vs. Rs. ${prevMetrics.totalSales.toLocaleString()} last period`,
+						isPositive: currentMetrics.totalSales >= prevMetrics.totalSales,
+					},
+					{
+						label: "TOTAL PROFIT",
+						value: currentMetrics.totalProfit,
+						trend: this.calculateTrend(currentMetrics.totalProfit, prevMetrics.totalProfit),
+						trendLabel: `Net profit margin: ${currentMetrics.totalSales > 0 ? Math.round((currentMetrics.totalProfit / currentMetrics.totalSales) * 100) : 0}%`,
+						isPositive: currentMetrics.totalProfit >= prevMetrics.totalProfit,
+					},
+					{
+						label: "TRANSACTIONS",
+						value: currentMetrics.transactions,
+						subtitle: `Daily Avg: ${(currentMetrics.transactions / (duration / (1000 * 60 * 60 * 24) || 1)).toFixed(1)} sales`,
+						isPositive: currentMetrics.transactions >= prevMetrics.transactions,
+					},
+					{
+						label: "AVG BILL VALUE",
+						value: currentMetrics.avgBillValue,
+						trend: this.calculateTrend(currentMetrics.avgBillValue, prevMetrics.avgBillValue),
+						trendLabel: "Per transaction",
+						isPositive: currentMetrics.avgBillValue >= prevMetrics.avgBillValue,
+					},
+				]
+			}
 		} catch (error) {
 			console.error("Error fetching analytics metrics:", error);
 			throw new InternalServerErrorException("Failed to fetch analytics metrics");
@@ -84,7 +87,7 @@ export class ReportService {
 		};
 	}
 
-	async getSalesTrend(userId: string, startDate: Date, endDate: Date): Promise<AnalyticsTrend[]> {
+	async getSalesTrend(userId: string, startDate: Date, endDate: Date): Promise<AnalyticsTrendResponse> {
 		try {
 			const sales = await this.database.prisma.sale.findMany({
 				where: {
@@ -123,14 +126,18 @@ export class ReportService {
 				current.setDate(current.getDate() + 1);
 			}
 
-			return trend;
+			return {
+				success: true,
+				message: "Sales trend fetched successfully",
+				data: trend
+			};
 		} catch (error) {
 			console.error("Error fetching sales trend:", error);
 			throw new InternalServerErrorException("Failed to fetch sales trend");
 		}
 	}
 
-	async getTopProducts(userId: string, startDate: Date, endDate: Date): Promise<TopProduct[]> {
+	async getTopProducts(userId: string, startDate: Date, endDate: Date): Promise<TopProductResponse> {
 		try {
 			const saleItems = await this.database.prisma.saleItem.findMany({
 				where: {
@@ -168,14 +175,18 @@ export class ReportService {
 				.sort((a, b) => b.value - a.value)
 				.slice(0, 5); // Return top 5
 
-			return topProducts;
+			return {
+				success: true,
+				message: "Top products fetched successfully",
+				data: topProducts
+			};
 		} catch (error) {
 			console.error("Error fetching top products:", error);
 			throw new InternalServerErrorException("Failed to fetch top products");
 		}
 	}
 
-	async getSalesReport(userId: string, filters: SaleReportFilter): Promise<SaleReport[]> {
+	async getSalesReport(userId: string, filters: SaleReportFilter): Promise<SaleReportResponse> {
 		try {
 			const { startDate, endDate, paymentMethods, statuses, searchQuery } = filters;
 
@@ -254,7 +265,7 @@ export class ReportService {
 				},
 			});
 
-			return sales.map((sale) => ({
+			const saleReportData = sales.map((sale) => ({
 				id: sale.id,
 				date: sale.createdAt.toISOString().split('T')[0],
 				customer: sale.credit?.customerName || "Walk-in Customer",
@@ -262,7 +273,13 @@ export class ReportService {
 				total: Number(sale.total),
 				payment: sale.paymentType,
 				status: sale.creditId ? "Pending" : "Completed", // Simplified status logic
-			}));
+			})
+			);
+			return {
+				success: true,
+				message: "Sales report fetched successfully",
+				data: saleReportData
+			}
 		} catch (error) {
 			console.error("Error fetching sales report:", error);
 			throw new InternalServerErrorException("Failed to fetch sales report");
@@ -472,7 +489,9 @@ export class ReportService {
 			const paginatedItems = reportData.slice(skip, skip + take);
 
 			return {
-				items: paginatedItems,
+				success: true,
+				message: "Inventory report fetched successfully",
+				data: paginatedItems,
 				totalCount
 			};
 
@@ -559,7 +578,9 @@ export class ReportService {
 			});
 
 			return {
-				items: reportData,
+				success: true,
+				message: "Analytics transactions fetched successfully",
+				data: reportData,
 				totalCount
 			};
 

@@ -5,13 +5,13 @@ import { SalesService } from "./sale.service";
 import { CreateSaleInput } from "./dto/CreateSaleDto.dto";
 import { CurrentUser } from 'src/utils/currentUser.decorator';
 import type { AuthenticatedUser } from 'src/types/jwt.types';
-import { Sale } from './entities/sale.entity';
-import { SalesMetrics } from './entities/salesMetrics.entity';
+import { Sale, SaleResponse } from './entities/sale.entity';
+import { SalesMetricsResponse } from './entities/salesMetrics.entity';
 
 
 @Resolver(() => Sale)
 export class SaleResolver {
-	constructor(private salesService: SalesService) {}
+	constructor(private salesService: SalesService) { }
 
 	@Mutation(() => Sale, { name: 'createSale' })
 	@UseGuards(JwtAuthGuard)
@@ -22,15 +22,15 @@ export class SaleResolver {
 		return this.salesService.createSale(createSaleDto, user.id);
 	}
 
-	@Query(() => [Sale], { name: 'getSales' })
+	@Query(() => SaleResponse, { name: 'getSales' })
 	@UseGuards(JwtAuthGuard)
-	async getSales(@CurrentUser() user: AuthenticatedUser): Promise<Sale[]> {
-		return this.salesService.getSales(user.id);
+	async getSales(@CurrentUser() user: AuthenticatedUser): Promise<SaleResponse> {
+		return await this.salesService.getSales(user.id);
 	}
 
-	@Query(() => SalesMetrics, { name: 'getSalesMetrics' })
+	@Query(() => SalesMetricsResponse, { name: 'getSalesMetrics' })
 	@UseGuards(JwtAuthGuard)
-	async getSalesMetrics(@CurrentUser() user: AuthenticatedUser): Promise<SalesMetrics> {
-		return this.salesService.getMetrices(user.id);
+	async getSalesMetrics(@CurrentUser() user: AuthenticatedUser): Promise<SalesMetricsResponse> {
+		return await this.salesService.getMetrices(user.id);
 	}
 }

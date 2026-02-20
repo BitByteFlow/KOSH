@@ -50,9 +50,15 @@ export class InventoryReportFilter {
 
 @ObjectType()
 export class InventoryReportResult {
-	@Field(() => [InventoryReport])
-	items: InventoryReport[];
+	@Field(() => Boolean)
+	success: boolean;
 
-	@Field(() => Int)
-	totalCount: number;
+	@Field(() => String, { nullable: true })
+	message?: string;
+
+	@Field(() => [InventoryReport], { nullable: true })
+	data?: InventoryReport[];
+
+	@Field(() => Int, { nullable: true })
+	totalCount?: number;
 }

@@ -12,19 +12,19 @@ import type { AuthenticatedUser } from 'src/types/jwt.types';
 @Resolver(() => Category)
 @UseGuards(JwtAuthGuard)
 export class CategoriesResolver {
-  constructor(private readonly categoriesService: CategoriesService) {}
+  constructor(private readonly categoriesService: CategoriesService) { }
 
   @Mutation(() => CategoryResponse)
   async createCategory(
     @Args('createCategoryInput') createCategoryInput: CreateCategoryInput,
-	@CurrentUser() user: AuthenticatedUser,
-  ) {
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<CategoryResponse> {
     const userId = user.id;
     return this.categoriesService.createCategory(createCategoryInput, userId);
   }
 
-  @Query(() => [Category])
-  async getCategories(@CurrentUser() user: AuthenticatedUser) {
+  @Query(() => CategoryResponse)
+  async getCategories(@CurrentUser() user: AuthenticatedUser): Promise<CategoryResponse> {
     const userId = user.id;
     return this.categoriesService.getCategories(userId);
   }
@@ -39,7 +39,7 @@ export class CategoriesResolver {
   async updateCategory(
     @Args('id', { type: () => ID }) id: string,
     @Args('updateCategoryInput') updateCategoryInput: UpdateCategoryInput,
-	@CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
     const userId = user.id;
     return this.categoriesService.updateCategory(id, userId, updateCategoryInput);

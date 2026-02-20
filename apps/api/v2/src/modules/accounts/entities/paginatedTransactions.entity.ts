@@ -23,7 +23,13 @@ export class PaginationMeta {
 }
 
 @ObjectType()
-export class PaginatedTransactions {
+export class PaginatedTransactionsResponse {
+  @Field(() => Boolean)
+  success: boolean
+
+  @Field(() => String, { nullable: true })
+  message?: string
+
   @Field(() => [AccountTransaction])
   data: AccountTransaction[];
 

@@ -1,6 +1,6 @@
-import { Field, ObjectType, ID, Float, registerEnumType } from '@nestjs/graphql';
+import { Field, ObjectType, ID, Float, registerEnumType, Int } from '@nestjs/graphql';
 import { SaleItem } from './saleItem.entity';
-import { Prisma , PaymentType} from '@kosh/db';
+import { Prisma, PaymentType } from '@kosh/db';
 
 registerEnumType(PaymentType, {
   name: 'PaymentType',
@@ -35,4 +35,20 @@ export class Sale {
 
   @Field({ nullable: true })
   deletedAt?: Date;
+}
+
+
+@ObjectType()
+export class SaleResponse {
+  @Field(() => Boolean)
+  success: boolean;
+
+  @Field(() => String, { nullable: true })
+  message?: string;
+
+  @Field(() => [Sale], { nullable: true })
+  data?: Sale[];
+
+  @Field(() => Int, { nullable: true })
+  totalCount?: number;
 }

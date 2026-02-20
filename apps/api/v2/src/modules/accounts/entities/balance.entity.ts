@@ -1,6 +1,18 @@
 import { Field, ObjectType, Float } from '@nestjs/graphql';
 
 @ObjectType()
+export class BalanceResponse {
+  @Field(() => Boolean)
+  success: boolean
+
+  @Field(() => String, { nullable: true })
+  message?: string
+
+  @Field(() => Balance, { nullable: true })
+  data?: Balance
+}
+
+@ObjectType()
 export class Balance {
   @Field(() => Float)
   openingCash: number;

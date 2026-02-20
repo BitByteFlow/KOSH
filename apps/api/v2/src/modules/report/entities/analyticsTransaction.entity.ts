@@ -56,9 +56,15 @@ export class AnalyticsTransactionFilter {
 
 @ObjectType()
 export class AnalyticsTransactionResult {
-	@Field(() => [AnalyticsTransaction])
-	items: AnalyticsTransaction[];
+	@Field(() => Boolean)
+	success: boolean;
 
-	@Field(() => Int)
-	totalCount: number;
+	@Field(() => String, { nullable: true })
+	message?: string;
+
+	@Field(() => [AnalyticsTransaction], { nullable: true })
+	data?: AnalyticsTransaction[];
+
+	@Field(() => Int, { nullable: true })
+	totalCount?: number;
 }

@@ -46,3 +46,15 @@ export class SaleReport {
 	@Field(() => String)
 	status: string;
 }
+
+@ObjectType()
+export class SaleReportResponse {
+	@Field(() => Boolean)
+	success: true
+
+	@Field(() => String, { nullable: true })
+	message?: string
+
+	@Field(() => [SaleReport])
+	data: SaleReport[]
+}
