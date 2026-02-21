@@ -31,10 +31,13 @@ interface InventorySearchProps {
 const GET_CATEGORIES = gql(`
 	query GetCategoriesForSearch {
 		getCategories {
-			id
-			name
-			createdAt
-			updatedAt
+			success
+			data {
+				id
+				name
+				createdAt
+				updatedAt
+			}
 		}
 	}
 `)
@@ -49,20 +52,20 @@ const InventorySearch = ({
 	activeStatus,
 }: InventorySearchProps) => {
 	const { data } = useQuery(GET_CATEGORIES)
-	const categories = data?.getCategories || [];
+	const categories = data?.getCategories.data || [];
 	const [categorySearch, setCategorySearch] = useState("");
 
 	const filteredCategories = useMemo(() => {
 		if (!categories) return [];
 		if (!categorySearch) return categories;
-		return categories.filter((cat: any) =>
+		return categories?.filter((cat: any) =>
 			cat.name.toLowerCase().includes(categorySearch.toLowerCase())
 		);
 	}, [categories, categorySearch]);
 
 	const selectedCategoryName = useMemo(() => {
-		if (!activeCategoryId || categories.length === 0) return "Category";
-		const cat = categories.find((c: any) => c.id === activeCategoryId);
+		if (!activeCategoryId || categories?.length === 0) return "Category";
+		const cat = categories?.find((c: any) => c.id === activeCategoryId);
 		return cat ? cat.name : "Category";
 	}, [activeCategoryId, categories]);
 

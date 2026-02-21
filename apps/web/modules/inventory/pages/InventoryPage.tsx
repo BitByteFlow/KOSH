@@ -156,7 +156,7 @@ const InventoryPage = () => {
 		}
 	});
 
-	const [updateProductVariantMutation] = useMutation(UPDATE_PRODUCT_VARIANT as any);
+	const [updateProductVariantMutation] = useMutation(UPDATE_PRODUCT_VARIANT);
 
 	const [productToDelete, setProductToDelete] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);

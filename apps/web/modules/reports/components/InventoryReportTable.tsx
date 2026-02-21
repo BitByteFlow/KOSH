@@ -38,7 +38,8 @@ interface InventoryReport {
 const GET_INVENTORY_REPORT = gql(`
 	query getInventoryReport ($filters: InventoryReportFilter!){
 		getInventoryReport (filters: $filters) {
-			items {
+			success
+			data {
 				id
 				name
 				sku

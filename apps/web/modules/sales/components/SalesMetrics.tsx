@@ -11,10 +11,13 @@ import { useQuery } from "@apollo/client/react";
 const GET_SALES_METRICS = gql(`
 	query getSalesMetricsData{
 		getSalesMetrics {
-			totalTransactions
-			totalProfit
-			totalSales
-			avgSaleValue
+			success
+			data {
+				totalTransactions
+				totalProfit
+				totalSales
+				avgSaleValue
+			}
 		}
 	}
 `)
@@ -38,13 +41,13 @@ const SalesMetrics = () => {
 			label: "Total Sales",
 			value: loading
 				? "..."
-				: `Rs ${metrics?.getSalesMetrics.totalSales?.toLocaleString() || 0}`,
+				: `Rs ${metrics?.getSalesMetrics.data?.totalSales?.toLocaleString() || 0}`,
 			change: { value: 0, label: "Today", positive: true },
 			icon: DollarSign,
 		},
 		{
 			label: "Transactions",
-			value: loading ? "..." : (metrics?.getSalesMetrics.totalTransactions || 0).toString(),
+			value: loading ? "..." : (metrics?.getSalesMetrics.data?.totalTransactions || 0).toString(),
 			sublabel: "Today's sales count",
 			icon: Files,
 		},
@@ -52,7 +55,7 @@ const SalesMetrics = () => {
 			label: "Avg. Sale Value",
 			value: loading
 				? "..."
-				: `Rs ${Math.round(metrics?.getSalesMetrics.avgSaleValue || 0).toLocaleString()}`,
+				: `Rs ${Math.round(metrics?.getSalesMetrics.data?.avgSaleValue || 0).toLocaleString()}`,
 			change: { value: 0, label: "Today", positive: true },
 			icon: TrendingUp,
 		},
@@ -60,7 +63,7 @@ const SalesMetrics = () => {
 			label: "Total Profit",
 			value: loading
 				? "..."
-				: `Rs ${metrics?.getSalesMetrics.totalProfit?.toLocaleString() || 0}`,
+				: `Rs ${metrics?.getSalesMetrics.data?.totalProfit?.toLocaleString() || 0}`,
 			sublabel: "Today's net profit",
 			icon: Wallet,
 		},

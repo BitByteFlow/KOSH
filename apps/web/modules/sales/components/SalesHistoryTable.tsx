@@ -50,21 +50,24 @@ import { useQuery } from "@apollo/client/react";
 const GET_SALES_HISTORY = gql(`
 	query getSalesHistory{
 		getSales {
-			id
-			total
-			discount
-			profit
-			paymentType
-			items {
+			success
+			data {
 				id
-				quantity
-				sellPrice
-				costPrice
-				variantId
+				total
+				discount
+				profit
+				paymentType
+				items {
+					id
+					quantity
+					sellPrice
+					costPrice
+					variantId
+				}
+				createdAt
+				updatedAt
+				deletedAt
 			}
-			createdAt
-			updatedAt
-			deletedAt
 		}
 	}
 `)
@@ -86,7 +89,7 @@ export function SalesHistoryTable() {
 
 	const filteredSales = useMemo(() => {
 		if (!sales) return [];
-		return sales.getSales.filter((sale: any) => {
+		return sales.getSales.data?.filter((sale: any) => {
 			const matchesSearch =
 				sale.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				sale.paymentType.toLowerCase().includes(searchQuery.toLowerCase());
@@ -211,7 +214,7 @@ export function SalesHistoryTable() {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{filteredSales.length === 0 ? (
+						{filteredSales?.length === 0 ? (
 							<TableRow className="border-border">
 								<TableCell
 									colSpan={7}
@@ -221,7 +224,7 @@ export function SalesHistoryTable() {
 								</TableCell>
 							</TableRow>
 						) : (
-							filteredSales.map((sale: any) => (
+							filteredSales?.map((sale: any) => (
 								<TableRow
 									key={sale.id}
 									className="hover:bg-muted/50 border-border"

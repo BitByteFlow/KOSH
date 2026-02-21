@@ -50,7 +50,8 @@ interface FilterState {
 const GET_ANALYTICS_TRANSACTIONS = gql(`
 	query getAnalyticsTransactions ($filters: AnalyticsTransactionFilter!){
 		getAnalyticsTransactions (filters: $filters) {
-			items {
+			success
+			data {
 				id
 				date
 				time

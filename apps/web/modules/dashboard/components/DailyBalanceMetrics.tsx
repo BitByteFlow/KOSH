@@ -21,12 +21,15 @@ import { gql } from "@/gql";
 const GET_DAILY_METRICS = gql(`
 	query GetDailyMetrics {
 		getCurrentCashBalance {
-				openingCash
-				closingCash
-				totalSales
-				totalExpense
-				totalCashIn
-				totalCashOut
+				success
+				data {
+					openingCash
+					closingCash
+					totalSales
+					totalExpense
+					totalCashIn
+					totalCashOut
+				}
 			}
 	}
 `)
@@ -73,40 +76,40 @@ const DailyBalanceMetrics = () => {
 	const metricCardValues: MetricCardProps[] = [
 		{
 			label: "Opening Cash",
-			value: formatCurrency(metrics?.getCurrentCashBalance?.openingCash || 0),
+			value: formatCurrency(metrics?.getCurrentCashBalance?.data?.openingCash || 0),
 			icon: Wallet,
 			sublabel: "Start of day",
 			iconColor: "text-blue-500",
 		},
 		{
 			label: "Sales Today",
-			value: formatCurrency(metrics?.getCurrentCashBalance?.totalSales || 0),
+			value: formatCurrency(metrics?.getCurrentCashBalance?.data?.totalSales || 0),
 			icon: DollarSign,
 			iconColor: "text-green-500",
 		},
 		{
 			label: "Cash In",
-			value: formatCurrency(metrics?.getCurrentCashBalance?.totalCashIn || 0),
+			value: formatCurrency(metrics?.getCurrentCashBalance?.data?.totalCashIn || 0),
 			icon: TrendingUp,
 			sublabel: "Total inflows",
 			iconColor: "text-emerald-500",
 		},
 		{
 			label: "Total Expenses",
-			value: formatCurrency(metrics?.getCurrentCashBalance?.totalExpense || 0),
+			value: formatCurrency(metrics?.getCurrentCashBalance?.data?.totalExpense || 0),
 			icon: ShoppingCart,
 			iconColor: "text-orange-500",
 		},
 		{
 			label: "Cash Out",
-			value: formatCurrency(metrics?.getCurrentCashBalance?.totalCashOut || 0),
+			value: formatCurrency(metrics?.getCurrentCashBalance?.data?.totalCashOut || 0),
 			icon: TrendingDown,
 			sublabel: "Total outflows",
 			iconColor: "text-red-500",
 		},
 		{
 			label: "Closing Cash",
-			value: formatCurrency(metrics?.getCurrentCashBalance?.closingCash || 0),
+			value: formatCurrency(metrics?.getCurrentCashBalance?.data?.closingCash || 0),
 			icon: Wallet,
 			sublabel: "Cash in hand",
 			iconColor: "text-purple-500",

@@ -8,27 +8,33 @@ import { PreloadQuery } from "@/lib/graphql/apolloServer";
 const GET_SALES_DATA = gql(`
 	query getSalesData{
 		getSales {
-			id
-			total
-			discount
-			profit
-			paymentType
-			items {
+			success
+			data {
 				id
-				quantity
-				sellPrice
-				costPrice
-				variantId
+				total
+				discount
+				profit
+				paymentType
+				items {
+					id
+					quantity
+					sellPrice
+					costPrice
+					variantId
+				}
+				createdAt
+				updatedAt
+				deletedAt
 			}
-			createdAt
-			updatedAt
-			deletedAt
 		}
 		getSalesMetrics {
-			totalTransactions
-			totalProfit
-			totalSales
-			avgSaleValue
+			success
+			data {
+				totalTransactions
+				totalProfit
+				totalSales
+				avgSaleValue
+			}
 		}
 	}
 `)

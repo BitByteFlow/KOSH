@@ -26,8 +26,11 @@ interface ChangeCategoryDialogProps {
 const GET_CATEGORIES = gql(`
 	query GetCategoriesInDialog {
 		getCategories {
-			id
-			name
+			success
+			data {
+				id
+				name
+			}
 		}
 	}
 `);
@@ -130,7 +133,7 @@ export function ChangeCategoryDialog({
 							disabled={categoriesLoading}
 						>
 							<option value="" disabled>Select a category</option>
-							{categoryData?.getCategories.map((cat: any) => (
+							{categoryData?.getCategories.data?.map((cat: any) => (
 								<option key={cat.id} value={cat.id}>
 									{cat.name}
 								</option>

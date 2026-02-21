@@ -6,12 +6,16 @@ import React from "react"
 const GET_REPORT_DATA = gql(`
 	query getReportData ($startDate: String!, $endDate: String!){
 		getAnalyticsMetrics (startDate: $startDate, endDate: $endDate) {
-			label
-			value
-			trend
-			trendLabel
-			isPositive
-			subtitle
+			success
+			message
+			data {
+				label
+				value
+				trend
+				trendLabel
+				isPositive
+				subtitle
+			}
 		}
 	}
 `)

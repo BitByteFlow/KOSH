@@ -44,13 +44,16 @@ interface SalesReportTableProps {
 const GET_SALES_REPORT = gql(`
 	query getSalesReport ($filters: SaleReportFilter!){
 		getSalesReport (filters: $filters) {
-			id
-			date
-			customer
-			items
-			total
-			payment
-			status
+			success
+			data {
+				id
+				date
+				customer
+				items
+				total
+				payment
+				status
+			}
 		}
 	}
 `)

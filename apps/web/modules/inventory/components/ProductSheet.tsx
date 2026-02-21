@@ -144,8 +144,11 @@ interface ProductSheetProps {
 const GET_CATEGORIES = gql(`
 	query GetCategoriesSheet {
 		getCategories {
-			id
-			name
+			success
+			data {
+				id
+				name
+			}
 		}
 	}
 `);
@@ -498,7 +501,7 @@ export function ProductSheet({
 														: "Select a category"}
 												</option>
 												{categoryData &&
-													categoryData?.getCategories.map((cat: any) => (
+													categoryData?.getCategories?.data?.map((cat: any) => (
 														<option
 															key={cat.id}
 															value={cat.id}

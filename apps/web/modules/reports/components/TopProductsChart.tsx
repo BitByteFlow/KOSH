@@ -17,8 +17,10 @@ interface TopProductsChartProps {
 const GET_TOP_PRODUCTS = gql(`
 	query getTopProducts ($startDate: String!, $endDate: String!){
 		getTopProducts (startDate: $startDate, endDate: $endDate) {
-			name
-			revenue
+			success
+			data {
+				name
+				revenue
 			value
 		}
 	}

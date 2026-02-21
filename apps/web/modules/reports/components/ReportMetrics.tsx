@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import { useAnalyticsMetrics } from "../hooks/useReports";
 import { getDateRange } from "@/lib/date-utils";
 import { AnalyticsMetricCard } from "./AnalyticsMetric";
 import { MetricCardSkeleton } from "@/components/MetricCardSkeletion";
@@ -8,14 +7,17 @@ import { gql } from "@/gql";
 
 
 const GET_REPORT_METRICS = gql(`
-	query getReportData ($startDate: String!, $endDate: String!){
+	query getReportMetrics($startDate: String!, $endDate: String!){
 		getAnalyticsMetrics (startDate: $startDate, endDate: $endDate) {
-			label
-			value
-			trend
-			trendLabel
-			isPositive
-			subtitle
+			success
+			data {
+				label
+				value
+				trend
+				trendLabel
+				isPositive
+				subtitle
+			}
 		}
 	}
 `)
@@ -44,7 +46,7 @@ const ReportMetrics = ({ dateRange }: { dateRange: string }) => {
 
 	return (
 		<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-			{metrics?.getAnalyticsMetrics?.map((metric) => (
+			{metrics?.getAnalyticsMetrics?.data?.map((metric) => (
 				<AnalyticsMetricCard
 					key={metric.label}
 					label={metric.label}

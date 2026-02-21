@@ -9,6 +9,9 @@ import { gql } from "@/gql";
 const DASHBOARD_METRICS = gql(`
 	query dashboardMetrics($page: Int, $limit: Int, $sortBy: String, $sortOrder: String){
 		getCurrentCashBalance {
+			success
+			message
+			data {
 				openingCash
 				closingCash
 				totalSales
@@ -16,12 +19,14 @@ const DASHBOARD_METRICS = gql(`
 				totalCashIn
 				totalCashOut
 			}
-			getAccountTransactions (page: $page, limit: $limit, sortBy: $sortBy, sortOrder: $sortOrder) {
-				data {
-					id
-					type
-					amount
-					note
+		}
+		getAccountTransactions (page: $page, limit: $limit, sortBy: $sortBy, sortOrder: $sortOrder) {
+			success
+			data {
+				id
+				type
+				amount
+				note
 				createdAt
 				updatedAt
 			}

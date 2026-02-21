@@ -21,8 +21,11 @@ interface SalesTrendChartProps {
 const GET_SALES_TREND = gql(`
 	query getSalesTrend ($startDate: String!, $endDate: String!){
 		getSalesTrend (startDate: $startDate, endDate: $endDate) {
-			label
-			value
+			success
+			data {
+				label
+				value
+			}
 		}
 	}
 `);
