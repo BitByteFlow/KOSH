@@ -1,4 +1,6 @@
-import { Search, Download, ChevronDown, Plus, Check, X } from "lucide-react";
+"use client";
+
+import { Search, Download, ChevronDown, Plus, Check } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
 import { ProductSheet } from "./ProductSheet";
 import { AddCategoryModal } from "./AddCategoryModal";
@@ -12,8 +14,12 @@ import {
 	DropdownMenuTrigger,
 	DropdownMenuSeparator,
 } from "@kosh/ui/components/dropdown-menu";
-import { useCategoryList } from "../hooks/useProducts";
 import { cn } from "@/lib/utils";
+
+import { Status } from "@/gql/graphql";
+import { gql } from "@/gql";
+import { useQuery } from "@apollo/client/react";
+import { parseGraphQLListResponse } from "@/lib/graphql/utils";
 
 interface InventorySearchProps {
 	onSearch?: (query: string) => void;
@@ -25,7 +31,22 @@ interface InventorySearchProps {
 	activeStatus?: string | null;
 }
 
-export function InventorySearch({
+const GET_CATEGORIES = gql(`
+	query GetCategoriesForSearch {
+		getCategories {
+			success
+			message
+			data {
+				id
+				name
+				createdAt
+				updatedAt
+			}
+		}
+	}
+`)
+
+const InventorySearch = ({
 	onSearch,
 	onCategoryFilter,
 	onStatusFilter,
@@ -33,36 +54,40 @@ export function InventorySearch({
 	selectedCount = 0,
 	activeCategoryId,
 	activeStatus,
-}: InventorySearchProps) {
-	const { data } = useCategoryList();
-	const categories = data?.categories || [];
+}: InventorySearchProps) => {
+	const { data: rawData } = useQuery(GET_CATEGORIES)
+
+	const categories = useMemo(() =>
+		parseGraphQLListResponse(rawData?.getCategories),
+		[rawData?.getCategories]
+	);
+
 	const [categorySearch, setCategorySearch] = useState("");
 
 	const filteredCategories = useMemo(() => {
-		if (!categories) return [];
-		if (!categorySearch) return categories;
-		return categories.filter((cat: any) =>
+		if (!categorySearch) return categories.data ?? [];
+		return categories.data?.filter((cat) =>
 			cat.name.toLowerCase().includes(categorySearch.toLowerCase())
-		);
+		) ?? [];
 	}, [categories, categorySearch]);
 
 	const selectedCategoryName = useMemo(() => {
-		if (!activeCategoryId || categories.length === 0) return "Category";
-		const cat = categories.find((c: any) => c.id === activeCategoryId);
+		if (!activeCategoryId || categories.data?.length === 0) return "Category";
+		const cat = categories.data?.find((c) => c.id === activeCategoryId);
 		return cat ? cat.name : "Category";
 	}, [activeCategoryId, categories]);
 
 	const statusOptions = [
-		{ label: "Active", value: "ACTIVE" },
-		{ label: "Inactive", value: "IN_ACTIVE" },
-		{ label: "Out of Stock", value: "OUT_OF_STOCK" },
+		{ label: "Active", value: Status.Active },
+		{ label: "Inactive", value: Status.Inactive },
+		{ label: "Out of Stock", value: Status.OutOfStock },
 	];
 
 	const selectedStatusLabel = useMemo(() => {
 		if (!activeStatus) return "Status";
 		const opt = statusOptions.find((o) => o.value === activeStatus);
 		return opt ? opt.label : "Status";
-	}, [activeStatus]);
+	}, [activeStatus, statusOptions]);
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -79,6 +104,7 @@ export function InventorySearch({
 				</div>
 
 				<ProductSheet
+					product={null}
 					trigger={
 						<Button className="flex items-center gap-2 h-10 px-4">
 							<Plus className="w-4 h-4" />
@@ -122,7 +148,7 @@ export function InventorySearch({
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<div className="max-h-[200px] overflow-auto">
-							{filteredCategories.map((cat: any) => (
+							{filteredCategories.map((cat) => (
 								<DropdownMenuItem
 									key={cat.id}
 									onClick={() => onCategoryFilter?.(cat.id)}
@@ -205,3 +231,5 @@ export function InventorySearch({
 		</div>
 	);
 }
+
+export default InventorySearch;

@@ -7,8 +7,9 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
+  app.setGlobalPrefix("/api/v2")
+
 	const configService = app.get(ConfigService);
-	app.setGlobalPrefix("api/v2");
 
   app.enableCors({
     origin: "*",
@@ -20,7 +21,7 @@ async function bootstrap() {
   try {
     const port = configService.get("PORT")
     await app.listen(port);
-    console.log(`Application is running on: http://localhost:${port}/api/v2`);
+    console.log(`Application is running on: http://localhost:${port}`);
   } catch (error) {
     console.error("❌ Failed to start application:", error);
     process.exit(1);

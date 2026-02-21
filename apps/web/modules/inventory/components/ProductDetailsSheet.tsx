@@ -7,14 +7,14 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@kosh/ui/components/sheet";
-import { Label } from "@kosh/ui/components/label";
 import { Badge } from "@kosh/ui/components/badge";
 import { Package, Tag, Wallet, Barcode } from "lucide-react";
+import { Product, ProductVariant } from "@/gql/graphql";
 
 interface ProductDetailsSheetProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	product?: any;
+	product: Product | null;
 }
 
 export function ProductDetailsSheet({
@@ -35,7 +35,7 @@ export function ProductDetailsSheet({
 							</SheetTitle>
 							<SheetDescription className="mt-1.5 text-sm text-gray-500 flex items-center gap-2">
 								<Badge variant="secondary" className="font-normal text-xs px-2 py-0.5 h-auto bg-gray-100 text-gray-600 hover:bg-gray-100 border-0">
-									{product.category}
+									{product.category.name}
 								</Badge>
 								<span className="text-gray-300">•</span>
 								<span className={product.totalStock > 0 ? "text-green-600 font-medium" : "text-red-500 font-medium"}>
@@ -71,7 +71,7 @@ export function ProductDetailsSheet({
 								</div>
 								<div>
 									<p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Category</p>
-									<p className="mt-1 text-lg font-semibold text-gray-900 capitalize">{product.category}</p>
+									<p className="mt-1 text-lg font-semibold text-gray-900 capitalize">{product.category.name}</p>
 								</div>
 							</div>
 						</div>
@@ -88,31 +88,27 @@ export function ProductDetailsSheet({
 							</div>
 
 							<div className="space-y-3">
-								{product.variants?.map((variant: any) => (
+								{product.variants?.map((variant: ProductVariant) => (
 									<div
 										key={variant.id}
 										className="group bg-white border border-gray-200 rounded-xl p-4 transition-all duration-200 hover:shadow-md hover:border-gray-300"
 									>
 										<div className="flex items-start justify-between">
 											<div className="space-y-3">
-												{/* Attributes Badges */}
 												<div className="flex flex-wrap gap-2">
-													{Object.entries(variant.attributes).map(([key, val]) => (
-														<div key={key} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-50 border border-gray-100 text-xs font-medium text-gray-700">
-															<span className="text-gray-400 capitalize">{key}:</span>
-															<span className="text-gray-900 font-semibold">{val as React.ReactNode}</span>
+													{variant.attributes?.map((attribute: any) => (
+														<div key={attribute.name} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-50 border border-gray-100 text-xs font-medium text-gray-700">
+															<span className="text-gray-400 capitalize">{attribute.name}:</span>
+															<span className="text-gray-900 font-semibold">{attribute.value}</span>
 														</div>
 													))}
 												</div>
 
-												{/* SKU */}
 												<div className="flex items-center gap-2 text-xs text-gray-500 font-mono">
 													<Barcode className="w-3.5 h-3.5" />
 													<span>{variant.sku}</span>
 												</div>
 											</div>
-
-											{/* Price & Stock Stats */}
 											<div className="text-right space-y-1">
 												<div className="text-sm font-semibold text-gray-900">
 													Rs. {variant.price?.toFixed(2)}

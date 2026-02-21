@@ -21,6 +21,8 @@ import {
 import { useCreateTransaction } from "../hooks/useAccount";
 import type { TransactionType } from "@/types/transcation";
 import { useState } from "react";
+import { gql } from "@/gql";
+import { useMutation } from "@apollo/client/react";
 
 const TRANSACTION_TYPES = [
 	{ value: "INITIAL_CAPITAL" as TransactionType, label: "Initial Capital" },
@@ -35,9 +37,26 @@ interface FormData {
 	note: string;
 }
 
+const CREATE_TRANSACTION = gql(`
+	mutation CreateTransaction($createTransactionInput: CreateTransactionInput!) {
+		createTransaction(createTransactionInput: $createTransactionInput) {
+			success
+			data {
+				id
+				type
+				amount
+				note
+				createdAt
+				updatedAt
+			}
+		}
+	}
+`);
+
 export const OpeningCashModal = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const createTransaction = useCreateTransaction();
+	const [createTransactionMutation, { loading, error }] = useMutation(CREATE_TRANSACTION)
 
 	const {
 		register,
@@ -58,7 +77,15 @@ export const OpeningCashModal = () => {
 		if (isNaN(amountValue) || amountValue <= 0) {
 			return;
 		}
-
+		const { data: transactionResponse } = await createTransactionMutation({
+			variables: {
+				createTransactionInput: {
+					amount: amountValue,
+					note: data.note,
+					type: data.type,
+				}
+			}
+		})
 		await createTransaction.mutateAsync({
 			amount: amountValue,
 			note: data.note,

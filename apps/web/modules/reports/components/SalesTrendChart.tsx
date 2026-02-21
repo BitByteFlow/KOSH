@@ -1,5 +1,10 @@
 "use client";
 
+import { gql } from "@/gql";
+import { getDateRange } from "@/lib/date-utils";
+import { parseGraphQLListResponse } from "@/lib/graphql/utils";
+import { useQuery } from "@apollo/client/react";
+import { useMemo } from "react";
 import {
 	Area,
 	AreaChart,
@@ -11,13 +16,47 @@ import {
 } from "recharts";
 
 interface SalesTrendChartProps {
-	data: {
-		week: string;
-		sales: number;
-	}[];
+	dateRange: string
 }
 
-export function SalesTrendChart({ data }: SalesTrendChartProps) {
+const GET_SALES_TREND = gql(`
+	query getSalesTrend ($startDate: String!, $endDate: String!){
+		getSalesTrend (startDate: $startDate, endDate: $endDate) {
+			success
+			data {
+				label
+				value
+			}
+		}
+	}
+`);
+
+export function SalesTrendChart({ dateRange }: SalesTrendChartProps) {
+
+	const { startDate, endDate } = useMemo(
+		() => getDateRange(dateRange),
+		[dateRange],
+	);
+
+	const { data: rawData, loading: trendLoading } = useQuery(GET_SALES_TREND, {
+		variables: { startDate, endDate }
+	});
+
+	const salesResponse = useMemo(() =>
+		parseGraphQLListResponse(rawData?.getSalesTrend),
+		[rawData?.getSalesTrend]
+	);
+
+	const chartData = salesResponse.data || [];
+
+	if (trendLoading) {
+		return (
+			<div className="flex h-[400px] w-full items-center justify-center rounded-lg border border-border bg-card">
+				<div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+			</div>
+		);
+	}
+
 	return (
 		<div className="rounded-lg shadow-md border border-border bg-card p-6">
 			<h3 className="mb-6 text-lg font-semibold text-foreground">
@@ -28,7 +67,7 @@ export function SalesTrendChart({ data }: SalesTrendChartProps) {
 				height={300}
 			>
 				<AreaChart
-					data={data}
+					data={chartData}
 					margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
 				>
 					<defs>
@@ -56,20 +95,33 @@ export function SalesTrendChart({ data }: SalesTrendChartProps) {
 						stroke="#e5e7eb"
 					/>
 					<XAxis
-						dataKey="week"
+						dataKey="label"
 						stroke="#9ca3af"
 						style={{ fontSize: "12px" }}
 						tickLine={false}
 						axisLine={false}
+						tickFormatter={(value) => {
+							const date = new Date(value);
+							return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+						}}
 					/>
 					<YAxis
 						stroke="#9ca3af"
 						style={{ fontSize: "12px" }}
 						tickLine={false}
 						axisLine={false}
-						tickFormatter={(value) => `Rs. ${value / 1000}k`}
+						tickFormatter={(value) => value >= 1000 ? `Rs. ${value / 1000}k` : `Rs. ${value}`}
 					/>
 					<Tooltip
+						labelFormatter={(label) => {
+							const date = new Date(label);
+							return date.toLocaleDateString("en-US", {
+								weekday: 'short',
+								year: 'numeric',
+								month: 'short',
+								day: 'numeric'
+							});
+						}}
 						contentStyle={{
 							backgroundColor: "#fff",
 							borderColor: "#e5e7eb",
@@ -78,7 +130,7 @@ export function SalesTrendChart({ data }: SalesTrendChartProps) {
 					/>
 					<Area
 						type="monotone"
-						dataKey="sales"
+						dataKey="value"
 						stroke="#10b981"
 						strokeWidth={2}
 						fillOpacity={1}

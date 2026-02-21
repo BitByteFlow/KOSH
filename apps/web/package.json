@@ -1,6 +1,6 @@
 {
 	"name": "web",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"type": "module",
 	"private": true,
 	"scripts": {
@@ -9,9 +9,13 @@
 		"start": "next start",
 		"lint": "biome lint .",
 		"lint:fix": "biome lint --write .",
-		"check-types": "next typegen && tsc --noEmit"
+		"check-types": "next typegen && tsc --noEmit",
+		"codegen": "graphql-codegen",
+		"codegen:watch": "graphql-codegen --watch"
 	},
 	"dependencies": {
+		"@apollo/client": "^4.1.4",
+		"@apollo/client-integration-nextjs": "^0.14.4",
 		"@hookform/resolvers": "^5.2.2",
 		"@kosh/ui": "*",
 		"@kosh/validation": "workspace:*",
@@ -28,6 +32,9 @@
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"date-fns": "^4.1.0",
+		"graphql": "^16.12.0",
+		"jspdf": "^4.2.0",
+		"jspdf-autotable": "^5.0.7",
 		"lucide-react": "^0.563.0",
 		"next": "16.1.0",
 		"next-auth": "^5.0.0-beta.30",
@@ -44,6 +51,9 @@
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {
+		"@graphql-codegen/cli": "^6.1.1",
+		"@graphql-codegen/typescript": "^5.0.7",
+		"@graphql-codegen/typescript-operations": "^5.0.7",
 		"@kosh/eslint-config": "*",
 		"@kosh/typescript-config": "*",
 		"@tanstack/react-query-devtools": "^5.91.3",

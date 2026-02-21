@@ -1,10 +1,5 @@
 import { z } from "zod";
-
-export enum PaymentType {
-  CASH = "CASH",
-  ONLINE = "ONLINE",
-  CREDIT = "CREDIT",
-}
+import { PaymentType } from "@kosh/db";
 
 export const createSaleItemSchema = z.object({
   variantId: z.string().uuid(),
@@ -14,14 +9,31 @@ export const createSaleItemSchema = z.object({
 });
 
 export const createSaleSchema = z.object({
-  discount: z.preprocess((val) => Number(val), z.number().min(0)),
-  paymentType: z.nativeEnum(PaymentType),
+  discount: z.number().min(0),
+  paymentType: z.enum(PaymentType),
   creditId: z.string().uuid().optional(),
   items: z.array(createSaleItemSchema),
   transactionNote: z.string().optional(),
   customerName: z.string().optional(),
   customerEmail: z.string().email("Invalid email format").optional().or(z.literal("")),
   customerContact: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.paymentType === PaymentType.CREDIT) {
+    if (!data.customerName || data.customerName.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Customer name is required for credit sales",
+        path: ["customerName"],
+      });
+    }
+    if (!data.customerContact || data.customerContact.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Customer contact is required for credit sales",
+        path: ["customerContact"],
+      });
+    }
+  }
 });
 
 export type CreateSaleInput = z.infer<typeof createSaleSchema>;

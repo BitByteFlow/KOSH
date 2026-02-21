@@ -8,6 +8,6 @@ export class UserResolver {
 
     @Query(() => UserResponse)
     async getCurrentUser(@Args('id') id: string): Promise<UserResponse> {
-        return this.userService.getCurrentUser(id);
+        return await this.userService.getCurrentUser(id);
     }
 }

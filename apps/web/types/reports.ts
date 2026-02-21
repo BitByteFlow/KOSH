@@ -1,8 +1,8 @@
 export interface AnalyticsMetricCardProps {
 	label: string;
-	value: string;
-	trend?: number;
-	trendLabel?: string;
-	subtitle?: string;
+	value: number;
+	trend?: number | null;
+	trendLabel?: string | null;
+	subtitle?: string | null;
 	isPositive?: boolean;
 }

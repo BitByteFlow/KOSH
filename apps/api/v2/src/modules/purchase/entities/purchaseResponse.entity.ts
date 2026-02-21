@@ -6,8 +6,8 @@ export class PurchaseResponse {
   @Field(() => Boolean)
   success: boolean;
 
-  @Field()
-  message: string;
+  @Field(() => String, { nullable: true })
+  message?: string;
 
   @Field(() => Purchase, { nullable: true })
   purchase?: Purchase;

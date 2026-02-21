@@ -3,6 +3,18 @@ export const getDateRange = (range: string) => {
 	const end = new Date();
 	let start = new Date();
 
+	if (range.startsWith("Custom:")) {
+		const parts = range.split(":");
+		const dates = parts[1]?.split(",");
+		if (dates && dates.length === 2) {
+			const [startStr, endStr] = dates;
+			return {
+				startDate: startStr ? new Date(startStr).toISOString() : start.toISOString(),
+				endDate: endStr ? new Date(endStr).toISOString() : end.toISOString(),
+			};
+		}
+	}
+
 	switch (range) {
 		case "This Week":
 			const day = now.getDay();

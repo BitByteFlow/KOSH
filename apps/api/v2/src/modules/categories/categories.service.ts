@@ -11,7 +11,7 @@ import { UpdateCategoryInput } from './dto/updateCategory.input';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(private readonly database: DatabaseService) { }
 
   async createCategory(
     input: CreateCategoryInput,
@@ -40,7 +40,7 @@ export class CategoriesService {
       });
 
       return {
-        status: 'success',
+        success: true,
         message: `New Category ${name} created!`,
       };
     } catch (error) {
@@ -51,7 +51,7 @@ export class CategoriesService {
     }
   }
 
-  async getCategories(userId: string): Promise<Category[]> {
+  async getCategories(userId: string): Promise<CategoryResponse> {
     try {
       const categories = await this.database.category.findMany({
         where: {
@@ -65,7 +65,11 @@ export class CategoriesService {
         },
       });
 
-      return categories;
+      return {
+        success: true,
+        data: categories,
+        message: "Categories fetched successfully"
+      };
     } catch (error) {
       throw new InternalServerErrorException('Failed to get categories');
     }
@@ -94,7 +98,7 @@ export class CategoriesService {
       });
 
       return {
-        status: 'success',
+        success: true,
         message: 'Deleted successfully!',
       };
     } catch (error) {
@@ -133,7 +137,7 @@ export class CategoriesService {
       });
 
       return {
-        status: 'success',
+        success: true,
         message: 'Category Updated',
       };
     } catch (error) {

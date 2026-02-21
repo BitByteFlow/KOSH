@@ -6,6 +6,8 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import type { ReactNode } from "react";
 import { queryClient } from "./client";
 import { Toaster } from "sonner";
+import { ApolloWrapper } from "../graphql/apolloWrapper";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 interface ProvidersProps {
 	children: ReactNode;
@@ -14,13 +16,18 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
 	return (
 		<SessionProvider>
-			<QueryClientProvider client={queryClient}>
-				{children}
-				<Toaster position="top-right" richColors closeButton />
-				{process.env.NODE_ENV === "development" && (
-					<ReactQueryDevtools initialIsOpen={false} />
-				)}
-			</QueryClientProvider>
+			<ProtectedRoute>
+				<ApolloWrapper>
+					<QueryClientProvider client={queryClient}>
+						{children}
+						<Toaster position="top-right" richColors closeButton />
+						{process.env.NODE_ENV === "development" && (
+							<ReactQueryDevtools initialIsOpen={false} />
+						)}
+					</QueryClientProvider>
+
+				</ApolloWrapper>
+			</ProtectedRoute>
 		</SessionProvider>
 	);
 }

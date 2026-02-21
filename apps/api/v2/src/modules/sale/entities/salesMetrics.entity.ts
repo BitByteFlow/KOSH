@@ -14,3 +14,15 @@ export class SalesMetrics {
   @Field(() => Int)
   avgSaleValue: number;
 }
+
+@ObjectType()
+export class SalesMetricsResponse {
+  @Field(() => Boolean)
+  success: boolean;
+
+  @Field(() => String, { nullable: true })
+  message?: string
+
+  @Field(() => SalesMetrics, { nullable: true })
+  data?: SalesMetrics
+}

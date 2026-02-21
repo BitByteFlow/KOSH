@@ -33,16 +33,16 @@ import {
 	TableHead,
 	TableBody,
 } from "@kosh/ui/components/table";
-import { ProductVariant } from "@/services/products.service";
+import { Status, ProductVariant, Category } from "@/gql/graphql";
 
 interface InventoryItemProps {
 	id: string;
 	productName: string;
-	category: string;
+	category: Category;
 	totalStock: number;
 	variantCount: number;
-	status: "active" | "inactive" | "out-of-stock";
-	variants: ProductVariant[];
+	status: Status;
+	variants: any[];
 	onEdit?: (productId: string) => void;
 	onEditVariant?: (variantId: string) => void;
 	onUpdateVariant?: (variant: any) => Promise<void>;
@@ -99,11 +99,10 @@ const InventoryItem = ({
 	};
 
 	const statusConfig = {
-		active: "Active",
-		inactive: "Inactive",
-		"out-of-stock": "Out of Stock",
+		[Status.Active]: "Active",
+		[Status.Inactive]: "Inactive",
+		[Status.OutOfStock]: "Out of Stock",
 	}[status];
-	console.log("vairants:", variants)
 
 	return (
 		<>
@@ -134,7 +133,7 @@ const InventoryItem = ({
 				</TableCell>
 
 				<TableCell className="text-sm text-muted-foreground">
-					{category}
+					{category.name}
 				</TableCell>
 
 				<TableCell className="font-medium">{totalStock}</TableCell>

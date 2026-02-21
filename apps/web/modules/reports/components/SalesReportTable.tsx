@@ -1,4 +1,6 @@
-import { useState, useMemo } from "react";
+"use client";
+
+import { useState, useMemo, useEffect } from "react";
 import { Search, SlidersHorizontal, Upload } from "lucide-react";
 import {
 	Table,
@@ -21,54 +23,143 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@kosh/ui/components/dialog";
+import { useQuery } from "@apollo/client/react";
+import { gql } from "@/gql";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { getDateRange } from "@/lib/date-utils";
+import { parseGraphQLListResponse } from "@/lib/graphql/utils";
+import { PaymentType } from "@/gql/graphql";
 
-const MOCK_SALES = [
-	{ id: "INV-001", date: "2023-10-25", customer: "Walk-in Customer", items: 3, total: 1200.00, payment: "Cash", status: "Completed" },
-	{ id: "INV-002", date: "2023-10-25", customer: "John Doe", items: 1, total: 4500.00, payment: "Online", status: "Completed" },
-	{ id: "INV-003", date: "2023-10-24", customer: "Jane Smith", items: 5, total: 8250.00, payment: "Credit", status: "Pending" },
-	{ id: "INV-004", date: "2023-10-24", customer: "Walk-in Customer", items: 2, total: 350.00, payment: "Cash", status: "Completed" },
-];
+interface SalesReportTableProps {
+	dateRange: string;
+}
 
-export function SalesReportTable() {
+const GET_SALES_REPORT = gql(`
+	query getSalesReport ($filters: SaleReportFilter!){
+		getSalesReport (filters: $filters) {
+			success
+			message
+			data {
+				id
+				date
+				customer
+				items
+				total
+				payment
+				status
+			}
+		}
+	}
+`)
+
+export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 	const [searchQuery, setSearchQuery] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [isFilterOpen, setIsFilterOpen] = useState(false);
-	const [filters, setFilters] = useState({
-		dateFrom: "",
-		dateTo: "",
-		paymentMethods: [] as string[],
+
+	const [appliedFilters, setAppliedFilters] = useState({
+		paymentMethods: [] as PaymentType[],
 		statuses: [] as string[],
 	});
 
-	const filteredSales = useMemo(() => {
-		return MOCK_SALES.filter(sale => {
-			const matchesSearch = sale.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-				sale.customer.toLowerCase().includes(searchQuery.toLowerCase());
+	const [tempFilters, setTempFilters] = useState({
+		paymentMethods: [] as PaymentType[],
+		statuses: [] as string[],
+	});
 
-			const matchesDateFrom = !filters.dateFrom || new Date(sale.date) >= new Date(filters.dateFrom);
-			const matchesDateTo = !filters.dateTo || new Date(sale.date) <= new Date(filters.dateTo);
-			const matchesPayment = filters.paymentMethods.length === 0 || filters.paymentMethods.includes(sale.payment);
-			const matchesStatus = filters.statuses.length === 0 || filters.statuses.includes(sale.status);
+	useEffect(() => {
+		const handler = setTimeout(() => {
+			setDebouncedSearch(searchQuery);
+		}, 500);
+		return () => clearTimeout(handler);
+	}, [searchQuery]);
 
-			return matchesSearch && matchesDateFrom && matchesDateTo && matchesPayment && matchesStatus;
+	const { startDate, endDate } = useMemo(() => getDateRange(dateRange), [dateRange]);
+
+	const { data: rawData, loading } = useQuery(GET_SALES_REPORT, {
+		variables: {
+			filters: {
+				startDate,
+				endDate,
+				paymentMethods: appliedFilters.paymentMethods.length > 0 ? appliedFilters.paymentMethods : undefined,
+				statuses: appliedFilters.statuses.length > 0 ? appliedFilters.statuses : undefined,
+				searchQuery: debouncedSearch || undefined,
+			}
+		}
+	});
+
+	const salesResponse = useMemo(() =>
+		parseGraphQLListResponse(rawData?.getSalesReport),
+		[rawData?.getSalesReport]
+	);
+
+	const filteredSales = salesResponse.data || [];
+
+	if (loading) {
+		return (
+			<div className="flex h-64 items-center justify-center">
+				<div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+			</div>
+		);
+	}
+
+	const handleExport = () => {
+		const doc = new jsPDF();
+		doc.text("Sales Report", 14, 15);
+		doc.setFontSize(10);
+		doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 22);
+
+		const tableData = filteredSales.map(sale => [
+			sale.id,
+			sale.date,
+			sale.customer,
+			sale.items.toString(),
+			`Rs ${sale.total.toLocaleString()}`,
+			sale.payment,
+			sale.status
+		]);
+
+		autoTable(doc, {
+			startY: 30,
+			head: [["Invoice", "Date", "Customer", "Items", "Total", "Payment", "Status"]],
+			body: tableData,
 		});
-	}, [searchQuery, filters]);
 
-	const handlePaymentChange = (type: string, checked: boolean) => {
-		setFilters(prev => ({
+		doc.save(`sales-report-${new Date().toISOString().split('T')[0]}.pdf`);
+	};
+
+	const handlePaymentChange = (type: PaymentType, checked: boolean) => {
+		setTempFilters((prev) => ({
 			...prev,
 			paymentMethods: checked
 				? [...prev.paymentMethods, type]
-				: prev.paymentMethods.filter(t => t !== type)
+				: prev.paymentMethods.filter((t: PaymentType) => t !== type)
 		}));
 	};
 
 	const handleStatusChange = (status: string, checked: boolean) => {
-		setFilters(prev => ({
+		setTempFilters((prev) => ({
 			...prev,
 			statuses: checked
 				? [...prev.statuses, status]
-				: prev.statuses.filter(s => s !== status)
+				: prev.statuses.filter((s: string) => s !== status)
 		}));
+	};
+
+	const handleApplyFilters = () => {
+		setAppliedFilters(tempFilters);
+		setIsFilterOpen(false);
+	};
+
+	const handleResetFilters = () => {
+		const defaultFilters = {
+			paymentMethods: [],
+			statuses: [],
+		};
+		setTempFilters(defaultFilters);
+		setAppliedFilters(defaultFilters);
+		setIsFilterOpen(false);
 	};
 
 	return (
@@ -93,7 +184,11 @@ export function SalesReportTable() {
 						<SlidersHorizontal className="h-4 w-4" />
 						Filter
 					</Button>
-					<Button variant="outline" className="flex items-center gap-2 h-10">
+					<Button
+						variant="outline"
+						className="flex items-center gap-2 h-10"
+						onClick={handleExport}
+					>
 						<Upload className="h-4 w-4" />
 						Export
 					</Button>
@@ -157,40 +252,14 @@ export function SalesReportTable() {
 
 					<div className="grid gap-6 py-4">
 						<div className="space-y-3">
-							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date Range</Label>
-							<div className="grid grid-cols-2 gap-4">
-								<div className="space-y-1.5">
-									<Label htmlFor="dateFrom" className="text-xs">From</Label>
-									<Input
-										id="dateFrom"
-										type="date"
-										className="h-9"
-										value={filters.dateFrom}
-										onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
-									/>
-								</div>
-								<div className="space-y-1.5">
-									<Label htmlFor="dateTo" className="text-xs">To</Label>
-									<Input
-										id="dateTo"
-										type="date"
-										className="h-9"
-										value={filters.dateTo}
-										onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-									/>
-								</div>
-							</div>
-						</div>
-
-						<div className="space-y-3">
 							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Payment Method</Label>
 							<div className="flex flex-wrap gap-4">
 								{["Online", "Cash", "Credit"].map((type) => (
 									<div key={type} className="flex items-center space-x-2">
 										<Checkbox
 											id={`payment-${type}`}
-											checked={filters.paymentMethods.includes(type)}
-											onCheckedChange={(checked) => handlePaymentChange(type, checked as boolean)}
+											checked={tempFilters.paymentMethods.includes(type as PaymentType)}
+											onCheckedChange={(checked) => handlePaymentChange(type as PaymentType, checked as boolean)}
 										/>
 										<label
 											htmlFor={`payment-${type}`}
@@ -210,7 +279,7 @@ export function SalesReportTable() {
 									<div key={status} className="flex items-center space-x-2">
 										<Checkbox
 											id={`status-${status}`}
-											checked={filters.statuses.includes(status)}
+											checked={tempFilters.statuses.includes(status)}
 											onCheckedChange={(checked) => handleStatusChange(status, checked as boolean)}
 										/>
 										<label
@@ -226,17 +295,10 @@ export function SalesReportTable() {
 					</div>
 
 					<DialogFooter>
-						<Button variant="outline" onClick={() => {
-							setFilters({
-								dateFrom: "",
-								dateTo: "",
-								paymentMethods: [],
-								statuses: [],
-							});
-						}}>
+						<Button variant="outline" onClick={handleResetFilters}>
 							Reset
 						</Button>
-						<Button onClick={() => setIsFilterOpen(false)}>Apply Filters</Button>
+						<Button onClick={handleApplyFilters}>Apply Filters</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>

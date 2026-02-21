@@ -7,16 +7,15 @@ export class UserService {
     constructor(private readonly database: DatabaseService) {
 
     }
-
     async getCurrentUser(id: string): Promise<UserResponse> {
         const user = await this.database.prisma.user.findUnique({
             where: {
                 id: id
             },
-            select:{
-                id:true,
-                email:true,
-                username:true
+            select: {
+                id: true,
+                email: true,
+                username: true
             }
         }
         )
@@ -24,6 +23,10 @@ export class UserService {
             throw new UnauthorizedException('User not found');
         }
 
-        return  user;
+        return {
+            success: true,
+            message: "User fetched successfully",
+            data: user
+        };
     }
 }

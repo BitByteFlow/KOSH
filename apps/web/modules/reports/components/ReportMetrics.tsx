@@ -1,22 +1,49 @@
+"use client";
+
 import React, { useMemo } from "react";
-import { useAnalyticsMetrics } from "../hooks/useReports";
 import { getDateRange } from "@/lib/date-utils";
 import { AnalyticsMetricCard } from "./AnalyticsMetric";
 import { MetricCardSkeleton } from "@/components/MetricCardSkeletion";
+import { useQuery } from "@apollo/client/react";
+import { gql } from "@/gql";
+import { parseGraphQLListResponse } from "@/lib/graphql/utils";
+
+
+const GET_REPORT_METRICS = gql(`
+	query getReportMetrics($startDate: String!, $endDate: String!){
+		getAnalyticsMetrics (startDate: $startDate, endDate: $endDate) {
+			success
+			message
+			data {
+				label
+				value
+				trend
+				trendLabel
+				isPositive
+				subtitle
+			}
+		}
+	}
+`)
 
 const ReportMetrics = ({ dateRange }: { dateRange: string }) => {
 	const { startDate, endDate } = useMemo(
 		() => getDateRange(dateRange),
 		[dateRange],
 	);
-	console.log("dates :", startDate, endDate);
-	const {
-		data: metrics,
-		isPending,
-		isError,
-	} = useAnalyticsMetrics(startDate, endDate);
 
-	if (isPending) {
+	const { data: rawData, loading, error } = useQuery(GET_REPORT_METRICS, {
+		variables: { startDate, endDate }
+	});
+
+	const metricsResponse = useMemo(() =>
+		parseGraphQLListResponse(rawData?.getAnalyticsMetrics),
+		[rawData?.getAnalyticsMetrics]
+	);
+
+	const metrics = metricsResponse.data || [];
+
+	if (loading) {
 		return (
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 				<MetricCardSkeleton />
@@ -26,13 +53,13 @@ const ReportMetrics = ({ dateRange }: { dateRange: string }) => {
 			</div>
 		);
 	}
-	if (isError) {
-		return <h2>error</h2>;
+	if (error) {
+		return <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">Error loading metrics</div>;
 	}
 
 	return (
 		<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-			{metrics?.map((metric) => (
+			{metrics.map((metric) => (
 				<AnalyticsMetricCard
 					key={metric.label}
 					label={metric.label}

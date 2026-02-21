@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Loader2 } from "lucide-react";
+import { useMutation } from "@apollo/client/react";
+import { gql } from "@/gql";
 import { createCategorySchema, type CreateCategoryInput } from "@kosh/validation";
 import { Button } from "@kosh/ui/components/button";
 import {
@@ -16,16 +18,24 @@ import {
 } from "@kosh/ui/components/dialog";
 import { Input } from "@kosh/ui/components/input";
 import { Label } from "@kosh/ui/components/label";
-import { useCreateCategory } from "../hooks/useProducts";
 import { toast } from "sonner";
 
 interface AddCategoryModalProps {
 	trigger?: React.ReactNode;
 }
 
+const CREATE_CATEGORY = gql(`
+	mutation CreateCategoryInModal($createCategoryInput: CreateCategoryInput!) {
+		createCategory(createCategoryInput: $createCategoryInput) {
+			success
+			message
+		}
+	}
+`);
+
 export function AddCategoryModal({ trigger }: AddCategoryModalProps) {
 	const [isOpen, setIsOpen] = useState(false);
-	const createCategory = useCreateCategory();
+	const [createCategoryMutation, { loading: isCreating }] = useMutation(CREATE_CATEGORY);
 
 	const {
 		register,
@@ -41,12 +51,24 @@ export function AddCategoryModal({ trigger }: AddCategoryModalProps) {
 
 	const onSubmit = async (data: CreateCategoryInput) => {
 		try {
-			await createCategory.mutateAsync(data.name);
-			toast.success("Category created successfully");
-			setIsOpen(false);
-			reset();
+			const { data: result } = await createCategoryMutation({
+				variables: {
+					createCategoryInput: {
+						name: data.name,
+					},
+				},
+				refetchQueries: ["GetCategories", "GetCategoriesSheet"]
+			});
+
+			if (result?.createCategory?.success) {
+				toast.success("Category created successfully");
+				setIsOpen(false);
+				reset();
+			} else {
+				toast.error(result?.createCategory?.message || "Failed to create category");
+			}
 		} catch (error: any) {
-			toast.error(error.response?.data?.message || "Failed to create category");
+			toast.error(error.message || "Failed to create category");
 		}
 	};
 
@@ -85,8 +107,8 @@ export function AddCategoryModal({ trigger }: AddCategoryModalProps) {
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={createCategory.isPending}>
-							{createCategory.isPending ? (
+						<Button type="submit" disabled={isCreating}>
+							{isCreating ? (
 								<>
 									<Loader2 className="h-4 w-4 animate-spin mr-2" />
 									Saving...

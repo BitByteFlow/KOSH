@@ -17,12 +17,11 @@ import {
 } from "@kosh/ui/components/sheet";
 import { cn } from "@kosh/ui/lib/utils";
 import { Trash2 } from "lucide-react";
-import { ProductVariant } from "@/services/products.service";
 
 interface EditVariantSheetProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	variant?: ProductVariant,
+	variant?: any;
 	onSave: (variant: VariantDtoInput) => Promise<void>;
 }
 
@@ -124,12 +123,12 @@ export function EditVariantSheet({
 			reset({
 				id: variant.id,
 				costPrice: variant.costPrice || 0,
-				sellingPrice: variant.price || 0,
+				sellingPrice: variant.sellPrice || variant.price || 0,
 				stock: variant.stock || 0,
-				attributes: variant.attributes.map((attr) => ({
+				attributes: variant.attributes?.map((attr: any) => ({
 					name: attr.name,
 					value: attr.value,
-				})),
+				})) || [],
 			});
 		}
 	}, [variant, reset]);
@@ -177,7 +176,7 @@ export function EditVariantSheet({
 									step="0.01"
 									placeholder="0.00"
 									className={cn("h-9", errors.costPrice && "border-red-500")}
-									{...register("costPrice")}
+									{...register("costPrice", {valueAsNumber: true})}
 								/>
 								{errors.costPrice && (
 									<p className="text-xs text-red-500">{errors.costPrice.message}</p>
@@ -194,7 +193,7 @@ export function EditVariantSheet({
 									step="0.01"
 									placeholder="0.00"
 									className={cn("h-9", errors.sellingPrice && "border-red-500")}
-									{...register("sellingPrice")}
+									{...register("sellingPrice", {valueAsNumber: true})}
 								/>
 								{errors.sellingPrice && (
 									<p className="text-xs text-red-500">{errors.sellingPrice.message}</p>
@@ -212,7 +211,7 @@ export function EditVariantSheet({
 								min="0"
 								placeholder="0"
 								className={cn("h-9", errors.stock && "border-red-500")}
-								{...register("stock")}
+								{...register("stock", {valueAsNumber: true})}
 							/>
 							{errors.stock && (
 								<p className="text-xs text-red-500">{errors.stock.message}</p>

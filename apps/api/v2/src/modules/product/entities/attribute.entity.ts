@@ -7,4 +7,16 @@ export class Attribute {
 
   @Field()
   value: string;
+
+  @Field()
+  variantI?: string;
+
+  @Field()
+  id?: string;
+
+  @Field()
+  createdAt?: Date;
+
+  @Field()
+  updatedAt?: Date;
 }

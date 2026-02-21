@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-	baseURL: process.env.NEXT_PUBLIC_API_V1_ROOT_URL || "http://localhost:5000/api/v1/",
+	baseURL: process.env.NEXT_PUBLIC_API_V2_ROOT_URL || "http://localhost:5000/api/v2/",
 	
 	timeout: 30000,
 	

@@ -20,3 +20,16 @@ export class Balance {
   @Field(() => Float)
   totalExpense: number;
 }
+
+@ObjectType()
+export class BalanceResponse {
+  @Field(() => Boolean)
+  success: boolean
+
+  @Field(() => String, { nullable: true })
+  message?: string
+
+  @Field(() => Balance, { nullable: true })
+  data?: Balance
+}
+

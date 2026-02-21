@@ -1,5 +1,16 @@
-import { Field, ObjectType, ID } from '@nestjs/graphql';
+import { Field, ObjectType, ID, registerEnumType } from '@nestjs/graphql';
 import { ProductVariant } from './productVariant.entity';
+import { Category } from 'src/modules/categories/entities/category.entity';
+
+enum Status {
+  active = "active",
+  inactive = "inactive",
+  outOfStock = "out-of-stock"
+}
+
+registerEnumType(Status, {
+  name: "Status",
+})
 
 @ObjectType()
 export class Product {
@@ -7,26 +18,21 @@ export class Product {
   id: string;
 
   @Field()
-  name: string;
+  productName: string;
 
-  @Field(() => ID)
-  categoryId: string;
-
-  @Field({ nullable: true })
-  supplierName?: string;
+  @Field(() => Category)
+  category: Category;
 
   @Field()
-  keepPurchaseRecord: boolean;
+  totalStock: number
+
+  @Field()
+  variantCount: number
+
+  @Field(() => Status)
+  status: Status;
 
   @Field(() => [ProductVariant])
   variants: ProductVariant[];
 
-  @Field({ nullable: true })
-  deletedAt?: Date;
-
-  @Field()
-  createdAt: Date;
-
-  @Field()
-  updatedAt: Date;
 }

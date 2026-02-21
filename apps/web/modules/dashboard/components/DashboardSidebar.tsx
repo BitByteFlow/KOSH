@@ -37,7 +37,6 @@ import {
 	AvatarImage,
 } from "@kosh/ui/components/avatar";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
 
 const menuItems = [
 	{ title: "Dashboard", icon: LayoutGrid, url: "/dashboard" },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@kosh/ui/components/button";
 import {
 	Dialog,
@@ -11,32 +11,84 @@ import {
 	DialogTitle,
 } from "@kosh/ui/components/dialog";
 import { Label } from "@kosh/ui/components/label";
-import { useCategoryList, useUpdateProduct } from "../hooks/useProducts";
-import { Category } from "@/services/categories.service";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import { useQuery, useMutation } from "@apollo/client/react";
+import { gql } from "@/gql";
+import { parseGraphQLListResponse } from "@/lib/graphql/utils";
 
 interface ChangeCategoryDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	product?: any;
-	onSave: (productId: string, newCategory: string) => Promise<void>;
+	onSave?: (productId: string, newCategory: string) => Promise<void>;
 }
+
+const GET_CATEGORIES = gql(`
+	query GetCategoriesInDialog {
+		getCategories {
+			success
+			message
+			data {
+				id
+				name
+			}
+		}
+	}
+`);
+
+const UPDATE_PRODUCT_CATEGORY = gql(`
+	mutation UpdateProductCategoryInDialog($productId: ID!, $updateProductInput: UpdateProductInput!) {
+		updateProduct(productId: $productId, updateProductInput: $updateProductInput) {
+			success
+			message
+			data {
+				id
+				productName
+				category {
+					id
+					name
+				}
+				totalStock
+				variantCount
+				status
+				variants {
+					id
+					sku
+					barcode
+					attributes {
+						name
+						value
+					}
+					price
+					stock
+					lowStock
+					status
+					sellingPrice
+					costPrice
+				}
+			}
+		}
+	}
+`);
 
 export function ChangeCategoryDialog({
 	open,
 	onOpenChange,
 	product,
-	onSave,
 }: ChangeCategoryDialogProps) {
-	const { data: categoryData, isLoading: categoriesLoading } = useCategoryList();
-	const updateProduct = useUpdateProduct();
-	const [selectedCategory, setSelectedCategory] = useState(product?.category || "");
+	const { data: rawCategoryData, loading: categoriesLoading } = useQuery(GET_CATEGORIES);
+	const [updateProductMutation, { loading: isUpdating }] = useMutation(UPDATE_PRODUCT_CATEGORY);
+	const [selectedCategory, setSelectedCategory] = useState(product?.category?.id || "");
+
+	const categories = useMemo(() =>
+		parseGraphQLListResponse(rawCategoryData?.getCategories),
+		[rawCategoryData?.getCategories]
+	);
 
 	// Reset selection when product changes
 	useEffect(() => {
 		if (product) {
-			setSelectedCategory(product.categoryId || "");
+			setSelectedCategory(product.category?.id || "");
 		}
 	}, [product]);
 
@@ -44,12 +96,22 @@ export function ChangeCategoryDialog({
 		if (!product || !selectedCategory) return;
 
 		try {
-			await updateProduct.mutateAsync({
-				id: product.id,
-				data: { categoryId: selectedCategory }
+			const { data }: any = await updateProductMutation({
+				variables: {
+					productId: product.id,
+					updateProductInput: {
+						name: product.productName,
+						categoryId: selectedCategory
+					}
+				}
 			});
-			toast.success("Category updated successfully");
-			onOpenChange(false);
+
+			if (data?.updateProduct?.success) {
+				toast.success("Category updated successfully");
+				onOpenChange(false);
+			} else {
+				toast.error(data?.updateProduct?.message || "Failed to update category");
+			}
 		} catch (error) {
 			toast.error("Failed to update category");
 			console.error("Failed to change category", error);
@@ -77,7 +139,7 @@ export function ChangeCategoryDialog({
 							disabled={categoriesLoading}
 						>
 							<option value="" disabled>Select a category</option>
-							{categoryData?.categories.map((cat: Category) => (
+							{categories.data?.map((cat) => (
 								<option key={cat.id} value={cat.id}>
 									{cat.name}
 								</option>
@@ -90,8 +152,8 @@ export function ChangeCategoryDialog({
 					<Button variant="outline" onClick={() => onOpenChange(false)}>
 						Cancel
 					</Button>
-					<Button onClick={handleSave} disabled={updateProduct.isPending || selectedCategory === product?.categoryId}>
-						{updateProduct.isPending ? "Saving..." : "Save Changes"}
+					<Button onClick={handleSave} disabled={isUpdating || selectedCategory === product?.category?.id}>
+						{isUpdating ? "Saving..." : "Save Changes"}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
