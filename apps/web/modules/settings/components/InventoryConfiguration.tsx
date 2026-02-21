@@ -57,15 +57,6 @@ export function InventoryConfiguration({ initialData }: InventoryConfigProps) {
 						onChange={(value) => handleToggle("autoArchive", value)}
 					/>
 				</div>
-
-				<div className="border-t border-border pt-6">
-					<SettingsToggle
-						label="Allow Backorders"
-						description="Allow customers to purchase items that are currently out of stock."
-						checked={config.allowBackorders}
-						onChange={(value) => handleToggle("allowBackorders", value)}
-					/>
-				</div>
 			</div>
 		</SettingsSection>
 	);

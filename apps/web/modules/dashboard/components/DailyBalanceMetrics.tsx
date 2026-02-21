@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { MetricCard } from "./MetricCard";
-import { useAccountBalance } from "../hooks/useAccount";
 import {
 	Wallet,
 	DollarSign,
@@ -17,6 +16,7 @@ import { Button } from "@kosh/ui/components/button";
 import { MetricCardSkeleton } from "@/components/MetricCardSkeletion";
 import { useQuery } from "@apollo/client/react";
 import { gql } from "@/gql";
+import { parseGraphQLResponse } from "@/lib/graphql/utils";
 
 const GET_DAILY_METRICS = gql(`
 	query GetDailyMetrics {
@@ -32,17 +32,26 @@ const GET_DAILY_METRICS = gql(`
 				}
 			}
 	}
-`)
+`);
+
+const DEFAULT_BALANCE = {
+	openingCash: 0,
+	closingCash: 0,
+	totalSales: 0,
+	totalExpense: 0,
+	totalCashIn: 0,
+	totalCashOut: 0,
+};
 
 const DailyBalanceMetrics = () => {
-	// const {
-	// 	data: metrics,
-	// 	error,
-	// 	refetch,
-	// 	isPending,
-	// } = useAccountBalance();
+	const { data: rawData, loading, error, refetch } = useQuery(GET_DAILY_METRICS);
 
-	const { data: metrics, loading, error, refetch } = useQuery(GET_DAILY_METRICS)
+	const metricsResponse = useMemo(() =>
+		parseGraphQLResponse(rawData?.getCurrentCashBalance, DEFAULT_BALANCE),
+		[rawData?.getCurrentCashBalance]
+	);
+
+	const metrics = metricsResponse.data || DEFAULT_BALANCE;
 
 	if (loading) {
 		return (
@@ -73,48 +82,50 @@ const DailyBalanceMetrics = () => {
 			</div>
 		);
 	}
+
 	const metricCardValues: MetricCardProps[] = [
 		{
 			label: "Opening Cash",
-			value: formatCurrency(metrics?.getCurrentCashBalance?.data?.openingCash || 0),
+			value: formatCurrency(metrics.openingCash),
 			icon: Wallet,
 			sublabel: "Start of day",
 			iconColor: "text-blue-500",
 		},
 		{
 			label: "Sales Today",
-			value: formatCurrency(metrics?.getCurrentCashBalance?.data?.totalSales || 0),
+			value: formatCurrency(metrics.totalSales),
 			icon: DollarSign,
 			iconColor: "text-green-500",
 		},
 		{
 			label: "Cash In",
-			value: formatCurrency(metrics?.getCurrentCashBalance?.data?.totalCashIn || 0),
+			value: formatCurrency(metrics.totalCashIn),
 			icon: TrendingUp,
 			sublabel: "Total inflows",
 			iconColor: "text-emerald-500",
 		},
 		{
 			label: "Total Expenses",
-			value: formatCurrency(metrics?.getCurrentCashBalance?.data?.totalExpense || 0),
+			value: formatCurrency(metrics.totalExpense),
 			icon: ShoppingCart,
 			iconColor: "text-orange-500",
 		},
 		{
 			label: "Cash Out",
-			value: formatCurrency(metrics?.getCurrentCashBalance?.data?.totalCashOut || 0),
+			value: formatCurrency(metrics.totalCashOut),
 			icon: TrendingDown,
 			sublabel: "Total outflows",
 			iconColor: "text-red-500",
 		},
 		{
 			label: "Closing Cash",
-			value: formatCurrency(metrics?.getCurrentCashBalance?.data?.closingCash || 0),
+			value: formatCurrency(metrics.closingCash),
 			icon: Wallet,
 			sublabel: "Cash in hand",
 			iconColor: "text-purple-500",
 		},
 	];
+
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 			{metricCardValues.map((item) => (

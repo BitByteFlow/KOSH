@@ -1,4 +1,6 @@
-import { Search, Download, ChevronDown, Plus, Check, X } from "lucide-react";
+"use client";
+
+import { Search, Download, ChevronDown, Plus, Check } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
 import { ProductSheet } from "./ProductSheet";
 import { AddCategoryModal } from "./AddCategoryModal";
@@ -17,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { Status } from "@/gql/graphql";
 import { gql } from "@/gql";
 import { useQuery } from "@apollo/client/react";
+import { parseGraphQLListResponse } from "@/lib/graphql/utils";
 
 interface InventorySearchProps {
 	onSearch?: (query: string) => void;
@@ -32,6 +35,7 @@ const GET_CATEGORIES = gql(`
 	query GetCategoriesForSearch {
 		getCategories {
 			success
+			message
 			data {
 				id
 				name
@@ -51,21 +55,25 @@ const InventorySearch = ({
 	activeCategoryId,
 	activeStatus,
 }: InventorySearchProps) => {
-	const { data } = useQuery(GET_CATEGORIES)
-	const categories = data?.getCategories.data || [];
+	const { data: rawData } = useQuery(GET_CATEGORIES)
+
+	const categories = useMemo(() =>
+		parseGraphQLListResponse(rawData?.getCategories),
+		[rawData?.getCategories]
+	);
+
 	const [categorySearch, setCategorySearch] = useState("");
 
 	const filteredCategories = useMemo(() => {
-		if (!categories) return [];
-		if (!categorySearch) return categories;
-		return categories?.filter((cat: any) =>
+		if (!categorySearch) return categories.data ?? [];
+		return categories.data?.filter((cat) =>
 			cat.name.toLowerCase().includes(categorySearch.toLowerCase())
-		);
+		) ?? [];
 	}, [categories, categorySearch]);
 
 	const selectedCategoryName = useMemo(() => {
-		if (!activeCategoryId || categories?.length === 0) return "Category";
-		const cat = categories?.find((c: any) => c.id === activeCategoryId);
+		if (!activeCategoryId || categories.data?.length === 0) return "Category";
+		const cat = categories.data?.find((c) => c.id === activeCategoryId);
 		return cat ? cat.name : "Category";
 	}, [activeCategoryId, categories]);
 
@@ -140,7 +148,7 @@ const InventorySearch = ({
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<div className="max-h-[200px] overflow-auto">
-							{filteredCategories.map((cat: any) => (
+							{filteredCategories.map((cat) => (
 								<DropdownMenuItem
 									key={cat.id}
 									onClick={() => onCategoryFilter?.(cat.id)}
@@ -224,4 +232,4 @@ const InventorySearch = ({
 	);
 }
 
-export default InventorySearch
+export default InventorySearch;

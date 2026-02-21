@@ -5,12 +5,10 @@ import {
 	Search,
 	SlidersHorizontal,
 	Upload,
-	FileText,
-	Printer,
 	Eye,
 	MoreHorizontal,
-	Loader2,
 	X,
+	Printer,
 } from "lucide-react";
 import {
 	Table,
@@ -30,7 +28,6 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
-	DropdownMenuSeparator,
 } from "@kosh/ui/components/dropdown-menu";
 import {
 	Dialog,
@@ -40,17 +37,18 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@kosh/ui/components/dialog";
-import { useSalesList } from "../hooks/useSales";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import { TransactionTableSkeleton } from "@/components/TableSkeleton";
 import { gql } from "@/gql";
 import { useQuery } from "@apollo/client/react";
+import { parseGraphQLListResponse } from "@/lib/graphql/utils";
 
 const GET_SALES_HISTORY = gql(`
 	query getSalesHistory{
 		getSales {
 			success
+			message
 			data {
 				id
 				total
@@ -85,22 +83,26 @@ export function SalesHistoryTable() {
 		paymentTypes: [] as string[],
 	});
 
-	const {data: sales, loading, error} = useQuery(GET_SALES_HISTORY)
+	const { data: rawData, loading, error } = useQuery(GET_SALES_HISTORY)
+
+	const salesData = useMemo(() =>
+		parseGraphQLListResponse(rawData?.getSales),
+		[rawData?.getSales]
+	);
 
 	const filteredSales = useMemo(() => {
-		if (!sales) return [];
-		return sales.getSales.data?.filter((sale: any) => {
+		return salesData.data?.filter((sale) => {
 			const matchesSearch =
 				sale.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				sale.paymentType.toLowerCase().includes(searchQuery.toLowerCase());
 
 			if (!matchesSearch) return false;
 
-			const total = parseFloat(sale.total);
+			const total = sale.total;
 			if (filters.minTotal && total < parseFloat(filters.minTotal)) return false;
 			if (filters.maxTotal && total > parseFloat(filters.maxTotal)) return false;
 
-			const profit = parseFloat(sale.profit);
+			const profit = sale.profit;
 			if (filters.minProfit && profit < parseFloat(filters.minProfit)) return false;
 			if (filters.maxProfit && profit > parseFloat(filters.maxProfit)) return false;
 
@@ -117,7 +119,7 @@ export function SalesHistoryTable() {
 
 			return true;
 		});
-	}, [sales, searchQuery, filters]);
+	}, [salesData, searchQuery, filters]);
 
 	const handlePaymentTypeChange = (type: string, checked: boolean) => {
 		setFilters((prev) => ({
@@ -224,7 +226,7 @@ export function SalesHistoryTable() {
 								</TableCell>
 							</TableRow>
 						) : (
-							filteredSales?.map((sale: any) => (
+							filteredSales?.map((sale) => (
 								<TableRow
 									key={sale.id}
 									className="hover:bg-muted/50 border-border"
@@ -247,10 +249,10 @@ export function SalesHistoryTable() {
 										</Badge>
 									</TableCell>
 									<TableCell className="text-right font-medium text-sm">
-										{formatCurrency(parseFloat(sale.total))}
+										{formatCurrency(sale.total)}
 									</TableCell>
 									<TableCell className="text-right font-medium text-green-600 text-sm">
-										{formatCurrency(parseFloat(sale.profit))}
+										{formatCurrency(sale.profit)}
 									</TableCell>
 									<TableCell>
 										<DropdownMenu>

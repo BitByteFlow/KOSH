@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
 	Plus,
 	Trash2,
@@ -38,6 +38,7 @@ import {
 } from "@kosh/validation";
 import { toast } from "sonner";
 import { Product } from "@/gql/graphql";
+import { parseGraphQLListResponse } from "@/lib/graphql/utils";
 
 interface AttributeListProps {
 	variantIndex: number;
@@ -55,7 +56,7 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 			<Label className="text-xs font-semibold text-gray-500">Attributes</Label>
 			{fields.map((attr, attrIndex) => (
 				<div
-					key={attr.value}
+					key={attr.id}
 					className="flex gap-2 items-start"
 				>
 					<div className="flex-1">
@@ -145,6 +146,7 @@ const GET_CATEGORIES = gql(`
 	query GetCategoriesSheet {
 		getCategories {
 			success
+			message
 			data {
 				id
 				name
@@ -231,16 +233,20 @@ export function ProductSheet({
 }: ProductSheetProps) {
 	const client = useApolloClient();
 	const [internalOpen, setInternalOpen] = useState(false);
-	const { data: categoryData, loading: categoriesLoading } = useQuery(GET_CATEGORIES);
-	const [createProductMutation, { loading: isCreating }] = useMutation(CREATE_PRODUCT as any, {
+	const { data: rawCategoryData, loading: categoriesLoading } = useQuery(GET_CATEGORIES);
+
+	const categories = useMemo(() =>
+		parseGraphQLListResponse(rawCategoryData?.getCategories),
+		[rawCategoryData?.getCategories]
+	);
+
+	const [createProductMutation, { loading: isCreating }] = useMutation(CREATE_PRODUCT, {
 		update(cache, { data }: any) {
 			const newProduct = data?.createProduct?.data?.[0];
 			if (newProduct) {
 				cache.modify({
 					fields: {
 						listProductsWithFilter(existingData, { storeFieldName }) {
-							// We can filter by storeFieldName if we want to target specific filters,
-							// but for now we update all cached lists to ensure consistency.
 							if (!existingData) return existingData;
 							return {
 								...existingData,
@@ -256,7 +262,7 @@ export function ProductSheet({
 			}
 		}
 	});
-	const [updateProductMutation, { loading: isUpdating }] = useMutation(UPDATE_PRODUCT_DETAILS as any);
+	const [updateProductMutation, { loading: isUpdating }] = useMutation(UPDATE_PRODUCT_DETAILS);
 
 	const isControlled = open !== undefined && onOpenChange !== undefined;
 	const isOpen = isControlled ? open : internalOpen;
@@ -300,7 +306,7 @@ export function ProductSheet({
 					variants: product.variants.map((v: any) => ({
 						id: v.id,
 						costPrice: v.costPrice,
-						sellingPrice: v.price,
+						sellingPrice: v.sellingPrice,
 						stock: v.stock,
 						attributes: v.attributes.length > 0 ? v.attributes : [{ name: "", value: "" }],
 					})),
@@ -369,10 +375,11 @@ export function ProductSheet({
 						}
 					}
 				});
-				if ((updateResult as any)?.updateProduct?.success) {
+
+				if (updateResult?.updateProduct?.success) {
 					toast.success("Product updated successfully");
 				} else {
-					toast.error((updateResult as any)?.updateProduct?.message || "Failed to update product");
+					toast.error(updateResult?.updateProduct?.message || "Failed to update product");
 				}
 			} else {
 				const { data: createResult } = await createProductMutation({
@@ -394,10 +401,10 @@ export function ProductSheet({
 						}
 					}
 				});
-				if ((createResult as any)?.createProduct?.success) {
+				if (createResult?.createProduct?.success) {
 					toast.success("Product created successfully");
 				} else {
-					toast.error((createResult as any)?.createProduct?.message || "Failed to create product");
+					toast.error(createResult?.createProduct?.message || "Failed to create product");
 				}
 			}
 			setIsOpen(false);
@@ -411,7 +418,7 @@ export function ProductSheet({
 	};
 
 	if (categoriesLoading) {
-		return <h2>loading...</h2>;
+		return <h2>Loading...</h2>;
 	}
 
 	return (
@@ -500,15 +507,14 @@ export function ProductSheet({
 														? "Loading..."
 														: "Select a category"}
 												</option>
-												{categoryData &&
-													categoryData?.getCategories?.data?.map((cat: any) => (
-														<option
-															key={cat.id}
-															value={cat.id}
-														>
-															{cat.name}
-														</option>
-													))}
+												{categories.data?.map((cat) => (
+													<option
+														key={cat.id}
+														value={cat.id}
+													>
+														{cat.name}
+													</option>
+												))}
 											</select>
 											<div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-muted-foreground">
 												<ChevronDown className="w-4 h-4" />

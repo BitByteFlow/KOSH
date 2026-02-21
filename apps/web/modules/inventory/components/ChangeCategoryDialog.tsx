@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@kosh/ui/components/button";
 import {
 	Dialog,
@@ -12,9 +12,9 @@ import {
 } from "@kosh/ui/components/dialog";
 import { Label } from "@kosh/ui/components/label";
 import { toast } from "sonner";
-import { useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { gql } from "@/gql";
+import { parseGraphQLListResponse } from "@/lib/graphql/utils";
 
 interface ChangeCategoryDialogProps {
 	open: boolean;
@@ -27,6 +27,7 @@ const GET_CATEGORIES = gql(`
 	query GetCategoriesInDialog {
 		getCategories {
 			success
+			message
 			data {
 				id
 				name
@@ -75,14 +76,19 @@ export function ChangeCategoryDialog({
 	onOpenChange,
 	product,
 }: ChangeCategoryDialogProps) {
-	const { data: categoryData, loading: categoriesLoading } = useQuery(GET_CATEGORIES);
-	const [updateProductMutation, { loading: isUpdating }] = useMutation(UPDATE_PRODUCT_CATEGORY as any);
-	const [selectedCategory, setSelectedCategory] = useState(product?.category || "");
+	const { data: rawCategoryData, loading: categoriesLoading } = useQuery(GET_CATEGORIES);
+	const [updateProductMutation, { loading: isUpdating }] = useMutation(UPDATE_PRODUCT_CATEGORY);
+	const [selectedCategory, setSelectedCategory] = useState(product?.category?.id || "");
+
+	const categories = useMemo(() =>
+		parseGraphQLListResponse(rawCategoryData?.getCategories),
+		[rawCategoryData?.getCategories]
+	);
 
 	// Reset selection when product changes
 	useEffect(() => {
 		if (product) {
-			setSelectedCategory(product.category || "");
+			setSelectedCategory(product.category?.id || "");
 		}
 	}, [product]);
 
@@ -133,7 +139,7 @@ export function ChangeCategoryDialog({
 							disabled={categoriesLoading}
 						>
 							<option value="" disabled>Select a category</option>
-							{categoryData?.getCategories.data?.map((cat: any) => (
+							{categories.data?.map((cat) => (
 								<option key={cat.id} value={cat.id}>
 									{cat.name}
 								</option>
@@ -146,7 +152,7 @@ export function ChangeCategoryDialog({
 					<Button variant="outline" onClick={() => onOpenChange(false)}>
 						Cancel
 					</Button>
-					<Button onClick={handleSave} disabled={isUpdating || selectedCategory === product?.category}>
+					<Button onClick={handleSave} disabled={isUpdating || selectedCategory === product?.category?.id}>
 						{isUpdating ? "Saving..." : "Save Changes"}
 					</Button>
 				</DialogFooter>

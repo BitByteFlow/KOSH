@@ -1,15 +1,19 @@
+"use client";
+
 import React, { useMemo } from "react";
 import { getDateRange } from "@/lib/date-utils";
 import { AnalyticsMetricCard } from "./AnalyticsMetric";
 import { MetricCardSkeleton } from "@/components/MetricCardSkeletion";
 import { useQuery } from "@apollo/client/react";
 import { gql } from "@/gql";
+import { parseGraphQLListResponse } from "@/lib/graphql/utils";
 
 
 const GET_REPORT_METRICS = gql(`
 	query getReportMetrics($startDate: String!, $endDate: String!){
 		getAnalyticsMetrics (startDate: $startDate, endDate: $endDate) {
 			success
+			message
 			data {
 				label
 				value
@@ -28,7 +32,16 @@ const ReportMetrics = ({ dateRange }: { dateRange: string }) => {
 		[dateRange],
 	);
 
-	const { data: metrics, loading, error } = useQuery(GET_REPORT_METRICS, { variables: { startDate, endDate } })
+	const { data: rawData, loading, error } = useQuery(GET_REPORT_METRICS, {
+		variables: { startDate, endDate }
+	});
+
+	const metricsResponse = useMemo(() =>
+		parseGraphQLListResponse(rawData?.getAnalyticsMetrics),
+		[rawData?.getAnalyticsMetrics]
+	);
+
+	const metrics = metricsResponse.data || [];
 
 	if (loading) {
 		return (
@@ -41,12 +54,12 @@ const ReportMetrics = ({ dateRange }: { dateRange: string }) => {
 		);
 	}
 	if (error) {
-		return <h2>error</h2>;
+		return <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">Error loading metrics</div>;
 	}
 
 	return (
 		<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-			{metrics?.getAnalyticsMetrics?.data?.map((metric) => (
+			{metrics.map((metric) => (
 				<AnalyticsMetricCard
 					key={metric.label}
 					label={metric.label}

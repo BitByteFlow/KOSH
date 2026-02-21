@@ -32,16 +32,21 @@ import { useQuery, useMutation } from "@apollo/client/react";
 import { ProductVariant, Status } from "@/gql/graphql";
 import { gql } from "@/gql";
 import { Product } from "@/gql/graphql";
+import { parseGraphQLResponse, parseGraphQLListResponse } from "@/lib/graphql/utils";
 
 const GET_INVENTORY_DATA = gql(`
 	query GetInventoryList ($filterInput: ProductFilterInput!) {
 		listProductsWithFilter (filterInput: $filterInput) {
+			success
+			message
 			data {
 				id
 				productName
 				category {
 					id
 					name
+					createdAt
+					updatedAt
 				} 
 				totalStock
 				variantCount
@@ -119,6 +124,18 @@ const UPDATE_PRODUCT_VARIANT = gql(`
 	}
 `);
 
+const DEFAULT_INVENTORY_DATA = {
+	data: [],
+	meta: {
+		page: 1,
+		limit: 10,
+		total: 0,
+		totalPages: 0,
+		hasNext: false,
+		hasPrev: false,
+	}
+};
+
 const InventoryPage = () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -135,7 +152,7 @@ const InventoryPage = () => {
 	const [categoryProduct, setCategoryProduct] = useState<Product | null>(null);
 
 
-	const { data: inventoryData, loading, error, refetch } = useQuery(GET_INVENTORY_DATA, {
+	const { data: rawData, loading, error, refetch } = useQuery(GET_INVENTORY_DATA, {
 		variables: {
 			filterInput: {
 				page: currentPage,
@@ -161,10 +178,16 @@ const InventoryPage = () => {
 	const [productToDelete, setProductToDelete] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
 
-	const products = (inventoryData as any)?.listProductsWithFilter?.data || [];
-	const meta = (inventoryData as any)?.listProductsWithFilter?.meta;
-	const totalPages = meta?.totalPages || 0;
-	const totalItems = meta?.total || 0;
+	const productsResponse = useMemo(() =>
+		parseGraphQLListResponse<Product>(rawData?.listProductsWithFilter as any),
+		[rawData?.listProductsWithFilter]
+	);
+
+	const products = (productsResponse.data || []) as Product[];
+	const meta = productsResponse.meta || DEFAULT_INVENTORY_DATA.meta;
+
+	const totalPages = meta.totalPages;
+	const totalItems = meta.total;
 
 	const handleToggleSelection = (id: string) => {
 		setSelectedProductIds((prev) => {
@@ -180,10 +203,10 @@ const InventoryPage = () => {
 
 	const handleSelectAll = (checked: boolean) => {
 		if (checked) {
-			const allIds = products.map((p: any) => p.id);
+			const allIds = products.map((p) => p.id);
 			setSelectedProductIds(new Set([...Array.from(selectedProductIds), ...allIds]));
 		} else {
-			const currentIds = products.map((p: Product) => p.id);
+			const currentIds = products.map((p) => p.id);
 			setSelectedProductIds((prev) => {
 				const newSet = new Set(prev);
 				currentIds.forEach((id: string) => newSet.delete(id));
@@ -192,25 +215,25 @@ const InventoryPage = () => {
 		}
 	};
 
-	const isAllSelected = products.length > 0 && products.every((p: any) => selectedProductIds.has(p.id));
+	const isAllSelected = products.length > 0 && products.every((p) => selectedProductIds.has(p.id));
 
 	const selectedProducts = useMemo(() => {
-		return products.filter((p: any) => selectedProductIds.has(p.id));
+		return products.filter((p) => selectedProductIds.has(p.id));
 	}, [products, selectedProductIds]);
 
 	const handleEditProduct = (id: string) => {
-		const product = products.find((p: any) => p.id === id);
+		const product = products.find((p) => p.id === id);
 		if (product) setEditingProduct(product);
 	};
 
 	const handleViewDetails = (id: string) => {
-		const product = products.find((p: any) => p.id === id);
+		const product = products.find((p) => p.id === id);
 		if (product) setViewingProduct(product);
 	};
 
 	const handleChangeCategory = (id: string) => {
-		const product = products.find((p: Product) => p.id === id);
-		if (product) setCategoryProduct(product);
+		const product = products.find((p) => p.id === id);
+		if (product) setCategoryProduct(product as Product);
 	};
 
 	const handleDeleteProduct = (id: string) => {
@@ -289,7 +312,7 @@ const InventoryPage = () => {
 								</TableHeader>
 
 								<TableBody>
-									{products.map((product: Product) => (
+									{products.map((product) => (
 										<InventoryItem
 											key={product.id}
 											{...product}
@@ -302,7 +325,6 @@ const InventoryPage = () => {
 											onEditVariant={(id) => console.log("Edit variant:", id)}
 											onUpdateVariant={async (variant: ProductVariant) => {
 												try {
-													alert(variant.sellingPrice)
 													await updateProductVariantMutation({
 														variables: {
 															productVariantId: variant.id,
@@ -374,9 +396,6 @@ const InventoryPage = () => {
 				onOpenChange={(open) => !open && setCategoryProduct(null)}
 				product={categoryProduct}
 				onSave={async (id, cat) => {
-					// This is now handled inside ChangeCategoryDialog, but we keep the prop for interface compatibility if needed, 
-					// or we can remove it from the component definition if we fully refactored it. 
-					// For now, let's just log or do nothing since the dialog handles the mutation.
 					console.log("Category updated");
 				}}
 			/>
@@ -414,10 +433,10 @@ const InventoryPage = () => {
 			<BarcodeDialog
 				open={isBarcodeDialogOpen}
 				onOpenChange={setIsBarcodeDialogOpen}
-				products={selectedProducts}
+				products={selectedProducts as Product[]}
 			/>
 		</div>
 	);
 }
 
-export default InventoryPage
+export default InventoryPage;

@@ -2,6 +2,7 @@
 
 import { gql } from "@/gql";
 import { getDateRange } from "@/lib/date-utils";
+import { parseGraphQLListResponse } from "@/lib/graphql/utils";
 import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
 import {
@@ -36,9 +37,17 @@ export function SalesTrendChart({ dateRange }: SalesTrendChartProps) {
 		() => getDateRange(dateRange),
 		[dateRange],
 	);
-	const { data: trendData, loading: trendLoading } = useQuery<{ getSalesTrend: { label: string; value: number }[] }>(GET_SALES_TREND, {
+
+	const { data: rawData, loading: trendLoading } = useQuery(GET_SALES_TREND, {
 		variables: { startDate, endDate }
 	});
+
+	const salesResponse = useMemo(() =>
+		parseGraphQLListResponse(rawData?.getSalesTrend),
+		[rawData?.getSalesTrend]
+	);
+
+	const chartData = salesResponse.data || [];
 
 	if (trendLoading) {
 		return (
@@ -58,7 +67,7 @@ export function SalesTrendChart({ dateRange }: SalesTrendChartProps) {
 				height={300}
 			>
 				<AreaChart
-					data={trendData?.getSalesTrend}
+					data={chartData}
 					margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
 				>
 					<defs>

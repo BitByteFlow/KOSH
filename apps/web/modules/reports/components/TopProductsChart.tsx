@@ -3,28 +3,24 @@ import { useQuery } from "@apollo/client/react";
 import { gql } from "@/gql";
 import { useMemo } from "react";
 import { getDateRange } from "@/lib/date-utils";
-
-interface TopProduct {
-	name: string;
-	revenue: string;
-	value: number;
-}
+import { parseGraphQLListResponse } from "@/lib/graphql/utils";
 
 interface TopProductsChartProps {
 	dateRange: string;
 }
 
 const GET_TOP_PRODUCTS = gql(`
-	query getTopProducts ($startDate: String!, $endDate: String!){
+	query getTopProducts ($startDate: String!, $endDate: String!) {
 		getTopProducts (startDate: $startDate, endDate: $endDate) {
 			success
 			data {
 				name
 				revenue
-			value
+				value
+			}
 		}
 	}
-`) as any;
+`);
 
 export function TopProductsChart({ dateRange }: TopProductsChartProps) {
 	const { startDate, endDate } = useMemo(
@@ -32,9 +28,16 @@ export function TopProductsChart({ dateRange }: TopProductsChartProps) {
 		[dateRange],
 	);
 
-	const { data, loading } = useQuery<{ getTopProducts: TopProduct[] }>(GET_TOP_PRODUCTS, {
+	const { data: rawData, loading } = useQuery(GET_TOP_PRODUCTS, {
 		variables: { startDate, endDate },
 	});
+
+	const productsResponse = useMemo(() =>
+		parseGraphQLListResponse(rawData?.getTopProducts),
+		[rawData?.getTopProducts]
+	);
+
+	const topProducts = productsResponse.data || [];
 
 	if (loading) {
 		return (
@@ -44,7 +47,6 @@ export function TopProductsChart({ dateRange }: TopProductsChartProps) {
 		);
 	}
 
-	const topProducts = data?.getTopProducts || [];
 	const maxRevenue = topProducts.length > 0 ? Math.max(...topProducts.map((d) => d.value)) : 0;
 
 	return (

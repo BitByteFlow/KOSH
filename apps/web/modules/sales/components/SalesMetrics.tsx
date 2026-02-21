@@ -1,17 +1,19 @@
 "use client"
 
-import React from "react";
+import React, { useMemo } from "react";
 import { MetricCard } from "@/modules/dashboard/components/MetricCard";
 import { DollarSign, Files, TrendingUp, Wallet } from "lucide-react";
 import { MetricCardSkeleton } from "@/components/MetricCardSkeletion";
 import { gql } from "@/gql";
 import { useQuery } from "@apollo/client/react";
+import { parseGraphQLResponse } from "@/lib/graphql/utils";
 
 
 const GET_SALES_METRICS = gql(`
 	query getSalesMetricsData{
 		getSalesMetrics {
 			success
+			message
 			data {
 				totalTransactions
 				totalProfit
@@ -22,8 +24,22 @@ const GET_SALES_METRICS = gql(`
 	}
 `)
 
+const DEFAULT_SALES_METRICS = {
+	totalTransactions: 0,
+	totalProfit: 0,
+	totalSales: 0,
+	avgSaleValue: 0,
+};
+
 const SalesMetrics = () => {
-	const { data: metrics, loading } = useQuery(GET_SALES_METRICS)
+	const { data: rawData, loading } = useQuery(GET_SALES_METRICS)
+
+	const metricsResponse = useMemo(() =>
+		parseGraphQLResponse(rawData?.getSalesMetrics, DEFAULT_SALES_METRICS),
+		[rawData?.getSalesMetrics]
+	);
+
+	const metrics = metricsResponse.data || DEFAULT_SALES_METRICS;
 
 	if (loading) {
 		return (
@@ -39,35 +55,30 @@ const SalesMetrics = () => {
 	const salesMetrics = [
 		{
 			label: "Total Sales",
-			value: loading
-				? "..."
-				: `Rs ${metrics?.getSalesMetrics.data?.totalSales?.toLocaleString() || 0}`,
+			value: `Rs ${metrics.totalSales.toLocaleString()}`,
 			change: { value: 0, label: "Today", positive: true },
 			icon: DollarSign,
 		},
 		{
 			label: "Transactions",
-			value: loading ? "..." : (metrics?.getSalesMetrics.data?.totalTransactions || 0).toString(),
+			value: metrics.totalTransactions.toString(),
 			sublabel: "Today's sales count",
 			icon: Files,
 		},
 		{
 			label: "Avg. Sale Value",
-			value: loading
-				? "..."
-				: `Rs ${Math.round(metrics?.getSalesMetrics.data?.avgSaleValue || 0).toLocaleString()}`,
+			value: `Rs ${Math.round(metrics.avgSaleValue).toLocaleString()}`,
 			change: { value: 0, label: "Today", positive: true },
 			icon: TrendingUp,
 		},
 		{
 			label: "Total Profit",
-			value: loading
-				? "..."
-				: `Rs ${metrics?.getSalesMetrics.data?.totalProfit?.toLocaleString() || 0}`,
+			value: `Rs ${metrics.totalProfit.toLocaleString()}`,
 			sublabel: "Today's net profit",
 			icon: Wallet,
 		},
 	];
+
 	return (
 		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 			{salesMetrics.map((metric) => (

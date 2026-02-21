@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo, useEffect } from "react";
 import { Search, SlidersHorizontal, Upload } from "lucide-react";
 import {
@@ -26,16 +28,8 @@ import { gql } from "@/gql";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getDateRange } from "@/lib/date-utils";
-
-interface SaleReport {
-	id: string;
-	date: string;
-	customer: string;
-	items: number;
-	total: number;
-	payment: string;
-	status: string;
-}
+import { parseGraphQLListResponse } from "@/lib/graphql/utils";
+import { PaymentType } from "@/gql/graphql";
 
 interface SalesReportTableProps {
 	dateRange: string;
@@ -45,6 +39,7 @@ const GET_SALES_REPORT = gql(`
 	query getSalesReport ($filters: SaleReportFilter!){
 		getSalesReport (filters: $filters) {
 			success
+			message
 			data {
 				id
 				date
@@ -63,19 +58,16 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-	// State for filters that are currently applied to the query
 	const [appliedFilters, setAppliedFilters] = useState({
-		paymentMethods: [] as string[],
+		paymentMethods: [] as PaymentType[],
 		statuses: [] as string[],
 	});
 
-	// State for filters currently being edited in the dialog
 	const [tempFilters, setTempFilters] = useState({
-		paymentMethods: [] as string[],
+		paymentMethods: [] as PaymentType[],
 		statuses: [] as string[],
 	});
 
-	// Debounce logic for search
 	useEffect(() => {
 		const handler = setTimeout(() => {
 			setDebouncedSearch(searchQuery);
@@ -83,10 +75,9 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 		return () => clearTimeout(handler);
 	}, [searchQuery]);
 
-	// Convert dateRange prop to actual dates
 	const { startDate, endDate } = useMemo(() => getDateRange(dateRange), [dateRange]);
 
-	const { data, loading } = useQuery<{ getSalesReport: SaleReport[] }>(GET_SALES_REPORT, {
+	const { data: rawData, loading } = useQuery(GET_SALES_REPORT, {
 		variables: {
 			filters: {
 				startDate,
@@ -98,6 +89,13 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 		}
 	});
 
+	const salesResponse = useMemo(() =>
+		parseGraphQLListResponse(rawData?.getSalesReport),
+		[rawData?.getSalesReport]
+	);
+
+	const filteredSales = salesResponse.data || [];
+
 	if (loading) {
 		return (
 			<div className="flex h-64 items-center justify-center">
@@ -105,8 +103,6 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 			</div>
 		);
 	}
-
-	const filteredSales = data?.getSalesReport || [];
 
 	const handleExport = () => {
 		const doc = new jsPDF();
@@ -133,12 +129,12 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 		doc.save(`sales-report-${new Date().toISOString().split('T')[0]}.pdf`);
 	};
 
-	const handlePaymentChange = (type: string, checked: boolean) => {
+	const handlePaymentChange = (type: PaymentType, checked: boolean) => {
 		setTempFilters((prev) => ({
 			...prev,
 			paymentMethods: checked
 				? [...prev.paymentMethods, type]
-				: prev.paymentMethods.filter((t: string) => t !== type)
+				: prev.paymentMethods.filter((t: PaymentType) => t !== type)
 		}));
 	};
 
@@ -262,8 +258,8 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 									<div key={type} className="flex items-center space-x-2">
 										<Checkbox
 											id={`payment-${type}`}
-											checked={tempFilters.paymentMethods.includes(type)}
-											onCheckedChange={(checked) => handlePaymentChange(type, checked as boolean)}
+											checked={tempFilters.paymentMethods.includes(type as PaymentType)}
+											onCheckedChange={(checked) => handlePaymentChange(type as PaymentType, checked as boolean)}
 										/>
 										<label
 											htmlFor={`payment-${type}`}
