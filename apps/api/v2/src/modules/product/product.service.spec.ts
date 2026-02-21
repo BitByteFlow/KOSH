@@ -106,6 +106,7 @@ describe('ProductService', () => {
       sellingPrice: new Prisma.Decimal(150),
       stock: 10,
       status: 'ACTIVE',
+      attributes: [{ name: 'Size', value: 'M' }],
     };
 
     it('should create product successfully', async () => {
@@ -119,7 +120,7 @@ describe('ProductService', () => {
         variants: [mockVariant],
       });
 
-      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn) => {
+      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(mockDatabaseService.prisma);
       });
 
@@ -164,7 +165,7 @@ describe('ProductService', () => {
         variants: [mockVariant],
       });
 
-      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn) => {
+      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(mockDatabaseService.prisma);
       });
 
@@ -188,7 +189,7 @@ describe('ProductService', () => {
         variants: [mockVariant],
       });
 
-      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn) => {
+      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(mockDatabaseService.prisma);
       });
 
@@ -214,7 +215,7 @@ describe('ProductService', () => {
     it('should soft delete product successfully', async () => {
       mockDatabaseService.prisma.product.findUnique.mockResolvedValue(mockProduct);
 
-      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn) => {
+      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(mockDatabaseService.prisma);
       });
 
@@ -232,7 +233,7 @@ describe('ProductService', () => {
     it('should soft delete variants when product is deleted', async () => {
       mockDatabaseService.prisma.product.findUnique.mockResolvedValue(mockProduct);
 
-      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn) => {
+      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(mockDatabaseService.prisma);
       });
 
@@ -258,9 +259,11 @@ describe('ProductService', () => {
     });
 
     it('should throw NotFoundException if product belongs to different user', async () => {
-      mockDatabaseService.prisma.product.findUnique.mockResolvedValue({
-        ...mockProduct,
-        userId: 'different-user',
+      // When userId doesn't match, findUnique returns null
+      mockDatabaseService.prisma.product.findUnique.mockResolvedValue(null);
+
+      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn: any) => {
+        return fn(mockDatabaseService.prisma);
       });
 
       await expect(
@@ -405,10 +408,10 @@ describe('ProductService', () => {
         limit: 10,
       });
 
-      expect(result.meta.total).toBe(25);
-      expect(result.meta.page).toBe(2);
-      expect(result.meta.limit).toBe(10);
-      expect(result.meta.totalPages).toBe(3);
+      expect(result.meta?.total).toBe(25);
+      expect(result.meta?.page).toBe(2);
+      expect(result.meta?.limit).toBe(10);
+      expect(result.meta?.totalPages).toBe(3);
     });
   });
 });

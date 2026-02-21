@@ -105,8 +105,12 @@ describe('SalesService', () => {
     it('should create sale with CASH payment successfully', async () => {
       mockDatabaseService.prisma.productVariant.findUnique.mockResolvedValue(mockVariant);
       mockDatabaseService.prisma.sale.create.mockResolvedValue(mockSale);
+      mockDatabaseService.prisma.dailyBalance.findFirst.mockResolvedValue({
+        id: 'balance-123',
+        closingCash: new Prisma.Decimal(1000),
+      });
 
-      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn) => {
+      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(mockDatabaseService.prisma);
       });
 
@@ -171,8 +175,12 @@ describe('SalesService', () => {
     it('should decrement stock after successful sale', async () => {
       mockDatabaseService.prisma.productVariant.findUnique.mockResolvedValue(mockVariant);
       mockDatabaseService.prisma.sale.create.mockResolvedValue(mockSale);
+      mockDatabaseService.prisma.dailyBalance.findFirst.mockResolvedValue({
+        id: 'balance-123',
+        closingCash: new Prisma.Decimal(1000),
+      });
 
-      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn) => {
+      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(mockDatabaseService.prisma);
       });
 
@@ -196,7 +204,7 @@ describe('SalesService', () => {
         closingCash: new Prisma.Decimal(1000),
       });
 
-      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn) => {
+      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(mockDatabaseService.prisma);
       });
 
@@ -209,9 +217,13 @@ describe('SalesService', () => {
     it('should create daily balance if not exists', async () => {
       mockDatabaseService.prisma.productVariant.findUnique.mockResolvedValue(mockVariant);
       mockDatabaseService.prisma.sale.create.mockResolvedValue(mockSale);
-      mockDatabaseService.prisma.dailyBalance.findFirst.mockResolvedValue(null);
+      mockDatabaseService.prisma.dailyBalance.findFirst.mockResolvedValueOnce(null);
+      mockDatabaseService.prisma.dailyBalance.create.mockResolvedValue({
+        id: 'balance-123',
+        closingCash: new Prisma.Decimal(1000),
+      });
 
-      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn) => {
+      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(mockDatabaseService.prisma);
       });
 
@@ -236,7 +248,7 @@ describe('SalesService', () => {
         balance: new Prisma.Decimal(300),
       });
 
-      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn) => {
+      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(mockDatabaseService.prisma);
       });
 
@@ -259,7 +271,7 @@ describe('SalesService', () => {
         balance: new Prisma.Decimal(600),
       });
 
-      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn) => {
+      mockDatabaseService.prisma.$transaction.mockImplementation(async (fn: any) => {
         return fn(mockDatabaseService.prisma);
       });
 
@@ -300,10 +312,10 @@ describe('SalesService', () => {
       const result = await salesService.getMetrices(userId);
 
       expect(result.success).toBe(true);
-      expect(result.data.totalSales).toBe(800);
-      expect(result.data.totalProfit).toBe(300);
-      expect(result.data.totalTransactions).toBe(2);
-      expect(result.data.avgSaleValue).toBe(400);
+      expect(result.data?.totalSales).toBe(800);
+      expect(result.data?.totalProfit).toBe(300);
+      expect(result.data?.totalTransactions).toBe(2);
+      expect(result.data?.avgSaleValue).toBe(400);
     });
 
     it('should return zero metrics when no sales today', async () => {
@@ -311,10 +323,10 @@ describe('SalesService', () => {
 
       const result = await salesService.getMetrices(userId);
 
-      expect(result.data.totalSales).toBe(0);
-      expect(result.data.totalProfit).toBe(0);
-      expect(result.data.totalTransactions).toBe(0);
-      expect(result.data.avgSaleValue).toBe(0);
+      expect(result.data?.totalSales).toBe(0);
+      expect(result.data?.totalProfit).toBe(0);
+      expect(result.data?.totalTransactions).toBe(0);
+      expect(result.data?.avgSaleValue).toBe(0);
     });
 
     it('should only count today\'s sales', async () => {

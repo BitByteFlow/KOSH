@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthService } from '../src/modules/auth/auth.service';
-import { DatabaseService } from '../src/database/database.service';
-import { AuthResponseDto } from '../src/modules/auth/dto/AuthResponseDto';
+import { AuthService } from './auth.service';
+import { DatabaseService } from '../../database/database.service';
+import { AuthResponseDto } from './dto/AuthResponseDto';
 
 describe('AuthService', () => {
   let authService: AuthService;
