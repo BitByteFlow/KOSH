@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   ConflictException,
   NotFoundException,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { DatabaseService } from '../../database/database.service';
