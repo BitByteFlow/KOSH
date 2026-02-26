@@ -13,7 +13,7 @@ import {
 	Search,
 	Bolt,
 	ChevronDown,
-	PanelLeft,
+	LogOut,
 } from "lucide-react";
 
 import {
@@ -28,7 +28,6 @@ import {
 	SidebarGroupLabel,
 	SidebarGroupContent,
 	SidebarTrigger,
-	useSidebar,
 } from "@kosh/ui/components/sidebar";
 import { Input } from "@kosh/ui/components/input";
 import {
@@ -36,7 +35,15 @@ import {
 	AvatarFallback,
 	AvatarImage,
 } from "@kosh/ui/components/avatar";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@kosh/ui/components/dropdown-menu";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 
 const menuItems = [
 	{ title: "Dashboard", icon: LayoutGrid, url: "/dashboard" },
@@ -54,9 +61,13 @@ const supportItems = [
 const DashboardSidebar = () => {
 	const pathname = usePathname();
 	const router = useRouter();
-	const { state } = useSidebar();
-	const isCollapsed = state === "collapsed";
-
+	const session = useSession()
+	const handleLogout = async () => {
+		await signOut({
+			redirect: true,
+			redirectTo: "/auth/get-started"
+		})
+	}
 	return (
 		<Sidebar
 			className="border-r border-gray-200 bg-white flex-col max-h-screen"
@@ -161,22 +172,74 @@ const DashboardSidebar = () => {
 				</SidebarGroup>
 			</SidebarContent>
 
-			<SidebarFooter className="p-4 border-t border-gray-200">
-				<button className="flex gap-3 transition-colors text-left w-full rounded-lg p-2 items-center hover:bg-gray-50">
-					<Avatar className="h-10 w-10 border-2 border-white shadow-sm">
-						<AvatarImage src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100&h=100&fit=crop" />
-						<AvatarFallback>BT</AvatarFallback>
-					</Avatar>
-					<div className="flex-1 min-w-0">
-						<p className="truncate text-sm font-semibold text-gray-900">
-							Bibek Tamang
-						</p>
-						<p className="text-xs text-gray-500 truncate">
-							bibek.tamage@gmail.com
-						</p>
-					</div>
-					<ChevronDown className="h-4 w-4 text-gray-400" />
-				</button>
+			<SidebarFooter>
+				<SidebarMenu>
+					<SidebarMenuItem>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<SidebarMenuButton
+									size="lg"
+									className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+								>
+									<Avatar className="h-8 w-8 rounded-lg shrink-0">
+										<AvatarImage
+											src={session.data?.user?.image || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100&h=100&fit=crop"}
+											alt={session.data?.user?.name || "User"}
+										/>
+										<AvatarFallback className="rounded-lg">
+											{session.data?.user?.name?.slice(0, 2).toUpperCase() || "KH"}
+										</AvatarFallback>
+									</Avatar>
+									<div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+										<span className="truncate font-semibold">
+											{session.data?.user?.name}
+										</span>
+										<span className="truncate text-xs">
+											{session.data?.user?.email}
+										</span>
+									</div>
+									<ChevronDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
+								</SidebarMenuButton>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+								side="bottom"
+								align="end"
+								sideOffset={4}
+							>
+								<DropdownMenuItem className="gap-2 p-2">
+									<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+										<Avatar className="h-8 w-8 rounded-lg">
+											<AvatarImage
+												src={session.data?.user?.image || ""}
+												alt={session.data?.user?.name || ""}
+											/>
+											<AvatarFallback className="rounded-lg">
+												{session.data?.user?.name?.slice(0, 2).toUpperCase() || "KH"}
+											</AvatarFallback>
+										</Avatar>
+										<div className="grid flex-1 text-left text-sm leading-tight">
+											<span className="truncate font-semibold">
+												{session.data?.user?.name}
+											</span>
+											<span className="truncate text-xs">
+												{session.data?.user?.email}
+											</span>
+										</div>
+									</div>
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => router.push("/settings")}>
+									<Settings className="mr-2 h-4 w-4" />
+									<span>Settings</span>
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+									<LogOut className="mr-2 h-4 w-4" />
+									<span>Log out</span>
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</SidebarMenuItem>
+				</SidebarMenu>
 			</SidebarFooter>
 		</Sidebar>
 	);

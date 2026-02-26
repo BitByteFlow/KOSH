@@ -17,7 +17,7 @@ export class SalesService {
 	async createSale(
 		createSaleDto: CreateSaleInput,
 		userId: string,
-	): Promise<Sale> {
+	): Promise<SaleResponse> {
 		const { discount, paymentType, creditId, items, transactionNote } =
 			createSaleDto;
 
@@ -212,22 +212,28 @@ export class SalesService {
 					});
 				}
 
-				return {
+				const formattedSale = {
 					id: sale.id,
-					total: sale.total,
-					discount: sale.discount,
-					profit: sale.profit,
+					total: Number(sale.total),
+					discount: Number(sale.discount),
+					profit: Number(sale.profit),
 					paymentType: sale.paymentType,
 					creditId: sale.creditId,
 					items: sale.items.map((item) => ({
 						id: item.id,
 						quantity: item.quantity,
-						sellPrice: item.sellPrice,
-						costPrice: item.costPrice,
+						sellPrice: Number(item.sellPrice),
+						costPrice: Number(item.costPrice),
 						variantId: item.variantId,
 					})),
 					createdAt: sale.createdAt,
 					updatedAt: sale.updatedAt,
+				};
+
+				return {
+					success: true,
+					message: "Sale created successfully",
+					data: [formattedSale],
 				};
 			});
 		} catch (error) {
@@ -299,16 +305,16 @@ export class SalesService {
 
 			const salesData = sales.map((sale: any) => ({
 				id: sale.id,
-				total: sale.total.toString(),
-				discount: sale.discount.toString(),
-				profit: sale.profit.toString(),
+				total: Number(sale.total),
+				discount: Number(sale.discount),
+				profit: Number(sale.profit),
 				paymentType: sale.paymentType,
 				creditId: sale.creditId,
 				items: sale.items.map((item: any) => ({
 					id: item.id,
 					quantity: item.quantity,
-					sellPrice: item.sellPrice.toString(),
-					costPrice: item.costPrice.toString(),
+					sellPrice: Number(item.sellPrice),
+					costPrice: Number(item.costPrice),
 					variantId: item.variantId,
 				})),
 				createdAt: sale.createdAt,

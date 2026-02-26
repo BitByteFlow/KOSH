@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SettingsSection } from "./SettingSection";
+import { useUpdateSettings } from "../hooks/useSettings";
+import { Button } from "@kosh/ui/components/button";
 
 interface NotificationChannelsProps {
 	initialData?: {
@@ -11,6 +13,7 @@ interface NotificationChannelsProps {
 export function NotificationChannels({
 	initialData,
 }: NotificationChannelsProps) {
+	const updateSettings = useUpdateSettings();
 	const [channels, setChannels] = useState(
 		initialData || {
 			emailReports: true,
@@ -18,8 +21,18 @@ export function NotificationChannels({
 		},
 	);
 
+	useEffect(() => {
+		if (initialData) {
+			setChannels(initialData);
+		}
+	}, [initialData]);
+
 	const handleToggle = (field: keyof typeof channels) => {
 		setChannels((prev) => ({ ...prev, [field]: !prev[field] }));
+	};
+
+	const handleSave = () => {
+		updateSettings.mutate(channels);
 	};
 
 	return (
@@ -55,11 +68,19 @@ export function NotificationChannels({
 							Push Notifications
 						</p>
 						<p className="text-sm text-muted-foreground mt-1">
-							Receive real-time alerts on your mobile device for high-value
-							sales.
+							Receive real-time alerts for high value transactions.
 						</p>
 					</div>
 				</label>
+
+				<div className="flex justify-end pt-4 border-t border-border">
+					<Button
+						onClick={handleSave}
+						disabled={updateSettings.isPending}
+					>
+						{updateSettings.isPending ? "Saving..." : "Save Changes"}
+					</Button>
+				</div>
 			</div>
 		</SettingsSection>
 	);

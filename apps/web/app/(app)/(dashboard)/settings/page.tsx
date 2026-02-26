@@ -1,14 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { SettingsTabs } from "@/modules/settings/components/SettingsTabs";
-import { StoreInformation } from "@/modules/settings/components/StoreInformation";
 import { InventoryConfiguration } from "@/modules/settings/components/InventoryConfiguration";
 import { NotificationChannels } from "@/modules/settings/components/NotificationChannels";
 import { DangerZone } from "@/modules/settings/components/DangerZone";
+import { useSettings } from "@/modules/settings/hooks/useSettings";
 
 export default function SettingsPage() {
-	const [activeTab, setActiveTab] = useState("general");
+	const { data: response, isLoading } = useSettings();
+	const settings = response?.data;
+
+	if (isLoading) {
+		return (
+			<main className="flex-1 overflow-auto flex items-center justify-center">
+				<div className="text-muted-foreground animate-pulse">Loading settings...</div>
+			</main>
+		);
+	}
 
 	return (
 		<main className="flex-1 overflow-auto">
@@ -20,52 +27,22 @@ export default function SettingsPage() {
 					</p>
 				</div>
 
-				<SettingsTabs
-					activeTab={activeTab}
-					onTabChange={setActiveTab}
-				/>
-
 				<div className="mt-8">
-					{activeTab === "general" && (
-						<div className="space-y-8">
-							<StoreInformation />
-							<InventoryConfiguration />
-							<NotificationChannels />
-							<DangerZone />
-						</div>
-					)}
-
-					{activeTab === "profile" && (
-						<div className="text-center py-16">
-							<p className="text-muted-foreground">
-								Profile settings coming soon
-							</p>
-						</div>
-					)}
-
-					{activeTab === "notifications" && (
-						<div className="text-center py-16">
-							<p className="text-muted-foreground">
-								Notification settings coming soon
-							</p>
-						</div>
-					)}
-
-					{activeTab === "security" && (
-						<div className="text-center py-16">
-							<p className="text-muted-foreground">
-								Security settings coming soon
-							</p>
-						</div>
-					)}
-
-					{activeTab === "billing" && (
-						<div className="text-center py-16">
-							<p className="text-muted-foreground">
-								Billing settings coming soon
-							</p>
-						</div>
-					)}
+					<div className="space-y-8">
+						<InventoryConfiguration
+							initialData={settings ? {
+								lowStockThreshold: settings.lowStockThreshold,
+								autoArchive: settings.autoArchive
+							} : undefined}
+						/>
+						<NotificationChannels
+							initialData={settings ? {
+								emailReports: settings.emailReports,
+								pushNotifications: settings.pushNotifications
+							} : undefined}
+						/>
+						<DangerZone />
+					</div>
 				</div>
 			</div>
 		</main>
