@@ -66,12 +66,12 @@ const nextAuth = NextAuth({
 						}),
 					),
 				);
-				
+
 				user.id = loginData.user.id;
 				user.token = loginData.token;
 			} catch (error: any) {
 				console.error(`Login failed for user: ${googleProfile.email}`, error);
-				
+
 				const statusCode = error instanceof ApiError ? error.statusCode : (error.response?.status || 500);
 				if (statusCode === 404 || statusCode === 400 || statusCode === 401) {
 					try {
@@ -85,7 +85,7 @@ const nextAuth = NextAuth({
 								}),
 							),
 						);
-						
+
 						user.id = signUpData.user.id;
 						user.token = signUpData.token;
 					} catch (registerError: any) {
@@ -109,6 +109,7 @@ const nextAuth = NextAuth({
 				token.email = googleProfile.email;
 				token.name = googleProfile.name;
 				token.picture = googleProfile.picture;
+				token.username = googleProfile.name;
 				if (user.token) {
 					token.accessToken = user.token;
 				}
