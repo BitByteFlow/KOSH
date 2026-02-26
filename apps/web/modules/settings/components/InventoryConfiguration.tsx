@@ -1,31 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SettingsSection } from "./SettingSection";
 import { SettingsToggle } from "./SettingsToggle";
 import { FormField } from "./FormField";
+import { useUpdateSettings } from "../hooks/useSettings";
+import { Button } from "@kosh/ui/components/button";
 
 interface InventoryConfigProps {
 	initialData?: {
 		lowStockThreshold: number;
 		autoArchive: boolean;
-		allowBackorders: boolean;
 	};
 }
 
 export function InventoryConfiguration({ initialData }: InventoryConfigProps) {
+	const updateSettings = useUpdateSettings();
 	const [config, setConfig] = useState(
 		initialData || {
 			lowStockThreshold: 10,
 			autoArchive: false,
-			allowBackorders: true,
 		},
 	);
+
+	useEffect(() => {
+		if (initialData) {
+			setConfig(initialData);
+		}
+	}, [initialData]);
 
 	const handleThresholdChange = (value: string) => {
 		setConfig((prev) => ({ ...prev, lowStockThreshold: parseInt(value) || 0 }));
 	};
 
-	const handleToggle = (field: keyof typeof config, value: boolean) => {
+	const handleToggle = (field: "autoArchive", value: boolean) => {
 		setConfig((prev) => ({ ...prev, [field]: value }));
+	};
+
+	const handleSave = () => {
+		updateSettings.mutate(config);
 	};
 
 	return (
@@ -56,6 +67,15 @@ export function InventoryConfiguration({ initialData }: InventoryConfigProps) {
 						checked={config.autoArchive}
 						onChange={(value) => handleToggle("autoArchive", value)}
 					/>
+				</div>
+
+				<div className="flex justify-end pt-4 border-t border-border">
+					<Button
+						onClick={handleSave}
+						disabled={updateSettings.isPending}
+					>
+						{updateSettings.isPending ? "Saving..." : "Save Changes"}
+					</Button>
 				</div>
 			</div>
 		</SettingsSection>
