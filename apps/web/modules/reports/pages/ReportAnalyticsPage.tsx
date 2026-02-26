@@ -9,7 +9,6 @@ import { SalesReportTable } from "@/modules/reports/components/SalesReportTable"
 import { ProductPerformanceTable } from "@/modules/reports/components/ProductPerformanceTable";
 import { InventoryReportTable } from "@/modules/reports/components/InventoryReportTable";
 import { DateRangeSelector } from "@/modules/reports/components/DateRangeSelector";
-import { topProducts, transactions } from "@/data/mockData";
 import ReportMetrics from "@/modules/reports/components/ReportMetrics";
 
 const ReportAnalyticsPage = () => {

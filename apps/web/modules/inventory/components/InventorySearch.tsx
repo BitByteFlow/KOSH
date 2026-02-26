@@ -114,7 +114,7 @@ const InventorySearch = ({
 				/>
 				<AddCategoryModal />
 
-				<DropdownMenu>
+				<DropdownMenu modal={false}>
 					<DropdownMenuTrigger asChild>
 						<Button
 							variant="outline"
@@ -167,7 +167,7 @@ const InventorySearch = ({
 					</DropdownMenuContent>
 				</DropdownMenu>
 
-				<DropdownMenu>
+				<DropdownMenu modal={false}>
 					<DropdownMenuTrigger asChild>
 						<Button
 							variant="outline"

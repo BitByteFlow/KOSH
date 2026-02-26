@@ -73,7 +73,7 @@ export function AddCategoryModal({ trigger }: AddCategoryModalProps) {
 	};
 
 	return (
-		<Dialog open={isOpen} onOpenChange={setIsOpen}>
+		<Dialog open={isOpen} onOpenChange={setIsOpen} modal={false}>
 			<DialogTrigger asChild>
 				{trigger || (
 					<Button variant="outline" size="sm" className="flex items-center gap-2">

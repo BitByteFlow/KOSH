@@ -1,0 +1,68 @@
+import { gql } from "@apollo/client";
+import { clientApiClient } from "@/lib/api/client";
+import { API_ENDPOINTS } from "@/lib/api/config";
+
+export const GET_NOTIFICATIONS = gql`
+  query GetNotifications {
+    notifications {
+      success
+      message
+      data {
+        id
+        type
+        message
+        isRead
+        metadata
+        createdAt
+      }
+    }
+  }
+`;
+
+export const MARK_ALL_AS_READ = gql`
+  mutation MarkAllNotificationsAsRead {
+    markAllNotificationsAsRead {
+      success
+      message
+    }
+  }
+`;
+
+export interface Notification {
+	id: string;
+	type: string;
+	message: string;
+	isRead: boolean;
+	metadata?: any;
+	createdAt: string;
+}
+
+export interface NotificationsResponse {
+	success: boolean;
+	message: string;
+	data?: Notification[];
+}
+
+export const notificationsService = {
+	getNotifications: async (token: string | undefined): Promise<NotificationsResponse> => {
+		const response = await clientApiClient.post<{ data: { notifications: NotificationsResponse } }>(
+			API_ENDPOINTS.graphql,
+			token,
+			{
+				query: GET_NOTIFICATIONS.loc?.source.body,
+			},
+		);
+		return response.data.notifications;
+	},
+
+	markAllAsRead: async (token: string | undefined): Promise<NotificationsResponse> => {
+		const response = await clientApiClient.post<{ data: { markAllNotificationsAsRead: NotificationsResponse } }>(
+			API_ENDPOINTS.graphql,
+			token,
+			{
+				query: MARK_ALL_AS_READ.loc?.source.body,
+			},
+		);
+		return response.data.markAllNotificationsAsRead;
+	},
+};

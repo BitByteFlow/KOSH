@@ -175,7 +175,7 @@ const DashboardSidebar = () => {
 			<SidebarFooter>
 				<SidebarMenu>
 					<SidebarMenuItem>
-						<DropdownMenu>
+						<DropdownMenu modal={false}>
 							<DropdownMenuTrigger asChild>
 								<SidebarMenuButton
 									size="lg"
@@ -227,10 +227,6 @@ const DashboardSidebar = () => {
 											</span>
 										</div>
 									</div>
-								</DropdownMenuItem>
-								<DropdownMenuItem onClick={() => router.push("/settings")}>
-									<Settings className="mr-2 h-4 w-4" />
-									<span>Settings</span>
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
 									<LogOut className="mr-2 h-4 w-4" />
