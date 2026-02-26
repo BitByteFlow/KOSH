@@ -10,10 +10,10 @@ export class SaleItem {
   quantity: number;
 
   @Field(() => Float)
-  sellPrice: Prisma.Decimal;
+  sellPrice: number;
 
   @Field(() => Float)
-  costPrice: Prisma.Decimal;
+  costPrice: number;
 
   @Field(() => ID)
   variantId: string;

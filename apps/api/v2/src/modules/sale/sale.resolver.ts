@@ -13,12 +13,12 @@ import { SalesMetricsResponse } from './entities/salesMetrics.entity';
 export class SaleResolver {
 	constructor(private salesService: SalesService) { }
 
-	@Mutation(() => Sale, { name: 'createSale' })
+	@Mutation(() => SaleResponse, { name: 'createSale' })
 	@UseGuards(JwtAuthGuard)
 	async createSale(
 		@Args('createSaleInput') createSaleDto: CreateSaleInput,
 		@CurrentUser() user: AuthenticatedUser
-	): Promise<Sale> {
+	): Promise<SaleResponse> {
 		return this.salesService.createSale(createSaleDto, user.id);
 	}
 

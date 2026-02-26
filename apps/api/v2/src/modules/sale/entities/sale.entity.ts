@@ -13,13 +13,13 @@ export class Sale {
   id: string;
 
   @Field(() => Float)
-  total: Prisma.Decimal;
+  total: number;
 
   @Field(() => Float)
-  discount: Prisma.Decimal;
+  discount: number;
 
   @Field(() => Float)
-  profit: Prisma.Decimal;
+  profit: number;
 
   @Field(() => PaymentType)
   paymentType: PaymentType;
