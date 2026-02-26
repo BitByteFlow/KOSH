@@ -27,7 +27,7 @@ export interface SaleItemResponse {
 	variantId: string;
 }
 
-export interface SaleResponse {
+export interface Sale {
 	id: string;
 	total: string;
 	discount: string;
@@ -37,6 +37,13 @@ export interface SaleResponse {
 	items: SaleItemResponse[];
 	createdAt: string;
 	updatedAt: string;
+}
+
+export interface SaleResponse {
+	success: boolean;
+	message?: string;
+	data?: Sale[];
+	totalCount?: number;
 }
 
 export interface SalesMetricsResponse {
@@ -54,8 +61,8 @@ export const salesService = {
 		return clientApiClient.post<SaleResponse>(API_ENDPOINTS.sales.create, token, data);
 	},
 
-	getSales: async (token: string | undefined): Promise<SaleResponse[]> => {
-		return clientApiClient.get<SaleResponse[]>(API_ENDPOINTS.sales.list, token);
+	getSales: async (token: string | undefined): Promise<SaleResponse> => {
+		return clientApiClient.get<SaleResponse>(API_ENDPOINTS.sales.list, token);
 	},
 
 	getSalesMetrics: async (token: string | undefined): Promise<SalesMetricsResponse> => {

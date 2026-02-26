@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useForm, useFieldArray, Controller, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createSaleSchema, type PaymentType, type CreateSaleInput } from "@kosh/validation";
+import { createSaleSchema, type CreateSaleInput, PaymentType } from "@kosh/validation";
 import {
 	Sheet,
 	SheetContent,
@@ -217,7 +217,7 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 	} = useForm<CreateSaleInput>({
 		resolver: zodResolver(createSaleSchema),
 		defaultValues: {
-			paymentType: "CASH" as PaymentType,
+			paymentType: PaymentType.CASH,
 			discount: 0,
 			transactionNote: "",
 			items: [],
@@ -261,10 +261,23 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 
 	const onSubmit: SubmitHandler<CreateSaleInput> = async (data) => {
 		try {
-			await createSale.mutateAsync(data);
-			setIsOpen(false);
-		} catch (error) {
+			const result = await createSale.mutateAsync(data) as any; // Cast for standard response handling
+
+			// Handle standardized GraphQL response
+			if (result?.success) {
+				toast.success(result.message || "Sale created successfully!");
+				setIsOpen(false);
+			} else if (result?.success === false) {
+				toast.error(result.message || "Failed to create sale.");
+			} else {
+				// Fallback
+				toast.success("Sale created successfully!");
+				setIsOpen(false);
+			}
+		} catch (error: any) {
 			console.error("Failed to create sale:", error);
+			const errorMessage = error?.response?.errors?.[0]?.message || error?.message || "Internal server error";
+			toast.error(errorMessage);
 		}
 	};
 
