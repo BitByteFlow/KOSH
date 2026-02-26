@@ -1,0 +1,55 @@
+import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { DatabaseService } from "src/database/database.service";
+import { NotificationResponse } from "./entities/notificationResponse.entity";
+
+@Injectable()
+export class NotificationService {
+	constructor(private readonly database: DatabaseService) { }
+
+	async getNotifications(userId: string): Promise<NotificationResponse> {
+		try {
+			const notifications = await this.database.prisma.notification.findMany({
+				where: { userId },
+				orderBy: { createdAt: 'desc' },
+				take: 50 // Limit for MVP
+			});
+
+			return {
+				success: true,
+				message: "Notifications retrieved successfully",
+				data: notifications
+			};
+		} catch (error) {
+			console.error(`Get Notifications Error: ${error.message}`);
+			throw new InternalServerErrorException("Failed to fetch notifications");
+		}
+	}
+
+	async markAllAsRead(userId: string): Promise<NotificationResponse> {
+		try {
+			await this.database.prisma.notification.updateMany({
+				where: { userId, isRead: false },
+				data: { isRead: true }
+			});
+
+			return {
+				success: true,
+				message: "All notifications marked as read"
+			};
+		} catch (error) {
+			console.error(`Mark All As Read Error: ${error.message}`);
+			throw new InternalServerErrorException("Failed to update notifications");
+		}
+	}
+
+	async createNotification(userId: string, type: string, message: string, metadata?: any): Promise<any> {
+		return this.database.prisma.notification.create({
+			data: {
+				userId,
+				type,
+				message,
+				metadata: metadata || {}
+			}
+		});
+	}
+}

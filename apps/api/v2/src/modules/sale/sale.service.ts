@@ -10,9 +10,14 @@ import { CreateSaleInput } from "./dto/CreateSaleDto.dto";
 import { Sale, SaleResponse } from "./entities/sale.entity";
 import { SalesMetricsResponse } from "./entities/salesMetrics.entity";
 
+import { NotificationService } from "../notification/notification.service";
+
 @Injectable()
 export class SalesService {
-	constructor(private readonly database: DatabaseService) { }
+	constructor(
+		private readonly database: DatabaseService,
+		private readonly notificationService: NotificationService,
+	) { }
 
 	async createSale(
 		createSaleDto: CreateSaleInput,
@@ -90,14 +95,33 @@ export class SalesService {
 				});
 
 				for (const item of items) {
-					await tsx.productVariant.update({
+					const updatedVariant = await tsx.productVariant.update({
 						where: { id: item.variantId },
 						data: {
 							stock: {
 								decrement: item.quantity,
 							},
 						},
+						include: {
+							product: true
+						}
 					});
+
+					// Low stock check
+					const settings = await tsx.settings.findUnique({
+						where: { userId }
+					});
+
+					const threshold = settings?.lowStockThreshold ?? 10;
+
+					if (updatedVariant.stock <= threshold) {
+						await this.notificationService.createNotification(
+							userId,
+							"LOW_STOCK",
+							`Product "${updatedVariant.product.name}" is low on stock (${updatedVariant.stock} remaining)`,
+							{ variantId: updatedVariant.id, stock: updatedVariant.stock }
+						);
+					}
 				}
 
 				if (paymentType === "CASH" || paymentType === "ONLINE") {

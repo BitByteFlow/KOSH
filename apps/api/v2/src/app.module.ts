@@ -17,6 +17,7 @@ import { ReportModule } from './modules/report/report.module';
 import { SaleModule } from './modules/sale/sale.module';
 import { UserModule } from './modules/user/user.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -40,7 +41,8 @@ import { SettingsModule } from './modules/settings/settings.module';
     ReportModule,
     SaleModule,
     UserModule,
-    SettingsModule
+    SettingsModule,
+    NotificationModule
   ],
   controllers: [AppController],
   providers: [
