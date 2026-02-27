@@ -2,7 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import React from "react";
-import { Ellipsis } from "lucide-react";
 import { cn, capitalizeWords } from "@/lib/utils";
 import NotificationDropdown from "@/modules/notifications/components/NotificationDropdown";
 
@@ -24,9 +23,9 @@ const SharedHeader = () => {
 			<h2 className="text-lg font-semibold">{displayTitle}</h2>
 			<div className="flex items-center gap-2">
 				<NotificationDropdown />
-				<button className="p-2 rounded-full hover:bg-muted transition-colors">
+				{/* <button className="p-2 rounded-full hover:bg-muted transition-colors">
 					<Ellipsis className="w-5 h-5 text-muted-foreground" />
-				</button>
+				</button> */}
 			</div>
 		</div>
 	);

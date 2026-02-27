@@ -6,10 +6,10 @@ import { DangerZone } from "@/modules/settings/components/DangerZone";
 import { useSettings } from "@/modules/settings/hooks/useSettings";
 
 export default function SettingsPage() {
-	const { data: response, isLoading } = useSettings();
-	const settings = response?.data;
+	const { data: response, loading } = useSettings();
+	const settings = response?.settings?.data;
 
-	if (isLoading) {
+	if (loading && !settings) {
 		return (
 			<main className="flex-1 overflow-auto flex items-center justify-center">
 				<div className="text-muted-foreground animate-pulse">Loading settings...</div>

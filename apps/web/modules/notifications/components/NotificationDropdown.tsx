@@ -13,13 +13,14 @@ import { ScrollArea } from "@kosh/ui/components/scroll-area";
 import { Badge } from "@kosh/ui/components/badge";
 import { useNotifications, useMarkAllNotificationsAsRead } from "../hooks/useNotifications";
 import { cn } from "@/lib/utils";
+import { NotificationType } from "../../../services/notifications.service";
 
 const NotificationDropdown = () => {
 	const [isOpen, setIsOpen] = useState(false);
-	const { data: response, isLoading } = useNotifications();
+	const { data: response, loading } = useNotifications();
 	const { mutate: markAllAsRead } = useMarkAllNotificationsAsRead();
 
-	const notifications = response?.data || [];
+	const notifications = response?.notifications?.data || [];
 	const unreadCount = notifications.filter((n) => !n.isRead).length;
 
 	const handleOpenChange = (open: boolean) => {
@@ -29,23 +30,19 @@ const NotificationDropdown = () => {
 		}
 	};
 
-	const getIcon = (type: string) => {
+	const getIcon = (type: NotificationType) => {
 		switch (type) {
-			case "LOW_STOCK":
+			case NotificationType.LOW_STOCK:
 				return <ShoppingCart className="w-4 h-4 text-orange-500" />;
-			case "INFO":
-				return <Info className="w-4 h-4 text-blue-500" />;
-			case "SUCCESS":
+			case NotificationType.NEW_FEATURE_ADDED:
 				return <CheckCircle2 className="w-4 h-4 text-green-500" />;
-			case "ALERT":
-				return <AlertCircle className="w-4 h-4 text-red-500" />;
 			default:
 				return <Bell className="w-4 h-4 text-muted-foreground" />;
 		}
 	};
 
 	return (
-		<DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
+		<DropdownMenu open={isOpen} onOpenChange={handleOpenChange} modal={false}>
 			<DropdownMenuTrigger asChild>
 				<button className="relative p-2 rounded-full hover:bg-muted transition-colors outline-none">
 					<Bell className="w-5 h-5 text-muted-foreground" />
@@ -59,7 +56,7 @@ const NotificationDropdown = () => {
 					)}
 				</button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-[380px] p-0 overflow-hidden">
+			<DropdownMenuContent align="end" className="w-[380px] p-0 overflow-hidden border-border">
 				<div className="flex items-center justify-between px-4 py-3 border-b bg-muted/50">
 					<h3 className="font-semibold text-sm">Notifications</h3>
 					{unreadCount > 0 && (
@@ -69,7 +66,7 @@ const NotificationDropdown = () => {
 					)}
 				</div>
 				<ScrollArea className="h-[400px]">
-					{isLoading ? (
+					{loading ? (
 						<div className="flex items-center justify-center h-20 text-sm text-muted-foreground">
 							Loading notifications...
 						</div>

@@ -1,28 +1,30 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import { notificationsService } from "../../../services/notifications.service";
+import { useMutation, useQuery } from "@apollo/client/react";
+import {
+	notificationsService,
+	GET_NOTIFICATIONS,
+	MARK_ALL_AS_READ,
+	NotificationsResponse
+} from "../../../services/notifications.service";
 
 export const useNotifications = () => {
-	const { data: session } = useSession();
-	const token = session?.user?.token;
-
-	return useQuery({
-		queryKey: ["notifications"],
-		queryFn: () => notificationsService.getNotifications(token),
-		enabled: !!token,
-		refetchInterval: 30000, // Poll every 30 seconds for MVP
+	return useQuery<{ notifications: NotificationsResponse }>(GET_NOTIFICATIONS, {
+		pollInterval: 30000, // Poll every 30 seconds
 	});
 };
 
 export const useMarkAllNotificationsAsRead = () => {
-	const queryClient = useQueryClient();
-	const { data: session } = useSession();
-	const token = session?.user?.token;
+	const [mutate, { loading }] = useMutation<{ markAllNotificationsAsRead: NotificationsResponse }>(
+		MARK_ALL_AS_READ,
+		{
+			onCompleted: (data) => {
+				// Success handling if needed
+			},
+			refetchQueries: [GET_NOTIFICATIONS],
+		}
+	);
 
-	return useMutation({
-		mutationFn: () => notificationsService.markAllAsRead(token),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["notifications"] });
-		},
-	});
+	return {
+		mutate: () => mutate(),
+		loading,
+	};
 };

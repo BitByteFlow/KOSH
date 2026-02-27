@@ -13,7 +13,7 @@ interface InventoryConfigProps {
 }
 
 export function InventoryConfiguration({ initialData }: InventoryConfigProps) {
-	const updateSettings = useUpdateSettings();
+	const { mutate, loading } = useUpdateSettings();
 	const [config, setConfig] = useState(
 		initialData || {
 			lowStockThreshold: 10,
@@ -35,8 +35,12 @@ export function InventoryConfiguration({ initialData }: InventoryConfigProps) {
 		setConfig((prev) => ({ ...prev, [field]: value }));
 	};
 
+	const isDirty = JSON.stringify(config) !== JSON.stringify(initialData);
+
 	const handleSave = () => {
-		updateSettings.mutate(config);
+		if (isDirty) {
+			mutate(config);
+		}
 	};
 
 	return (
@@ -72,9 +76,9 @@ export function InventoryConfiguration({ initialData }: InventoryConfigProps) {
 				<div className="flex justify-end pt-4 border-t border-border">
 					<Button
 						onClick={handleSave}
-						disabled={updateSettings.isPending}
+						disabled={loading || !isDirty}
 					>
-						{updateSettings.isPending ? "Saving..." : "Save Changes"}
+						{loading ? "Saving..." : "Save Changes"}
 					</Button>
 				</div>
 			</div>

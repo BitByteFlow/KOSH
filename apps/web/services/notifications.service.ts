@@ -12,7 +12,8 @@ export const GET_NOTIFICATIONS = gql`
         type
         message
         isRead
-        metadata
+        variantId
+        isGlobal
         createdAt
       }
     }
@@ -28,12 +29,18 @@ export const MARK_ALL_AS_READ = gql`
   }
 `;
 
+export enum NotificationType {
+	LOW_STOCK = "LOW_STOCK",
+	NEW_FEATURE_ADDED = "NEW_FEATURE_ADDED",
+}
+
 export interface Notification {
 	id: string;
-	type: string;
+	type: NotificationType;
 	message: string;
 	isRead: boolean;
-	metadata?: any;
+	variantId?: string;
+	isGlobal: boolean;
 	createdAt: string;
 }
 
