@@ -1,5 +1,9 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { GraphQLJSONObject } from 'graphql-scalars';
+import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
+import { NotificationType } from '@kosh/db';
+
+registerEnumType(NotificationType, {
+	name: 'NotificationType',
+});
 
 @ObjectType()
 export class Notification {
@@ -9,8 +13,8 @@ export class Notification {
 	@Field(() => ID)
 	userId: string;
 
-	@Field()
-	type: string;
+	@Field(() => NotificationType)
+	type: NotificationType;
 
 	@Field()
 	message: string;
@@ -18,8 +22,11 @@ export class Notification {
 	@Field(() => Boolean)
 	isRead: boolean;
 
-	@Field(() => GraphQLJSONObject, { nullable: true })
-	metadata?: any;
+	@Field(() => String, { nullable: true })
+	variantId?: string | null;
+
+	@Field(() => Boolean)
+	isGlobal: boolean;
 
 	@Field()
 	createdAt: Date;

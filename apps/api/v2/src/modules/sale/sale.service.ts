@@ -5,7 +5,7 @@ import {
 	NotFoundException,
 } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
-import { TransactionType } from "@kosh/db";
+import { TransactionType, NotificationType } from "@kosh/db";
 import { CreateSaleInput } from "./dto/CreateSaleDto.dto";
 import { Sale, SaleResponse } from "./entities/sale.entity";
 import { SalesMetricsResponse } from "./entities/salesMetrics.entity";
@@ -117,9 +117,9 @@ export class SalesService {
 					if (updatedVariant.stock <= threshold) {
 						await this.notificationService.createNotification(
 							userId,
-							"LOW_STOCK",
+							NotificationType.LOW_STOCK,
 							`Product "${updatedVariant.product.name}" is low on stock (${updatedVariant.stock} remaining)`,
-							{ variantId: updatedVariant.id, stock: updatedVariant.stock }
+							updatedVariant.id
 						);
 					}
 				}

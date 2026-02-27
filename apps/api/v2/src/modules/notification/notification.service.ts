@@ -1,5 +1,6 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
+import { NotificationType } from "@kosh/db";
 import { NotificationResponse } from "./entities/notificationResponse.entity";
 
 @Injectable()
@@ -11,7 +12,7 @@ export class NotificationService {
 			const notifications = await this.database.prisma.notification.findMany({
 				where: { userId },
 				orderBy: { createdAt: 'desc' },
-				take: 50 // Limit for MVP
+				take: 50
 			});
 
 			return {
@@ -42,13 +43,14 @@ export class NotificationService {
 		}
 	}
 
-	async createNotification(userId: string, type: string, message: string, metadata?: any): Promise<any> {
+	async createNotification(userId: string, type: NotificationType, message: string, variantId?: string, isGlobal: boolean = false): Promise<any> {
 		return this.database.prisma.notification.create({
 			data: {
 				userId,
 				type,
 				message,
-				metadata: metadata || {}
+				variantId,
+				isGlobal
 			}
 		});
 	}
