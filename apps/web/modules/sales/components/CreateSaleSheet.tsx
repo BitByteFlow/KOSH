@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useForm, useFieldArray, Controller, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createSaleSchema, type CreateSaleInput, PaymentType } from "@kosh/validation";
+import { createSaleSchema, CreateSaleInput } from "@kosh/validation";
 import {
 	Sheet,
 	SheetContent,
@@ -21,15 +21,24 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@kosh/ui/components/select";
-import { Plus, Trash2, Loader2, Search, Package, ShoppingCart, User, CreditCard, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Loader2, Search, Package, ShoppingCart, User, CreditCard, AlertCircle, ArrowLeft } from "lucide-react";
 import { useCreateSale } from "../hooks/useSales";
 import { formatCurrency } from "@/lib/utils";
-import { productsService, type Product, type ProductVariant } from "@/services/products.service";
-import { useSession } from "next-auth/react";
+import { LIST_PRODUCTS_WITH_FILTER } from "@/services/products.service";
+import { useQuery } from "@apollo/client/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { toast } from "sonner";
 import { cn } from "@kosh/ui/lib/utils";
-import { ArrowLeft } from "lucide-react";
+import {
+	Product,
+	ProductVariant,
+	ProductResponse,
+	PaymentType,
+} from "@/gql/graphql";
+import { parseGraphQLListResponse } from "@/lib/graphql/utils";
+import { z } from "zod";
+
+type SaleFormValues = z.infer<typeof createSaleSchema>;
 
 interface ProductSearchSelectorProps {
 	onSelect: (product: Product, variant: ProductVariant) => void;
@@ -38,24 +47,31 @@ interface ProductSearchSelectorProps {
 
 function ProductSearchSelector({ onSelect, disabled }: ProductSearchSelectorProps) {
 	const [query, setQuery] = useState("");
-	const [results, setResults] = useState<Product[]>([]);
-	const [isLoading, setIsLoading] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 	const [isFocused, setIsFocused] = useState(false);
 
-	const { data: session } = useSession();
 	const debouncedQuery = useDebounce(query, 300);
 	const containerRef = useRef<HTMLDivElement>(null);
-	const inputRef = useRef<HTMLInputElement>(null);
 
-	useEffect(() => {
-		if (debouncedQuery.length > 1 && session?.user?.token && !selectedProduct) {
-			fetchProducts(debouncedQuery);
-		} else if (!selectedProduct) {
-			setResults([]);
+	const { data: rawData, loading: isLoading } = useQuery<{ listProductsWithFilter: ProductResponse }>(
+		LIST_PRODUCTS_WITH_FILTER,
+		{
+			variables: {
+				filterInput: {
+					search: debouncedQuery,
+					limit: 5,
+					page: 1
+				}
+			},
+			skip: debouncedQuery.length <= 1 || !!selectedProduct
 		}
-	}, [debouncedQuery, session?.user?.token, selectedProduct]);
+	);
+
+	const results = useMemo(() =>
+		parseGraphQLListResponse<Product>(rawData?.listProductsWithFilter).data || [],
+		[rawData]
+	);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -68,20 +84,6 @@ function ProductSearchSelector({ onSelect, disabled }: ProductSearchSelectorProp
 		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, []);
 
-	const fetchProducts = async (search: string) => {
-		setIsLoading(true);
-		try {
-			const response = await productsService.getProducts(session?.user?.token, { search, limit: 5 });
-			console.log("product list in sales", response.data)
-			setResults(response.data || []);
-			setIsOpen(true);
-		} catch (error) {
-			console.error("Search failed:", error);
-		} finally {
-			setIsLoading(false);
-		}
-	};
-
 	const handleProductClick = (product: Product) => {
 		setSelectedProduct(product);
 	};
@@ -91,7 +93,6 @@ function ProductSearchSelector({ onSelect, disabled }: ProductSearchSelectorProp
 			<div className="relative">
 				<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 				<Input
-					ref={inputRef}
 					placeholder="Search products by name or SKU..."
 					value={query}
 					onChange={(e) => {
@@ -143,9 +144,9 @@ function ProductSearchSelector({ onSelect, disabled }: ProductSearchSelectorProp
 												<div className="flex flex-col gap-0.5">
 													<div className="flex items-center gap-2">
 														<span className="font-bold">{v.sku}</span>
-														{v.attributes && Object.keys(v.attributes).length > 0 && (
+														{v.attributes && v.attributes.length > 0 && (
 															<span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-																{Object.values(v.attributes).join(" / ")}
+																{v.attributes.map(a => a.value).join(" / ")}
 															</span>
 														)}
 													</div>
@@ -175,7 +176,7 @@ function ProductSearchSelector({ onSelect, disabled }: ProductSearchSelectorProp
 										<p className="font-bold truncate text-base">{p.productName}</p>
 										<div className="flex items-center gap-2">
 											<span className="text-[10px] uppercase font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-												{p.category}
+												{p.category.name}
 											</span>
 											<span className="text-[10px] font-bold text-primary">
 												{p.variants.length} variant{p.variants.length > 1 ? "s" : ""}
@@ -204,7 +205,7 @@ function ProductSearchSelector({ onSelect, disabled }: ProductSearchSelectorProp
 export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 	const [isOpen, setIsOpen] = useState(false);
 	const [addedProducts, setAddedProducts] = useState<Product[]>([]);
-	const createSale = useCreateSale();
+	const [mutate, { loading: isMutating }] = useCreateSale();
 
 	const {
 		register,
@@ -214,10 +215,10 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 		reset,
 		setValue,
 		formState: { isSubmitting, errors },
-	} = useForm<CreateSaleInput>({
+	} = useForm<SaleFormValues>({
 		resolver: zodResolver(createSaleSchema),
 		defaultValues: {
-			paymentType: PaymentType.CASH,
+			paymentType: "CASH",
 			discount: 0,
 			transactionNote: "",
 			items: [],
@@ -234,7 +235,6 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 	const watchDiscount = watch("discount") || 0;
 	const watchPaymentType = watch("paymentType");
 
-	// Reset form when sheet closes
 	useEffect(() => {
 		if (!isOpen) {
 			reset();
@@ -242,47 +242,49 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 		}
 	}, [isOpen, reset]);
 
-	// Calculate totals
-	const subtotal = watchItems.reduce((sum, item) => {
-		const quantity = item.quantity || 0;
-		const sellPrice = item.sellPrice || 0;
-		return sum + quantity * sellPrice;
+	const subtotal = watchItems.reduce((sum: number, item: any) => {
+		const quantity = item?.quantity || 0;
+		const sellPrice = item?.sellPrice || 0;
+		return sum + (Number(quantity) * Number(sellPrice));
 	}, 0);
 
-	const discount = watchDiscount;
-	const total = subtotal - discount;
+	const total = subtotal - Number(watchDiscount);
 
-	const profit = watchItems.reduce((sum, item) => {
-		const quantity = item.quantity || 0;
-		const sellPrice = item.sellPrice || 0;
-		const costPrice = item.costPrice || 0;
-		return sum + quantity * (sellPrice - costPrice);
+	const profit = watchItems.reduce((sum: number, item: any) => {
+		const quantity = item?.quantity || 0;
+		const sellPrice = item?.sellPrice || 0;
+		const costPrice = item?.costPrice || 0;
+		return sum + (Number(quantity) * (Number(sellPrice) - Number(costPrice)));
 	}, 0);
 
-	const onSubmit: SubmitHandler<CreateSaleInput> = async (data) => {
+	const onSubmit: SubmitHandler<SaleFormValues> = async (data) => {
 		try {
-			const result = await createSale.mutateAsync(data) as any; // Cast for standard response handling
+			const { data: result } = await mutate({
+				variables: {
+					input: {
+						...data,
+						paymentType: data.paymentType as PaymentType,
+						discount: Number(data.discount),
+						items: data.items.map(item => ({
+							...item,
+							quantity: Number(item.quantity),
+							sellPrice: Number(item.sellPrice),
+							costPrice: Number(item.costPrice),
+						}))
+					}
+				}
+			});
 
-			// Handle standardized GraphQL response
-			if (result?.success) {
-				toast.success(result.message || "Sale created successfully!");
+			if (result?.createSale?.success) {
 				setIsOpen(false);
-			} else if (result?.success === false) {
-				toast.error(result.message || "Failed to create sale.");
-			} else {
-				// Fallback
-				toast.success("Sale created successfully!");
-				setIsOpen(false);
+				reset();
 			}
 		} catch (error: any) {
 			console.error("Failed to create sale:", error);
-			const errorMessage = error?.response?.errors?.[0]?.message || error?.message || "Internal server error";
-			toast.error(errorMessage);
 		}
 	};
 
 	const addItem = (product: Product, variant: ProductVariant) => {
-		// Persist product info so variants remain accessible in the list selection
 		setAddedProducts(prev => {
 			if (prev.find(p => p.id === product.id)) return prev;
 			return [...prev, product];
@@ -324,7 +326,6 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 					toast.error("Please fix the errors in the form before submitting.");
 				})} className="flex-1 overflow-hidden flex flex-col">
 					<div className="flex-1 overflow-y-auto p-6 space-y-8">
-						{/* Product Search */}
 						<div className="space-y-4">
 							<div className="flex items-center justify-between">
 								<h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
@@ -332,7 +333,7 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 									Add Products
 								</h3>
 							</div>
-							<ProductSearchSelector onSelect={addItem} disabled={isSubmitting} />
+							<ProductSearchSelector onSelect={addItem} disabled={isSubmitting || isMutating} />
 							{errors.items?.message && (
 								<p className="text-xs text-destructive flex items-center gap-1">
 									<AlertCircle className="h-3 w-3" />
@@ -341,7 +342,6 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 							)}
 						</div>
 
-						{/* Sale Items List */}
 						<div className="space-y-4">
 							{fields.length === 0 ? (
 								<div className="h-40 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 text-muted-foreground bg-muted/5">
@@ -455,7 +455,6 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 							)}
 						</div>
 
-						{/* Payment & Settings */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t">
 							<div className="space-y-6">
 								<div className="space-y-2">
@@ -468,19 +467,23 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 										control={control}
 										render={({ field }) => (
 											<div className="flex gap-2 p-1 bg-muted/30 rounded-xl">
-												{["CASH", "ONLINE", "CREDIT"].map((type) => (
+												{[
+													{ label: "CASH", value: "CASH" },
+													{ label: "ONLINE", value: "ONLINE" },
+													{ label: "CREDIT", value: "CREDIT" }
+												].map((type) => (
 													<button
-														key={type}
+														key={type.value}
 														type="button"
-														onClick={() => field.onChange(type)}
+														onClick={() => field.onChange(type.value)}
 														className={cn(
 															"flex-1 py-2 text-xs font-bold rounded-lg transition-all",
-															field.value === type
+															field.value === type.value
 																? "bg-white shadow-sm text-primary"
 																: "text-muted-foreground hover:bg-white/50"
 														)}
 													>
-														{type}
+														{type.label}
 													</button>
 												))}
 											</div>
@@ -576,7 +579,6 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 						</div>
 					</div>
 
-					{/* Summary Footer */}
 					<div className="p-6 bg-card border-t shadow-[0_-10px_20px_-15px_rgba(0,0,0,0.1)]">
 						<div className="grid grid-cols-2 gap-4 mb-6">
 							<div className="space-y-1">
@@ -605,10 +607,10 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 								</Button>
 								<Button
 									type="submit"
-									disabled={isSubmitting || total < 0 || watchItems.length === 0}
+									disabled={isSubmitting || isMutating || total < 0 || watchItems.length === 0}
 									className="flex-[2] sm:h-auto rounded-xl shadow-xl shadow-primary/20"
 								>
-									{isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Complete Sale"}
+									{isSubmitting || isMutating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Complete Sale"}
 								</Button>
 							</div>
 						</div>
@@ -618,4 +620,3 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 		</Sheet>
 	);
 }
-

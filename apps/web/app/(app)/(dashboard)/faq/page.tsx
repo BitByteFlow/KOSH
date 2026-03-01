@@ -13,11 +13,6 @@ const faqData = [
 				isOpen: true,
 			},
 			{
-				question: "Can I invite my team members?",
-				answer:
-					"Absolutely! You can invite unlimited team members to your Invento account. Each team member can have customized roles and permissions based on your preferences.",
-			},
-			{
 				question: "Is my data secure?",
 				answer:
 					"Yes, we use enterprise-grade encryption for all data transmission and storage. Your data is protected with industry-standard security measures and regular security audits.",
@@ -34,14 +29,9 @@ const faqData = [
 				isOpen: true,
 			},
 			{
-				question: "Does Invento support low stock alerts?",
+				question: "Does KOSH support low stock alerts?",
 				answer:
-					"Yes. You can set individual reorder points for each SKU. When stock falls below your threshold, we will send a notification via email or Slack, and highlight the item on your dashboard.",
-			},
-			{
-				question: "Can I track inventory across multiple locations?",
-				answer:
-					"Yes, Invento supports multi-location inventory tracking. You can manage stock levels, transfers, and reporting across all your store locations from one dashboard.",
+					"Yes. You can set individual reorder points for each SKU. When stock falls below your threshold, we will send a notification via email, and highlight the item on your dashboard.",
 			},
 		],
 	},
@@ -51,7 +41,7 @@ const faqData = [
 			{
 				question: "How does billing work?",
 				answer:
-					"We bill monthly or annually. Annual plans come with a 20% discount. You can pay via any major credit card (Visa, Mastercard, Amex). Invoices are sent to your account email automatically.",
+					"We bill monthly or annually. Annual plans come with a 20% discount. You can pay via any major payment method. Invoices are sent to your account email automatically.",
 			},
 			{
 				question: "Can I change my plan later?",

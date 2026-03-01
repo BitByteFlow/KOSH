@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Bell, ShoppingCart, Info, CheckCircle2, AlertCircle } from "lucide-react";
+import { Bell, ShoppingCart, CheckCircle2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import {
 	DropdownMenu,

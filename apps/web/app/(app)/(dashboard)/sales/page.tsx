@@ -4,6 +4,7 @@ import { CreateSaleSheet } from "@/modules/sales/components/CreateSaleSheet";
 import SalesMetrics from "@/modules/sales/components/SalesMetrics";
 import { gql } from "@/gql";
 import { PreloadQuery } from "@/lib/graphql/apolloServer";
+import BarcodeScanner from "@/modules/sales/components/BarcodeScanner";
 
 const GET_SALES_DATA = gql(`
 	query getSalesData{
@@ -52,6 +53,7 @@ export default function SalesPage() {
 					</div>
 					<div className="flex items-center space-x-2">
 						<CreateSaleSheet />
+						<BarcodeScanner />
 					</div>
 				</div>
 				<SalesMetrics />

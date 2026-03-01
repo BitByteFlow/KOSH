@@ -10,7 +10,6 @@ import {
 	ShoppingCart,
 	BookOpen,
 	HelpCircle,
-	Search,
 	Bolt,
 	ChevronDown,
 	LogOut,
@@ -87,13 +86,13 @@ const DashboardSidebar = () => {
 					<SidebarTrigger className="hover:cursor-pointer transition-colors text-gray-400 hover:text-gray-600 ml-auto" />
 				</div>
 
-				<div className="mt-6 relative group overflow-hidden transition-all duration-300 ease-in-out group-data-[state=collapsed]:h-0 group-data-[state=collapsed]:mt-0 group-data-[state=collapsed]:opacity-0">
+				{/* <div className="mt-6 relative group overflow-hidden transition-all duration-300 ease-in-out group-data-[state=collapsed]:h-0 group-data-[state=collapsed]:mt-0 group-data-[state=collapsed]:opacity-0">
 					<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-gray-600 transition-colors" />
 					<Input
 						placeholder="Search"
 						className="pl-9 py-2 bg-gray-50 border-none focus-visible:ring-1 focus-visible:ring-gray-200 placeholder:text-gray-400 rounded-md"
 					/>
-				</div>
+				</div> */}
 			</SidebarHeader>
 
 			<SidebarContent className="custom-scrollbar">

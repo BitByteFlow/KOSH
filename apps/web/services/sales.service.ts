@@ -1,71 +1,135 @@
+import { gql } from "@apollo/client";
 import { clientApiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/config";
 
+export const CREATE_SALE = gql`
+  mutation CreateSale($input: CreateSaleInput!) {
+    createSale(createSaleInput: $input) {
+      success
+      message
+      data {
+        id
+        total
+        discount
+        profit
+        paymentType
+        createdAt
+        items {
+          id
+          quantity
+          sellPrice
+          costPrice
+          variantId
+        }
+      }
+    }
+  }
+`;
+
+export const GET_SALES = gql`
+  query GetSales {
+    getSales {
+      success
+      message
+      data {
+        id
+        total
+        discount
+        profit
+        paymentType
+        createdAt
+        items {
+          id
+          quantity
+          sellPrice
+          costPrice
+          variantId
+        }
+      }
+    }
+  }
+`;
+
+export const GET_SALES_METRICS = gql`
+  query GetSalesMetrics {
+    getSalesMetrics {
+      success
+      message
+      data {
+        totalSales
+        totalTransactions
+        avgSaleValue
+        totalProfit
+      }
+    }
+  }
+`;
+
 export interface SaleItem {
-	variantId: string;
-	quantity: number;
-	sellPrice: number;
-	costPrice: number;
+  variantId: string;
+  quantity: number;
+  sellPrice: number;
+  costPrice: number;
 }
 
 export interface CreateSaleRequest {
-	discount: number;
-	paymentType: "CASH" | "ONLINE" | "CREDIT";
-	creditId?: string;
-	items: SaleItem[];
-	transactionNote?: string;
-	customerName?: string;
-	customerEmail?: string;
-	customerContact?: string;
+  discount: number;
+  paymentType: "CASH" | "ONLINE" | "CREDIT";
+  creditId?: string;
+  items: SaleItem[];
+  transactionNote?: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerContact?: string;
 }
 
 export interface SaleItemResponse {
-	id: string;
-	quantity: number;
-	sellPrice: string;
-	costPrice: string;
-	variantId: string;
+  id: string;
+  quantity: number;
+  sellPrice: string;
+  costPrice: string;
+  variantId: string;
 }
 
 export interface Sale {
-	id: string;
-	total: string;
-	discount: string;
-	profit: string;
-	paymentType: string;
-	creditId: string | null;
-	items: SaleItemResponse[];
-	createdAt: string;
-	updatedAt: string;
+  id: string;
+  total: string;
+  discount: string;
+  profit: string;
+  paymentType: string;
+  creditId: string | null;
+  items: SaleItemResponse[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SaleResponse {
-	success: boolean;
-	message?: string;
-	data?: Sale[];
-	totalCount?: number;
+  success: boolean;
+  message?: string;
+  data?: Sale[];
+  totalCount?: number;
 }
 
 export interface SalesMetricsResponse {
-	totalSales: number;
-	totalTransactions: number;
-	avgSaleValue: number;
-	totalProfit: number;
+  totalSales: number;
+  totalTransactions: number;
+  avgSaleValue: number;
+  totalProfit: number;
 }
 
 export const salesService = {
-	createSale: async (
-		data: CreateSaleRequest,
-		token: string | undefined
-	): Promise<SaleResponse> => {
-		return clientApiClient.post<SaleResponse>(API_ENDPOINTS.sales.create, token, data);
-	},
+  createSale: async (
+    data: CreateSaleRequest,
+    token: string | undefined
+  ): Promise<SaleResponse> => {
+    return clientApiClient.post<SaleResponse>(API_ENDPOINTS.sales.create, token, data);
+  },
 
-	getSales: async (token: string | undefined): Promise<SaleResponse> => {
-		return clientApiClient.get<SaleResponse>(API_ENDPOINTS.sales.list, token);
-	},
+  getSales: async (token: string | undefined): Promise<SaleResponse> => {
+    return clientApiClient.get<SaleResponse>(API_ENDPOINTS.sales.list, token);
+  },
 
-	getSalesMetrics: async (token: string | undefined): Promise<SalesMetricsResponse> => {
-		return clientApiClient.get<SalesMetricsResponse>(API_ENDPOINTS.sales.metrics, token);
-	},
+  getSalesMetrics: async (token: string | undefined): Promise<SalesMetricsResponse> => {
+    return clientApiClient.get<SalesMetricsResponse>(API_ENDPOINTS.sales.metrics, token);
+  },
 };

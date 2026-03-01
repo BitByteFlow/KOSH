@@ -1,6 +1,50 @@
+import { gql } from "@apollo/client";
 import { Status } from "@/gql/graphql";
 import { clientApiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/config";
+
+export const LIST_PRODUCTS_WITH_FILTER = gql`
+	query ListProductsWithFilter($filterInput: ProductFilterInput!) {
+		listProductsWithFilter(filterInput: $filterInput) {
+			success
+			message
+			data {
+				id
+				productName
+				category {
+					id
+					name
+				}
+				totalStock
+				variantCount
+				status
+				variants {
+					id
+					sku
+					barcode
+					attributes {
+						name
+						value
+					}
+					price
+					stock
+					lowStock
+					status
+					sellingPrice
+					costPrice
+				}
+			}
+			meta {
+				page
+				limit
+				total
+				totalPages
+				hasNext
+				hasPrev
+			}
+		}
+	}
+`;
 
 export interface ProductVariant {
 	id: string;
@@ -21,7 +65,7 @@ export interface Product {
 	category: string;
 	totalStock: number;
 	variantCount: number;
-	status: Status 
+	status: Status
 	variants: ProductVariant[];
 }
 
@@ -40,18 +84,18 @@ export interface PaginatedProducts {
 export const productsService = {
 	getProducts: async (
 		token: string | undefined,
-		params?: { 
-			search?: string; 
-			limit?: number; 
-			page?: number; 
-			categoryId?: string; 
-			status?: string 
+		params?: {
+			search?: string;
+			limit?: number;
+			page?: number;
+			categoryId?: string;
+			status?: string
 		}
 	): Promise<PaginatedProducts> => {
 		const cleanParams = Object.fromEntries(
 			Object.entries(params || {}).filter(([_, v]) => v !== undefined && v !== null && v !== "undefined")
 		);
-		
+
 		return clientApiClient.get<PaginatedProducts>(API_ENDPOINTS.products.list, token, {
 			params: cleanParams as any,
 		});

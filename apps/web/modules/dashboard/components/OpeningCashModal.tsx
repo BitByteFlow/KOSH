@@ -18,11 +18,12 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@kosh/ui/components/select";
-import { useCreateTransaction } from "../hooks/useAccount";
+// import { useCreateTransaction } from "../hooks/useAccount";
 import type { TransactionType } from "@/types/transcation";
 import { useState } from "react";
 import { gql } from "@/gql";
 import { useMutation } from "@apollo/client/react";
+import { toast } from "sonner";
 
 const TRANSACTION_TYPES = [
 	{ value: "INITIAL_CAPITAL" as TransactionType, label: "Initial Capital" },
@@ -55,7 +56,7 @@ const CREATE_TRANSACTION = gql(`
 
 export const OpeningCashModal = () => {
 	const [isOpen, setIsOpen] = useState(false);
-	const createTransaction = useCreateTransaction();
+	// const createTransaction = useCreateTransaction();
 	const [createTransactionMutation, { loading, error }] = useMutation(CREATE_TRANSACTION)
 
 	const {
@@ -77,7 +78,7 @@ export const OpeningCashModal = () => {
 		if (isNaN(amountValue) || amountValue <= 0) {
 			return;
 		}
-		const { data: transactionResponse } = await createTransactionMutation({
+		const { data: transactionResponse, error } = await createTransactionMutation({
 			variables: {
 				createTransactionInput: {
 					amount: amountValue,
@@ -86,14 +87,13 @@ export const OpeningCashModal = () => {
 				}
 			}
 		})
-		await createTransaction.mutateAsync({
-			amount: amountValue,
-			note: data.note,
-			type: data.type,
-		});
-
-		setIsOpen(false);
-		reset();
+		if (!error && transactionResponse?.createTransaction?.success) {
+			toast.success("Transaction created successfully");
+			setIsOpen(false);
+			reset();
+		} else {
+			toast.error(error?.message || "Transaction failed");
+		}
 	};
 
 	return (

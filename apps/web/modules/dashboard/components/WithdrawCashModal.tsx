@@ -18,9 +18,12 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@kosh/ui/components/select";
-import { useCreateTransaction } from "../hooks/useAccount";
+// import { useCreateTransaction } from "../hooks/useAccount";
 import type { TransactionType } from "@/types/transcation";
 import { useState } from "react";
+import { useMutation } from "@apollo/client/react";
+import { toast } from "sonner";
+import { gql } from "@/gql";
 
 const TRANSACTION_TYPES = [
 	{ value: "WITHDRAWAL" as TransactionType, label: "Withdrawal" },
@@ -34,10 +37,26 @@ interface FormData {
 	amount: string;
 	note: string;
 }
+const CREATE_TRANSACTION = gql(`
+	mutation CreateTransaction($createTransactionInput: CreateTransactionInput!) {
+		createTransaction(createTransactionInput: $createTransactionInput) {
+			success
+			data {
+				id
+				type
+				amount
+				note
+				createdAt
+				updatedAt
+			}
+		}
+	}
+`);
 
 export const WithdrawCashModal = () => {
 	const [isOpen, setIsOpen] = useState(false);
-	const createTransaction = useCreateTransaction();
+	// const createTransaction = useCreateTransaction();
+	const [createTransactionMutation, { loading, error }] = useMutation(CREATE_TRANSACTION)
 
 	const {
 		register,
@@ -58,15 +77,22 @@ export const WithdrawCashModal = () => {
 		if (isNaN(amountValue) || amountValue <= 0) {
 			return;
 		}
-
-		await createTransaction.mutateAsync({
-			amount: amountValue,
-			note: data.note,
-			type: data.type,
-		});
-
-		setIsOpen(false);
-		reset();
+		const { data: transactionResponse, error } = await createTransactionMutation({
+			variables: {
+				createTransactionInput: {
+					amount: amountValue,
+					note: data.note,
+					type: data.type,
+				},
+			},
+		})
+		if (!error && transactionResponse?.createTransaction?.success) {
+			toast.success("Transaction created successfully");
+			setIsOpen(false);
+			reset();
+		} else {
+			toast.error(error?.message || "Transaction failed");
+		}
 	};
 
 	return (
