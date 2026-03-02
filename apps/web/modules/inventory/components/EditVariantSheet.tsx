@@ -37,7 +37,7 @@ function AttributeList({ control }: AttributeListProps) {
 
 	return (
 		<div className="space-y-3">
-			<Label className="text-xs font-semibold text-gray-500">Attributes</Label>
+			<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Attributes</Label>
 			{fields.map((attr, index) => (
 				<div key={attr.id} className="flex gap-2 items-start">
 					<div className="flex-1">
@@ -47,7 +47,7 @@ function AttributeList({ control }: AttributeListProps) {
 							render={({ field, fieldState }) => (
 								<Input
 									placeholder="Name (e.g. Size)"
-									className={cn("h-8 text-sm", fieldState.error && "border-red-500")}
+									className={cn("h-8 text-sm transition-colors", fieldState.error && "border-destructive ring-destructive/20")}
 									{...field}
 								/>
 							)}
@@ -60,7 +60,7 @@ function AttributeList({ control }: AttributeListProps) {
 							render={({ field, fieldState }) => (
 								<Input
 									placeholder="Value (e.g. M)"
-									className={cn("h-8 text-sm", fieldState.error && "border-red-500")}
+									className={cn("h-8 text-sm transition-colors", fieldState.error && "border-destructive ring-destructive/20")}
 									{...field}
 								/>
 							)}
@@ -71,7 +71,7 @@ function AttributeList({ control }: AttributeListProps) {
 							type="button"
 							variant="ghost"
 							size="icon"
-							className="h-8 w-8 shrink-0 text-gray-400 hover:text-red-500"
+							className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
 							onClick={() => remove(index)}
 						>
 							<Trash2 className="w-4 h-4" />
@@ -83,7 +83,7 @@ function AttributeList({ control }: AttributeListProps) {
 				type="button"
 				variant="link"
 				size="sm"
-				className="px-0 h-auto text-xs text-blue-600"
+				className="px-0 h-auto text-xs text-info hover:text-info/80"
 				onClick={() => append({ name: "", value: "" })}
 			>
 				+ Add Attribute
@@ -147,8 +147,8 @@ export function EditVariantSheet({
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetContent className="overflow-y-auto sm:max-w-[500px] w-full p-0">
-				<SheetHeader className="p-6 pb-2 border-b border-gray-100">
+			<SheetContent className="overflow-y-auto sm:max-w-[500px] w-full p-0 bg-card">
+				<SheetHeader className="p-6 pb-2 border-b border-border">
 					<SheetTitle className="text-xl font-semibold tracking-tight">
 						Edit Variant
 					</SheetTitle>
@@ -175,11 +175,11 @@ export function EditVariantSheet({
 									min="0"
 									step="0.01"
 									placeholder="0.00"
-									className={cn("h-9", errors.costPrice && "border-red-500")}
-									{...register("costPrice", {valueAsNumber: true})}
+									className={cn("h-9 transition-colors", errors.costPrice && "border-destructive ring-destructive/20")}
+									{...register("costPrice", { valueAsNumber: true })}
 								/>
 								{errors.costPrice && (
-									<p className="text-xs text-red-500">{errors.costPrice.message}</p>
+									<p className="text-xs text-destructive mt-1">{errors.costPrice.message}</p>
 								)}
 							</div>
 							<div className="space-y-2">
@@ -193,7 +193,7 @@ export function EditVariantSheet({
 									step="0.01"
 									placeholder="0.00"
 									className={cn("h-9", errors.sellingPrice && "border-red-500")}
-									{...register("sellingPrice", {valueAsNumber: true})}
+									{...register("sellingPrice", { valueAsNumber: true })}
 								/>
 								{errors.sellingPrice && (
 									<p className="text-xs text-red-500">{errors.sellingPrice.message}</p>
@@ -211,15 +211,15 @@ export function EditVariantSheet({
 								min="0"
 								placeholder="0"
 								className={cn("h-9", errors.stock && "border-red-500")}
-								{...register("stock", {valueAsNumber: true})}
+								{...register("stock", { valueAsNumber: true })}
 							/>
 							{errors.stock && (
-								<p className="text-xs text-red-500">{errors.stock.message}</p>
+								<p className="text-xs text-destructive">{errors.stock.message}</p>
 							)}
 						</div>
 					</div>
 
-					<SheetFooter className="p-6 border-t border-gray-100 bg-white sm:justify-between sticky bottom-0">
+					<SheetFooter className="p-6 border-t border-border bg-card sm:justify-between sticky bottom-0">
 						<Button
 							type="button"
 							variant="outline"

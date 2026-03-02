@@ -65,7 +65,7 @@ const SalesMetrics = () => {
 			value: metrics.totalTransactions.toString(),
 			sublabel: "Today's sales count",
 			icon: Files,
-			iconColor: "text-primary",
+			iconColor: "text-info",
 		},
 		{
 			label: "Avg. Sale Value",
@@ -93,6 +93,7 @@ const SalesMetrics = () => {
 					change={metric.change}
 					icon={metric.icon}
 					sublabel={metric.sublabel}
+					iconColor={metric.iconColor}
 				/>
 			))}
 		</div>

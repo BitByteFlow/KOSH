@@ -4,25 +4,6 @@ import { Card } from "@kosh/ui/components/card";
 import type { MetricCardProps } from "@/types/dashboard";
 import { cn } from "@/lib/utils";
 
-const colorMap: { [key: string]: { bg: string; text: string } } = {
-	"Sales Today": {
-		bg: "bg-green-100 dark:bg-green-900/30",
-		text: "text-green-600 dark:text-green-400",
-	},
-	Orders: {
-		bg: "bg-blue-100 dark:bg-blue-900/30",
-		text: "text-blue-600 dark:text-blue-400",
-	},
-	"Cash in Hand": {
-		bg: "bg-orange-100 dark:bg-orange-900/30",
-		text: "text-orange-600 dark:text-orange-400",
-	},
-	"Credit Given": {
-		bg: "bg-purple-100 dark:bg-purple-900/30",
-		text: "text-purple-600 dark:text-purple-400",
-	},
-};
-
 export function MetricCard({
 	label,
 	value,
@@ -62,9 +43,14 @@ export function MetricCard({
 					)}
 				</div>
 				<div className={cn(
-					"p-3 rounded-xl ring-1 ring-border shadow-inner bg-accent/50",
+					"p-3 rounded-xl transition-colors ring-1 ring-border/50 shadow-inner",
+					iconColor === "text-success" ? "bg-success/10" :
+						iconColor === "text-destructive" ? "bg-destructive/10" :
+							iconColor === "text-warning" ? "bg-warning/10" :
+								iconColor === "text-info" ? "bg-info/10" :
+									"bg-muted/50"
 				)}>
-					<Icon className={cn("w-6 h-6", iconColor || "text-primary")} />
+					<Icon className={cn("w-6 h-6 transition-transform hover:scale-110", iconColor || "text-primary")} />
 				</div>
 			</div>
 		</Card>

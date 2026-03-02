@@ -89,7 +89,7 @@ const DailyBalanceMetrics = () => {
 			value: formatCurrency(metrics.openingCash),
 			icon: Wallet,
 			sublabel: "Start of day",
-			iconColor: "text-primary",
+			iconColor: "text-info",
 		},
 		{
 			label: "Sales Today",
@@ -122,7 +122,7 @@ const DailyBalanceMetrics = () => {
 			value: formatCurrency(metrics.closingCash),
 			icon: Wallet,
 			sublabel: "Cash in hand",
-			iconColor: "text-primary",
+			iconColor: "text-info",
 		},
 	];
 
