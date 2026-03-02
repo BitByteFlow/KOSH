@@ -76,14 +76,14 @@ const InventorySearch = ({
 	return (
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center gap-3">
-				<div className="flex-1 relative">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+				<div className="flex-1 relative group">
+					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-foreground transition-colors" />
 					<Input
 						id="inventory-search"
 						type="text"
-						placeholder="Search by name, SKU, or category..."
+						placeholder="Search product name, SKU..."
 						onChange={(e) => onSearch?.(e.target.value)}
-						className="w-full pl-10 pr-4 py-2 h-10"
+						className="w-full pl-10 pr-4 py-2 h-10 border-border focus-visible:ring-primary/20"
 					/>
 				</div>
 
@@ -104,8 +104,8 @@ const InventorySearch = ({
 							variant="outline"
 							size="sm"
 							className={cn(
-								"flex items-center gap-2 h-10 px-4 bg-transparent",
-								activeCategoryId && "border-blue-500 text-blue-600 bg-blue-50/50"
+								"flex items-center gap-2 h-10 px-4 bg-transparent border-border hover:bg-muted/50",
+								activeCategoryId && "border-primary text-primary bg-primary/5"
 							)}
 						>
 							<span className="max-w-[100px] truncate">{selectedCategoryName}</span>
@@ -157,8 +157,8 @@ const InventorySearch = ({
 							variant="outline"
 							size="sm"
 							className={cn(
-								"flex items-center gap-2 h-10 px-4 bg-transparent",
-								activeStatus && "border-blue-500 text-blue-600 bg-blue-50/50"
+								"flex items-center gap-2 h-10 px-4 bg-transparent border-border hover:bg-muted/50",
+								activeStatus && "border-primary text-primary bg-primary/5"
 							)}
 						>
 							{selectedStatusLabel}
@@ -193,8 +193,8 @@ const InventorySearch = ({
 					onClick={onGenerateBarcodes}
 					disabled={selectedCount === 0}
 					className={cn(
-						"flex items-center gap-2 h-10 px-4 bg-transparent",
-						selectedCount > 0 && "border-green-500 text-green-600 bg-green-50/50"
+						"flex items-center gap-2 h-10 px-4 bg-transparent border-border",
+						selectedCount > 0 && "border-success text-success bg-success/5"
 					)}
 				>
 					<Tooltip>
@@ -204,7 +204,7 @@ const InventorySearch = ({
 								<span>Barcodes {selectedCount > 0 && `(${selectedCount})`}</span>
 							</div>
 						</TooltipTrigger>
-						<TooltipContent>
+						<TooltipContent className="bg-popover text-popover-foreground border-border shadow-md">
 							{selectedCount > 0
 								? `Generate barcodes for ${selectedCount} products`
 								: "Select products to generate barcodes"}

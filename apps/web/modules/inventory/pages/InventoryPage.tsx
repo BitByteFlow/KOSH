@@ -166,11 +166,11 @@ const InventoryPage = () => {
 
 	return (
 		<div className="flex-1 flex flex-col h-screen bg-background">
-			<div className="border-b border-border px-8 py-6 flex items-center justify-between sticky top-0 bg-background z-10">
+			<div className="border-b border-border px-4 md:px-8 py-6 flex items-center justify-between sticky top-0 bg-background z-10">
 				<h1 className="text-2xl font-bold">Inventory</h1>
 			</div>
 
-			<div className="flex-1 overflow-auto px-8 py-6">
+			<div className="flex-1 overflow-auto px-4 md:px-8 py-6">
 				<div className="space-y-6">
 					<InventorySearch
 						onSearch={setSearchQuery}
@@ -184,31 +184,31 @@ const InventoryPage = () => {
 					{loading ? (
 						<TransactionTableSkeleton />
 					) : (
-						<div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+						<div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
 							<Table>
-								<TableHeader className="bg-gray-50/50">
+								<TableHeader className="bg-muted/50">
 									<TableRow className="border-border">
-										<TableHead className="w-12 pl-6">
+										<TableHead className="w-12 pl-6 text-center">
 											<input
 												type="checkbox"
 												checked={isAllSelected}
 												onChange={(e) => handleSelectAll(e.target.checked)}
-												className="w-4 h-4 rounded border-gray-300 cursor-pointer"
+												className="w-4 h-4 rounded border-border cursor-pointer accent-primary"
 											/>
 										</TableHead>
-										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider h-12">
+										<TableHead className="text-xs font-bold text-foreground uppercase tracking-wider h-12">
 											Product Name
 										</TableHead>
-										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider h-12">
+										<TableHead className="text-xs font-bold text-foreground uppercase tracking-wider h-12">
 											Category
 										</TableHead>
-										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider h-12">
+										<TableHead className="text-xs font-bold text-foreground uppercase tracking-wider h-12">
 											Total Stock
 										</TableHead>
-										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider h-12">
+										<TableHead className="text-xs font-bold text-foreground uppercase tracking-wider h-12">
 											Status
 										</TableHead>
-										<TableHead className="text-right text-xs font-semibold text-gray-600 uppercase tracking-wider h-12 pr-6">
+										<TableHead className="text-right text-xs font-bold text-foreground uppercase tracking-wider h-12 pr-6">
 											Actions
 										</TableHead>
 									</TableRow>

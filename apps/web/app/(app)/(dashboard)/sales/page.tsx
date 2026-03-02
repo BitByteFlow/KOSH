@@ -43,7 +43,7 @@ const GET_SALES_DATA = gql(`
 export default function SalesPage() {
 	return (
 		<PreloadQuery query={GET_SALES_DATA}>
-			<div className="flex-1 space-y-8 p-8 pt-6">
+			<div className="flex-1 space-y-8 p-4 md:p-8 pt-6">
 				<div className="flex items-center justify-between space-y-2">
 					<div>
 						<h2 className="text-2xl font-bold tracking-tight">Sales Overview</h2>

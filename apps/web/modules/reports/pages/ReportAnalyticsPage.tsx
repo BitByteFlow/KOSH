@@ -21,7 +21,7 @@ const ReportAnalyticsPage = () => {
 	};
 
 	return (
-		<main className="flex-1 space-y-6 p-8">
+		<main className="flex-1 space-y-6 p-4 md:p-8">
 			<div className="flex items-center justify-between">
 				<h2 className="text-2xl font-semibold text-foreground">
 					Reports & Analytics

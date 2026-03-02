@@ -138,26 +138,26 @@ export function TransactionTable() {
 				) : (
 					<>
 						<Table>
-							<TableHeader className="bg-gray-100 ">
-								<TableRow className="border-bottom border-slate-200 shadow-sm rounded-md">
-									<TableHead className="text-left text-muted-foreground">
+							<TableHeader className="bg-muted/50">
+								<TableRow className="border-b border-border transition-colors">
+									<TableHead className="text-left font-semibold text-foreground">
 										Transaction Date
 									</TableHead>
-									<TableHead className="text-left text-muted-foreground">
+									<TableHead className="text-left font-semibold text-foreground">
 										Transaction Type
 									</TableHead>
-									<TableHead className="text-right text-muted-foreground">
+									<TableHead className="text-right font-semibold text-foreground">
 										Amount
 									</TableHead>
-									<TableHead className="text-left text-muted-foreground">
+									<TableHead className="text-left font-semibold text-foreground">
 										Note
 									</TableHead>
-									<TableHead className="text-center text-muted-foreground">
+									<TableHead className="text-center font-semibold text-foreground">
 										Actions
 									</TableHead>
 								</TableRow>
 							</TableHeader>
-							<TableBody className="gap-4 [&_tr_td]:py-4">
+							<TableBody className="[&_tr_td]:py-4">
 								{transactions.map((transaction) => {
 									const typeConfig = TRANSACTION_TYPE_CONFIG[
 										transaction.type
@@ -169,7 +169,7 @@ export function TransactionTable() {
 									return (
 										<TableRow
 											key={transaction.id}
-											className="border-bottom border-gray-200 shadow-sm rounded-md"
+											className="border-b border-border/50 hover:bg-muted/30 transition-colors"
 										>
 											<TableCell className="text-sm">
 												{format(

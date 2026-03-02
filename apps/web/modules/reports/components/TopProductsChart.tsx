@@ -50,7 +50,7 @@ export function TopProductsChart({ dateRange }: TopProductsChartProps) {
 	const maxRevenue = topProducts.length > 0 ? Math.max(...topProducts.map((d) => d.value)) : 0;
 
 	return (
-		<div className="rounded-lg shadow-md border border-border bg-card p-6">
+		<div className="rounded-xl shadow-sm border border-border bg-card p-6">
 			<div className="mb-6 flex items-center justify-between">
 				<h3 className="text-lg font-semibold text-foreground">Top Products</h3>
 				<Button
@@ -71,7 +71,7 @@ export function TopProductsChart({ dateRange }: TopProductsChartProps) {
 								{product.name}
 							</span>
 							<div className="flex w-3/5 items-center gap-4">
-								<div className="h-2 flex-1 rounded-full bg-muted">
+								<div className="h-2 flex-1 rounded-full bg-muted/50">
 									<div
 										className="h-full rounded-full bg-primary"
 										style={{
@@ -80,7 +80,7 @@ export function TopProductsChart({ dateRange }: TopProductsChartProps) {
 									/>
 								</div>
 								<span className="w-24 text-right text-sm font-semibold text-foreground">
-									{product.revenue}
+									Rs {product.revenue.toLocaleString()}
 								</span>
 							</div>
 						</div>

@@ -106,7 +106,7 @@ const InventoryItem = ({
 
 	return (
 		<>
-			<TableRow className="hover:bg-muted/50 transition-colors border-b-border [&_td:first-child]:pl-6 [&_td:last-child]:pr-6 [&_td]:py-5">
+			<TableRow className="hover:bg-muted/30 transition-colors border-b border-border/50 [&_td:first-child]:pl-6 [&_td:last-child]:pr-6 [&_td]:py-5">
 				<TableCell className="w-12">
 					<Checkbox
 						checked={isSelected}
@@ -117,26 +117,26 @@ const InventoryItem = ({
 				<TableCell>
 					<button
 						onClick={() => setIsExpanded(!isExpanded)}
-						className="flex items-center gap-3 text-left w-full"
+						className="flex items-center gap-3 text-left w-full group"
 					>
 						<ChevronDown
-							className={`w-4 h-4 transition-transform text-muted-foreground ${isExpanded ? "rotate-180" : ""
+							className={`w-4 h-4 transition-transform text-muted-foreground group-hover:text-foreground ${isExpanded ? "rotate-180" : ""
 								}`}
 						/>
 						<div>
-							<p className="font-medium">{productName}</p>
-							<p className="text-sm text-muted-foreground">
-								{variantCount} Variants
+							<p className="font-semibold text-foreground">{productName}</p>
+							<p className="text-xs text-muted-foreground font-medium">
+								{variantCount} {variantCount === 1 ? "Variant" : "Variants"}
 							</p>
 						</div>
 					</button>
 				</TableCell>
 
-				<TableCell className="text-sm text-muted-foreground">
+				<TableCell className="text-sm font-medium text-muted-foreground">
 					{category.name}
 				</TableCell>
 
-				<TableCell className="font-medium">{totalStock}</TableCell>
+				<TableCell className="font-bold tabular-nums">{totalStock}</TableCell>
 
 				<TableCell>
 					<StatusBadge status={status}>{statusConfig}</StatusBadge>

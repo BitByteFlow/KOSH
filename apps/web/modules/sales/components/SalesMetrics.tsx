@@ -58,24 +58,28 @@ const SalesMetrics = () => {
 			value: `Rs ${metrics.totalSales.toLocaleString()}`,
 			change: { value: 0, label: "Today", positive: true },
 			icon: DollarSign,
+			iconColor: "text-success",
 		},
 		{
 			label: "Transactions",
 			value: metrics.totalTransactions.toString(),
 			sublabel: "Today's sales count",
 			icon: Files,
+			iconColor: "text-primary",
 		},
 		{
 			label: "Avg. Sale Value",
 			value: `Rs ${Math.round(metrics.avgSaleValue).toLocaleString()}`,
 			change: { value: 0, label: "Today", positive: true },
 			icon: TrendingUp,
+			iconColor: "text-success",
 		},
 		{
 			label: "Total Profit",
 			value: `Rs ${metrics.totalProfit.toLocaleString()}`,
 			sublabel: "Today's net profit",
 			icon: Wallet,
+			iconColor: "text-success",
 		},
 	];
 

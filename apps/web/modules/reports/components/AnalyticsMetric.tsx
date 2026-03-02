@@ -10,33 +10,36 @@ export function AnalyticsMetricCard({
 	subtitle,
 	isPositive = true,
 }: AnalyticsMetricCardProps) {
-	const trendColor = isPositive ? "text-green-600" : "text-red-600";
+	const trendColor = isPositive ? "text-success" : "text-destructive";
 
 	return (
-		<div className="rounded-lg shadow-md border border-border bg-card p-4">
+		<div className="rounded-xl shadow-sm border border-border bg-card p-6 hover:shadow-md transition-shadow">
 			<div className="flex items-start justify-between">
-				<div>
-					<p className="text-sm font-medium uppercase text-muted-foreground">
+				<div className="space-y-1">
+					<p className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
 						{label}
 					</p>
-					<p className="mt-3 text-2xl font-semibold text-foreground">{value}</p>
+					<p className="text-3xl font-bold text-foreground tabular-nums">{value}</p>
 					{subtitle && (
-						<p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
+						<p className="text-xs text-muted-foreground font-medium">{subtitle}</p>
 					)}
 				</div>
 				{trend !== undefined && (
-					<div className={cn("flex items-center gap-1 text-sm", trendColor)}>
+					<div className={cn("flex items-center gap-1 text-sm px-2 py-0.5 rounded-full bg-muted/50", trendColor)}>
 						{isPositive ? (
-							<ArrowUp className="h-4 w-4" />
+							<ArrowUp className="h-3 w-3 stroke-[3]" />
 						) : (
-							<ArrowDown className="h-4 w-4" />
+							<ArrowDown className="h-3 w-3 stroke-[3]" />
 						)}
-						<span className="font-semibold">{trend}%</span>
+						<span className="font-bold">{trend}%</span>
 					</div>
 				)}
 			</div>
 			{trendLabel && (
-				<p className="mt-4 text-xs text-muted-foreground">{trendLabel}</p>
+				<p className="mt-4 text-[11px] text-muted-foreground font-medium flex items-center gap-2">
+					<span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+					{trendLabel}
+				</p>
 			)}
 		</div>
 	);

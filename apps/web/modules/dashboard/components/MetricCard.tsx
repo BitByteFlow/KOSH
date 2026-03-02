@@ -31,33 +31,27 @@ export function MetricCard({
 	sublabel,
 	iconColor,
 }: MetricCardProps) {
-	const colors =
-		colorMap[label] ||
-		({
-			bg: "bg-muted",
-			text: "text-muted-foreground",
-		} as (typeof colorMap)[string]);
 	return (
-		<Card className="p-4 border border-border rounded-lg shadow-sm">
+		<Card className="p-5 border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow">
 			<div className="flex items-start justify-between">
-				<div>
-					<p className="text-sm font-medium text-muted-foreground">{label}</p>
-					<p className="text-2xl font-semibold mt-1 text-foreground">{value}</p>
+				<div className="space-y-1">
+					<p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+					<p className="text-2xl font-bold text-foreground tabular-nums">{value}</p>
 					{sublabel && (
-						<p className="text-xs text-muted-foreground mt-1">{sublabel}</p>
+						<p className="text-xs text-muted-foreground font-medium">{sublabel}</p>
 					)}
 					{change && (
-						<div className="flex items-center gap-1 mt-2 text-sm">
+						<div className="flex items-center gap-1.5 mt-2 text-sm">
 							<TrendingUp
 								className={cn(
 									"h-4 w-4",
-									change.positive ? "text-green-500" : "text-red-500",
+									change.positive ? "text-success" : "text-destructive",
 								)}
 							/>
 							<span
 								className={cn(
-									"font-medium",
-									change.positive ? "text-green-500" : "text-red-500",
+									"font-semibold",
+									change.positive ? "text-success" : "text-destructive",
 								)}
 							>
 								{change.positive ? "+" : "-"}
@@ -67,8 +61,10 @@ export function MetricCard({
 						</div>
 					)}
 				</div>
-				<div className={cn("p-3 rounded-lg", colors.bg)}>
-					<Icon className={cn("w-5 h-5", iconColor || colors.text)} />
+				<div className={cn(
+					"p-3 rounded-xl ring-1 ring-border shadow-inner bg-accent/50",
+				)}>
+					<Icon className={cn("w-6 h-6", iconColor || "text-primary")} />
 				</div>
 			</div>
 		</Card>

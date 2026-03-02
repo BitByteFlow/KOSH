@@ -186,7 +186,7 @@ export function SalesHistoryTable() {
 						{activeFiltersCount > 0 && (
 							<Badge
 								variant="default"
-								className="ml-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-blue-600"
+								className="ml-1 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px] bg-primary text-primary-foreground"
 							>
 								{activeFiltersCount}
 							</Badge>
@@ -202,16 +202,16 @@ export function SalesHistoryTable() {
 				</div>
 			</div>
 
-			<div className="rounded-lg border-border bg-card text-card-foreground shadow-sm overflow-hidden">
-				<Table className="border-border">
+			<div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden">
+				<Table>
 					<TableHeader className="bg-muted/50">
 						<TableRow className="border-border">
-							<TableHead className="w-[120px]">Invoice</TableHead>
-							<TableHead>Date</TableHead>
-							<TableHead className="text-center">Items</TableHead>
-							<TableHead>Payment</TableHead>
-							<TableHead className="text-right">Total</TableHead>
-							<TableHead className="text-right">Profit</TableHead>
+							<TableHead className="w-[120px] font-bold text-foreground">Invoice</TableHead>
+							<TableHead className="font-bold text-foreground">Date</TableHead>
+							<TableHead className="text-center font-bold text-foreground">Items</TableHead>
+							<TableHead className="font-bold text-foreground">Payment</TableHead>
+							<TableHead className="text-right font-bold text-foreground">Total</TableHead>
+							<TableHead className="text-right font-bold text-foreground">Profit</TableHead>
 							<TableHead className="w-[50px]"></TableHead>
 						</TableRow>
 					</TableHeader>
@@ -229,7 +229,7 @@ export function SalesHistoryTable() {
 							filteredSales?.map((sale) => (
 								<TableRow
 									key={sale.id}
-									className="hover:bg-muted/50 border-border"
+									className="hover:bg-muted/30 border-border/50 transition-colors"
 								>
 									<TableCell className="font-medium text-xs truncate max-w-[120px] py-6">
 										#{sale.id.slice(0, 8)}
@@ -432,7 +432,7 @@ export function SalesHistoryTable() {
 							<X className="mr-2 h-4 w-4" />
 							Reset Filters
 						</Button>
-						<Button onClick={() => setIsFilterOpen(false)} className="bg-blue-600 hover:bg-blue-700">
+						<Button onClick={() => setIsFilterOpen(false)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
 							Apply Filters
 						</Button>
 					</DialogFooter>
