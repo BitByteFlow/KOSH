@@ -585,10 +585,10 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 								<p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Subtotal</p>
 								<p className="text-lg font-semibold">{formatCurrency(subtotal)}</p>
 							</div>
-							<div className="space-y-1 text-right">
+							{/* <div className="space-y-1 text-right">
 								<p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Est. Profit</p>
 								<p className="text-lg font-semibold text-green-600">+{formatCurrency(profit)}</p>
-							</div>
+							</div> */}
 						</div>
 
 						<div className="flex flex-col sm:flex-row gap-4">

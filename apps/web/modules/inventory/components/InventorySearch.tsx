@@ -18,8 +18,7 @@ import { cn } from "@/lib/utils";
 
 import { Status } from "@/gql/graphql";
 import { gql } from "@/gql";
-import { useQuery } from "@apollo/client/react";
-import { parseGraphQLListResponse } from "@/lib/graphql/utils";
+import { useCategoryList } from "../hooks/useProducts";
 
 interface InventorySearchProps {
 	onSearch?: (query: string) => void;
@@ -31,21 +30,6 @@ interface InventorySearchProps {
 	activeStatus?: string | null;
 }
 
-const GET_CATEGORIES = gql(`
-	query GetCategoriesForSearch {
-		getCategories {
-			success
-			message
-			data {
-				id
-				name
-				createdAt
-				updatedAt
-			}
-		}
-	}
-`)
-
 const InventorySearch = ({
 	onSearch,
 	onCategoryFilter,
@@ -55,25 +39,25 @@ const InventorySearch = ({
 	activeCategoryId,
 	activeStatus,
 }: InventorySearchProps) => {
-	const { data: rawData } = useQuery(GET_CATEGORIES)
+	const { data: rawData, loading } = useCategoryList();
 
 	const categories = useMemo(() =>
-		parseGraphQLListResponse(rawData?.getCategories),
-		[rawData?.getCategories]
+		rawData?.getCategories?.data ?? [],
+		[rawData?.getCategories?.data]
 	);
 
 	const [categorySearch, setCategorySearch] = useState("");
 
 	const filteredCategories = useMemo(() => {
-		if (!categorySearch) return categories.data ?? [];
-		return categories.data?.filter((cat) =>
+		if (!categorySearch) return categories;
+		return categories?.filter((cat: any) =>
 			cat.name.toLowerCase().includes(categorySearch.toLowerCase())
 		) ?? [];
 	}, [categories, categorySearch]);
 
 	const selectedCategoryName = useMemo(() => {
-		if (!activeCategoryId || categories.data?.length === 0) return "Category";
-		const cat = categories.data?.find((c) => c.id === activeCategoryId);
+		if (!activeCategoryId || categories?.length === 0) return "Category";
+		const cat = categories?.find((c: any) => c.id === activeCategoryId);
 		return cat ? cat.name : "Category";
 	}, [activeCategoryId, categories]);
 

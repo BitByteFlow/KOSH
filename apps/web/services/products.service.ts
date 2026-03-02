@@ -44,6 +44,70 @@ export const LIST_PRODUCTS_WITH_FILTER = gql`
 			}
 		}
 	}
+`; export const CREATE_PRODUCT = gql`
+  mutation CreateProduct($input: CreateProductInput!) {
+    createProduct(createProductInput: $input) {
+      success
+      message
+      data {
+        id
+        productName
+      }
+    }
+  }
+`;
+
+export const UPDATE_PRODUCT = gql`
+  mutation UpdateProduct($productId: ID!, $input: UpdateProductInput!) {
+    updateProduct(productId: $productId, updateProductInput: $input) {
+      success
+      message
+      data {
+        id
+        productName
+      }
+    }
+  }
+`;
+
+export const DELETE_PRODUCT = gql`
+  mutation DeleteProduct($productId: ID!) {
+    deleteProduct(productId: $productId) {
+      success
+      message
+    }
+  }
+`;
+
+export const ADD_VARIANT = gql`
+  mutation AddVariant($productId: ID!, $input: VariantInput!) {
+    addVariant(productId: $productId, variantInput: $input) {
+      success
+      message
+      data {
+        id
+        productName
+      }
+    }
+  }
+`;
+
+export const UPDATE_PRODUCT_VARIANT = gql`
+  mutation UpdateProductVariant($variantId: ID!, $input: UpdateProductVariantInput!) {
+    updateProductVariant(productVariantId: $variantId, updateProductVariantInput: $input) {
+      success
+      message
+    }
+  }
+`;
+
+export const DELETE_PRODUCT_VARIANT = gql`
+  mutation DeleteProductVariant($productId: ID!, $variantId: ID!) {
+    deleteProductVariant(productId: $productId, productVariantId: $variantId) {
+      success
+      message
+    }
+  }
 `;
 
 export interface ProductVariant {

@@ -12,9 +12,7 @@ import {
 } from "@kosh/ui/components/dialog";
 import { Label } from "@kosh/ui/components/label";
 import { toast } from "sonner";
-import { useQuery, useMutation } from "@apollo/client/react";
-import { gql } from "@/gql";
-import { parseGraphQLListResponse } from "@/lib/graphql/utils";
+import { useCategoryList, useUpdateProduct } from "../hooks/useProducts";
 
 interface ChangeCategoryDialogProps {
 	open: boolean;
@@ -23,66 +21,18 @@ interface ChangeCategoryDialogProps {
 	onSave?: (productId: string, newCategory: string) => Promise<void>;
 }
 
-const GET_CATEGORIES = gql(`
-	query GetCategoriesInDialog {
-		getCategories {
-			success
-			message
-			data {
-				id
-				name
-			}
-		}
-	}
-`);
-
-const UPDATE_PRODUCT_CATEGORY = gql(`
-	mutation UpdateProductCategoryInDialog($productId: ID!, $updateProductInput: UpdateProductInput!) {
-		updateProduct(productId: $productId, updateProductInput: $updateProductInput) {
-			success
-			message
-			data {
-				id
-				productName
-				category {
-					id
-					name
-				}
-				totalStock
-				variantCount
-				status
-				variants {
-					id
-					sku
-					barcode
-					attributes {
-						name
-						value
-					}
-					price
-					stock
-					lowStock
-					status
-					sellingPrice
-					costPrice
-				}
-			}
-		}
-	}
-`);
-
 export function ChangeCategoryDialog({
 	open,
 	onOpenChange,
 	product,
 }: ChangeCategoryDialogProps) {
-	const { data: rawCategoryData, loading: categoriesLoading } = useQuery(GET_CATEGORIES);
-	const [updateProductMutation, { loading: isUpdating }] = useMutation(UPDATE_PRODUCT_CATEGORY);
+	const { data: rawCategoryData, loading: categoriesLoading } = useCategoryList();
+	const [updateProductMutation, { loading: isUpdating }] = useUpdateProduct();
 	const [selectedCategory, setSelectedCategory] = useState(product?.category?.id || "");
 
 	const categories = useMemo(() =>
-		parseGraphQLListResponse(rawCategoryData?.getCategories),
-		[rawCategoryData?.getCategories]
+		rawCategoryData?.getCategories?.data ?? [],
+		[rawCategoryData?.getCategories?.data]
 	);
 
 	// Reset selection when product changes
@@ -99,7 +49,7 @@ export function ChangeCategoryDialog({
 			const { data }: any = await updateProductMutation({
 				variables: {
 					productId: product.id,
-					updateProductInput: {
+					input: {
 						name: product.productName,
 						categoryId: selectedCategory
 					}
@@ -139,7 +89,7 @@ export function ChangeCategoryDialog({
 							disabled={categoriesLoading}
 						>
 							<option value="" disabled>Select a category</option>
-							{categories.data?.map((cat) => (
+							{categories?.map((cat: any) => (
 								<option key={cat.id} value={cat.id}>
 									{cat.name}
 								</option>

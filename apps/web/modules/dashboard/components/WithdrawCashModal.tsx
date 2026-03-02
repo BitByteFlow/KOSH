@@ -18,45 +18,25 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@kosh/ui/components/select";
-// import { useCreateTransaction } from "../hooks/useAccount";
-import type { TransactionType } from "@/types/transcation";
+import { useCreateTransaction } from "../hooks/useAccount";
 import { useState } from "react";
-import { useMutation } from "@apollo/client/react";
-import { toast } from "sonner";
-import { gql } from "@/gql";
 
 const TRANSACTION_TYPES = [
-	{ value: "WITHDRAWAL" as TransactionType, label: "Withdrawal" },
-	{ value: "EXPENSES" as TransactionType, label: "Expenses" },
-	{ value: "DEBT_PAID" as TransactionType, label: "Debt Paid" },
-	{ value: "DEBT" as TransactionType, label: "Debt" },
+	{ value: "WITHDRAWAL", label: "Withdrawal" },
+	{ value: "EXPENSES", label: "Expenses" },
+	{ value: "DEBT_PAID", label: "Debt Paid" },
+	{ value: "DEBT", label: "Debt" },
 ] as const;
 
 interface FormData {
-	type: TransactionType;
+	type: string;
 	amount: string;
 	note: string;
 }
-const CREATE_TRANSACTION = gql(`
-	mutation CreateTransaction($createTransactionInput: CreateTransactionInput!) {
-		createTransaction(createTransactionInput: $createTransactionInput) {
-			success
-			data {
-				id
-				type
-				amount
-				note
-				createdAt
-				updatedAt
-			}
-		}
-	}
-`);
 
 export const WithdrawCashModal = () => {
 	const [isOpen, setIsOpen] = useState(false);
-	// const createTransaction = useCreateTransaction();
-	const [createTransactionMutation, { loading, error }] = useMutation(CREATE_TRANSACTION)
+	const [createTransaction, { loading }] = useCreateTransaction();
 
 	const {
 		register,
@@ -77,21 +57,20 @@ export const WithdrawCashModal = () => {
 		if (isNaN(amountValue) || amountValue <= 0) {
 			return;
 		}
-		const { data: transactionResponse, error } = await createTransactionMutation({
+
+		const result = await createTransaction({
 			variables: {
-				createTransactionInput: {
+				input: {
 					amount: amountValue,
 					note: data.note,
-					type: data.type,
+					type: data.type as any,
 				},
 			},
-		})
-		if (!error && transactionResponse?.createTransaction?.success) {
-			toast.success("Transaction created successfully");
+		});
+
+		if (result.data?.createTransaction?.success) {
 			setIsOpen(false);
 			reset();
-		} else {
-			toast.error(error?.message || "Transaction failed");
 		}
 	};
 

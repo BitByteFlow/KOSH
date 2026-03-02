@@ -236,11 +236,19 @@ export class AccountsService {
   ): Promise<PaginatedTransactionsResponse> {
     try {
       const skip = (page - 1) * limit;
+      const now = new Date();
+      const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+      const tomorrow = new Date(today);
+      tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
       const [transactions, total] = await Promise.all([
         this.database.prisma.accountTransaction.findMany({
           where: {
             userId: userId,
+            createdAt: {
+              gte: today,
+              lt: tomorrow,
+            },
           },
           orderBy: {
             [sortBy]: sortOrder,
@@ -259,12 +267,15 @@ export class AccountsService {
         this.database.prisma.accountTransaction.count({
           where: {
             userId: userId,
+            createdAt: {
+              gte: today,
+              lt: tomorrow,
+            },
           },
         }),
       ]);
 
       const totalPages = Math.ceil(total / limit);
-
       return {
         success: true,
         message: "Transactions fetched successfully",

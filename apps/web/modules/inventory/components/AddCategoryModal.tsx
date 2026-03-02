@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Loader2 } from "lucide-react";
-import { useMutation } from "@apollo/client/react";
-import { gql } from "@/gql";
+import { useCreateCategory } from "../hooks/useProducts";
 import { createCategorySchema, type CreateCategoryInput } from "@kosh/validation";
 import { Button } from "@kosh/ui/components/button";
 import {
@@ -24,18 +23,9 @@ interface AddCategoryModalProps {
 	trigger?: React.ReactNode;
 }
 
-const CREATE_CATEGORY = gql(`
-	mutation CreateCategoryInModal($createCategoryInput: CreateCategoryInput!) {
-		createCategory(createCategoryInput: $createCategoryInput) {
-			success
-			message
-		}
-	}
-`);
-
 export function AddCategoryModal({ trigger }: AddCategoryModalProps) {
 	const [isOpen, setIsOpen] = useState(false);
-	const [createCategoryMutation, { loading: isCreating }] = useMutation(CREATE_CATEGORY);
+	const [createCategoryMutation, { loading: isCreating }] = useCreateCategory();
 
 	const {
 		register,
@@ -53,11 +43,10 @@ export function AddCategoryModal({ trigger }: AddCategoryModalProps) {
 		try {
 			const { data: result } = await createCategoryMutation({
 				variables: {
-					createCategoryInput: {
+					input: {
 						name: data.name,
 					},
 				},
-				refetchQueries: ["GetCategories", "GetCategoriesSheet"]
 			});
 
 			if (result?.createCategory?.success) {

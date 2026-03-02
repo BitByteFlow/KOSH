@@ -1,9 +1,20 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import { accountService, type CreateTransactionRequest, type GetTransactionsParams } from "@/services/account.service";
-import { getUserFriendlyErrorMessage } from "@/lib/api/errors";
+import { useQuery as useApolloQuery, useMutation as useApolloMutation } from "@apollo/client/react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+	GET_CURRENT_CASH_BALANCE,
+	GET_ACCOUNT_TRANSACTIONS,
+	CREATE_TRANSACTION,
+	type GetTransactionsParams
+} from "@/services/account.service";
+import { toast } from "sonner";
+import {
+	BalanceResponse,
+	PaginatedTransactionsResponse,
+	AccountResponse,
+	CreateTransactionInput
+} from "@/gql/graphql";
 
 export const accountKeys = {
 	all: ["account"] as const,
@@ -13,47 +24,44 @@ export const accountKeys = {
 };
 
 export function useAccountBalance() {
-	const { data: session } = useSession();
-	const token = session?.user?.token;
-
-	return useQuery({
-		queryKey: accountKeys.balance(),
-		queryFn: () => accountService.getDashboardMetrics(token),
-		enabled: !!token,
-		refetchInterval: 5 * 60 * 1000,
+	return useApolloQuery<{ getCurrentCashBalance: BalanceResponse }>(GET_CURRENT_CASH_BALANCE, {
+		fetchPolicy: "cache-and-network",
+		pollInterval: 5 * 60 * 1000,
 	});
 }
 
 export function useAccountTransactions(params: GetTransactionsParams = {}) {
-	const { data: session } = useSession();
-	const token = session?.user?.token;
-
-	return useQuery({
-		queryKey: accountKeys.transactionList(params),
-		queryFn: () => accountService.getAccountTransactions(params, token),
-		enabled: !!token,
+	return useApolloQuery<{ getAccountTransactions: PaginatedTransactionsResponse }>(GET_ACCOUNT_TRANSACTIONS, {
+		variables: {
+			page: params.page || 1,
+			limit: params.limit || 10,
+			sortBy: params.sortBy || "createdAt",
+			sortOrder: params.sortOrder || "desc",
+		},
+		fetchPolicy: "cache-and-network",
 	});
 }
 
 export function useCreateTransaction() {
 	const queryClient = useQueryClient();
-	const { data: session } = useSession();
-	const token = session?.user?.token;
 
-	return useMutation({
-		mutationFn: (data: CreateTransactionRequest) => 
-			accountService.createTransaction(data, token),
-		
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: accountKeys.balance() });
-			queryClient.invalidateQueries({ queryKey: accountKeys.transactions() });
-		},
-		
-		onError: (error) => {
-			console.error("[useCreateTransaction] Error:", error);
-			
-			const message = getUserFriendlyErrorMessage(error);
-			console.error("Transaction failed:", message);
-		},
-	});
+	return useApolloMutation<{ createTransaction: AccountResponse }, { input: CreateTransactionInput }>(
+		CREATE_TRANSACTION,
+		{
+			onCompleted: (data: { createTransaction: AccountResponse }) => {
+				if (data.createTransaction.success) {
+					toast.success(data.createTransaction.message || "Transaction completed successfully!");
+					// Invalidate React Query caches for related data (to maintain sync with components not yet migrated)
+					queryClient.invalidateQueries({ queryKey: accountKeys.balance() });
+					queryClient.invalidateQueries({ queryKey: accountKeys.transactions() });
+				} else {
+					toast.error(data.createTransaction.message || "Transaction failed");
+				}
+			},
+			onError: (error: Error) => {
+				console.error("[useCreateTransaction] Error:", error);
+				toast.error(error.message || "Failed to create transaction");
+			},
+		}
+	);
 }
