@@ -72,11 +72,10 @@ const DashboardSidebar = () => {
 
 			if (width < 768) {
 				currentBreakpoint = "mobile";
-			} else if (width < 1024) {
+			} else if (width < 1200) {
 				currentBreakpoint = "medium";
 			}
 
-			// Only trigger auto-collapse/expand when crossing breakpoints
 			if (currentBreakpoint !== lastBreakpoint.current) {
 				if (currentBreakpoint === "medium") {
 					setOpen(false);

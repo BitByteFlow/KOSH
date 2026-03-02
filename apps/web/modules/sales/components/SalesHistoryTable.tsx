@@ -202,7 +202,7 @@ export function SalesHistoryTable() {
 				</div>
 			</div>
 
-			<div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden">
+			<div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-x-auto">
 				<Table>
 					<TableHeader className="bg-muted/50">
 						<TableRow className="border-border">

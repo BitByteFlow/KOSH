@@ -17,7 +17,7 @@ export function MetricCard({
 			<div className="flex items-start justify-between">
 				<div className="space-y-1">
 					<p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
-					<p className="text-2xl font-bold text-foreground tabular-nums">{value}</p>
+					<p className="text-xl font-bold text-foreground tabular-nums">{value}</p>
 					{sublabel && (
 						<p className="text-xs text-muted-foreground font-medium">{sublabel}</p>
 					)}
@@ -50,7 +50,7 @@ export function MetricCard({
 								iconColor === "text-info" ? "bg-info/10" :
 									"bg-muted/50"
 				)}>
-					<Icon className={cn("w-6 h-6 transition-transform hover:scale-110", iconColor || "text-primary")} />
+					<Icon className={cn("w-4 h-4 transition-transform hover:scale-110", iconColor || "text-primary")} />
 				</div>
 			</div>
 		</Card>

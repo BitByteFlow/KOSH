@@ -165,7 +165,7 @@ const InventoryPage = () => {
 	};
 
 	return (
-		<div className="flex-1 flex flex-col h-screen bg-background">
+		<div className="flex-1 flex flex-col min-h-0 bg-background">
 			<div className="border-b border-border px-4 md:px-8 py-6 flex items-center justify-between sticky top-0 bg-background z-10">
 				<h1 className="text-2xl font-bold">Inventory</h1>
 			</div>
@@ -184,7 +184,7 @@ const InventoryPage = () => {
 					{loading ? (
 						<TransactionTableSkeleton />
 					) : (
-						<div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
+						<div className="bg-card rounded-xl border border-border overflow-x-auto shadow-sm">
 							<Table>
 								<TableHeader className="bg-muted/50">
 									<TableRow className="border-border">

@@ -21,7 +21,7 @@ const ReportMetrics = ({ dateRange }: { dateRange: string }) => {
 
 	if (loading) {
 		return (
-			<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+			<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
 				<MetricCardSkeleton />
 				<MetricCardSkeleton />
 				<MetricCardSkeleton />
@@ -34,7 +34,7 @@ const ReportMetrics = ({ dateRange }: { dateRange: string }) => {
 	}
 
 	return (
-		<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+		<div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
 			{metrics.map((metric) => (
 				<AnalyticsMetricCard
 					key={metric.label}

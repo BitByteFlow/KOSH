@@ -1,7 +1,7 @@
 import React from "react";
 import DashboardSidebar from "@/modules/dashboard/components/DashboardSidebar";
 import SharedHeader from "@/components/SharedHeader";
-import { SidebarProvider } from "@kosh/ui/components/sidebar";
+import { SidebarProvider, SidebarInset } from "@kosh/ui/components/sidebar";
 import { auth } from "@/app/api/auth/[...nextauth]/auth";
 import { redirect } from "next/navigation";
 
@@ -14,10 +14,10 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
 	return (
 		<SidebarProvider>
 			<DashboardSidebar />
-			<main className="w-full">
+			<SidebarInset>
 				<SharedHeader />
 				{children}
-			</main>
+			</SidebarInset>
 		</SidebarProvider>
 	);
 };
