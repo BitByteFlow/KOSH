@@ -48,7 +48,7 @@ export default function SalesPage() {
 					<div>
 						<h2 className="text-2xl font-bold tracking-tight">Sales Overview</h2>
 						<p className="text-muted-foreground">
-							Manage your sales, view history, and create new invoices.
+							Manage your daily sales, view history, and create new invoices.
 						</p>
 					</div>
 					<div className="flex items-center space-x-2">
