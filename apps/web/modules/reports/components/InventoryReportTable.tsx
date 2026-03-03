@@ -10,6 +10,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@kosh/ui/components/table";
+import { DateRangeSelector } from "@/modules/reports/components/DateRangeSelector";
 import { Badge } from "@kosh/ui/components/badge";
 import { Button } from "@kosh/ui/components/button";
 import { Input } from "@kosh/ui/components/input";
@@ -54,6 +55,8 @@ const GET_INVENTORY_REPORT = gql(`
 `) as any;
 
 export function InventoryReportTable() {
+	const [dateRange, setDateRange] = useState("This Month");
+	const [tempDateRange, setTempDateRange] = useState("This Month");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -123,7 +126,9 @@ export function InventoryReportTable() {
 	};
 
 	const handleApplyFilters = () => {
+		if (!tempDateRange) return;
 		setAppliedFilters(tempFilters);
+		setDateRange(tempDateRange);
 		setIsFilterOpen(false);
 		setCurrentPage(1);
 	};
@@ -137,6 +142,8 @@ export function InventoryReportTable() {
 		};
 		setTempFilters(defaultFilters);
 		setAppliedFilters(defaultFilters);
+		setTempDateRange("This Month");
+		setDateRange("This Month");
 		setIsFilterOpen(false);
 		setCurrentPage(1);
 	};
@@ -259,7 +266,7 @@ export function InventoryReportTable() {
 			)}
 
 			<Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-				<DialogContent className="sm:max-w-[425px]">
+				<DialogContent className="sm:max-w-[600px]">
 					<DialogHeader>
 						<DialogTitle>Filter Inventory</DialogTitle>
 						<DialogDescription>
@@ -268,6 +275,11 @@ export function InventoryReportTable() {
 					</DialogHeader>
 
 					<div className="grid gap-6 py-4">
+						<div className="space-y-3">
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date Range</Label>
+							<DateRangeSelector onRangeChange={setTempDateRange} initialRange={tempDateRange} />
+						</div>
+
 						<div className="space-y-3">
 							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Category</Label>
 							<div className="flex flex-wrap gap-4">

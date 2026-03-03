@@ -10,6 +10,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@kosh/ui/components/table";
+import { DateRangeSelector } from "@/modules/reports/components/DateRangeSelector";
 import { Badge } from "@kosh/ui/components/badge";
 import { Button } from "@kosh/ui/components/button";
 import { Input } from "@kosh/ui/components/input";
@@ -31,9 +32,7 @@ import { getDateRange } from "@/lib/date-utils";
 import { parseGraphQLListResponse } from "@/lib/graphql/utils";
 import { PaymentType } from "@/gql/graphql";
 
-interface SalesReportTableProps {
-	dateRange: string;
-}
+interface SalesReportTableProps { }
 
 const GET_SALES_REPORT = gql(`
 	query getSalesReport ($filters: SaleReportFilter!){
@@ -53,7 +52,9 @@ const GET_SALES_REPORT = gql(`
 	}
 `)
 
-export function SalesReportTable({ dateRange }: SalesReportTableProps) {
+export function SalesReportTable({ }: SalesReportTableProps) {
+	const [dateRange, setDateRange] = useState("This Month");
+	const [tempDateRange, setTempDateRange] = useState("This Month");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -148,7 +149,9 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 	};
 
 	const handleApplyFilters = () => {
+		if (!tempDateRange) return;
 		setAppliedFilters(tempFilters);
+		setDateRange(tempDateRange);
 		setIsFilterOpen(false);
 	};
 
@@ -159,6 +162,8 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 		};
 		setTempFilters(defaultFilters);
 		setAppliedFilters(defaultFilters);
+		setTempDateRange("This Month");
+		setDateRange("This Month");
 		setIsFilterOpen(false);
 	};
 
@@ -242,7 +247,7 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 			</div>
 
 			<Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-				<DialogContent className="sm:max-w-[425px]">
+				<DialogContent className="sm:max-w-[600px]">
 					<DialogHeader>
 						<DialogTitle>Filter Sales</DialogTitle>
 						<DialogDescription>
@@ -252,20 +257,29 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 
 					<div className="grid gap-6 py-4">
 						<div className="space-y-3">
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date Range</Label>
+							<DateRangeSelector onRangeChange={setTempDateRange} initialRange={tempDateRange} />
+						</div>
+
+						<div className="space-y-3">
 							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Payment Method</Label>
 							<div className="flex flex-wrap gap-4">
-								{["Online", "Cash", "Credit"].map((type) => (
-									<div key={type} className="flex items-center space-x-2">
+								{[
+									{ label: "Online", value: PaymentType.Online },
+									{ label: "Cash", value: PaymentType.Cash },
+									{ label: "Credit", value: PaymentType.Credit },
+								].map(({ label, value }) => (
+									<div key={value} className="flex items-center space-x-2">
 										<Checkbox
-											id={`payment-${type}`}
-											checked={tempFilters.paymentMethods.includes(type as PaymentType)}
-											onCheckedChange={(checked) => handlePaymentChange(type as PaymentType, checked as boolean)}
+											id={`payment-${value}`}
+											checked={tempFilters.paymentMethods.includes(value)}
+											onCheckedChange={(checked) => handlePaymentChange(value, checked as boolean)}
 										/>
 										<label
-											htmlFor={`payment-${type}`}
+											htmlFor={`payment-${value}`}
 											className="text-sm font-medium leading-none"
 										>
-											{type}
+											{label}
 										</label>
 									</div>
 								))}

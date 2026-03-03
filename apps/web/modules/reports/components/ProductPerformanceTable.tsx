@@ -3,6 +3,7 @@ import { Search, SlidersHorizontal, Upload, ChevronLeft, ChevronRight } from "lu
 import { useQuery } from "@apollo/client/react";
 import { gql } from "@/gql";
 import { getDateRange } from "@/lib/date-utils";
+import { DateRangeSelector } from "@/modules/reports/components/DateRangeSelector";
 import {
 	Table,
 	TableBody,
@@ -37,9 +38,7 @@ interface ProductPerformance {
 	status: string;
 }
 
-interface ProductPerformanceTableProps {
-	dateRange: string;
-}
+interface ProductPerformanceTableProps { }
 
 const GET_PRODUCT_PERFORMANCE = gql(`
 	query getProductPerformance ($filters: ProductPerformanceFilter!){
@@ -59,7 +58,9 @@ const GET_PRODUCT_PERFORMANCE = gql(`
 	}
 `) as any;
 
-export function ProductPerformanceTable({ dateRange }: ProductPerformanceTableProps) {
+export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
+	const [dateRange, setDateRange] = useState("This Month");
+	const [tempDateRange, setTempDateRange] = useState("This Month");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -134,7 +135,9 @@ export function ProductPerformanceTable({ dateRange }: ProductPerformanceTablePr
 	};
 
 	const handleApplyFilters = () => {
+		if (!tempDateRange) return;
 		setAppliedFilters(tempFilters);
+		setDateRange(tempDateRange);
 		setIsFilterOpen(false);
 		setCurrentPage(1);
 	};
@@ -148,6 +151,8 @@ export function ProductPerformanceTable({ dateRange }: ProductPerformanceTablePr
 		};
 		setTempFilters(defaultFilters);
 		setAppliedFilters(defaultFilters);
+		setTempDateRange("This Month");
+		setDateRange("This Month");
 		setIsFilterOpen(false);
 		setCurrentPage(1);
 	};
@@ -270,7 +275,7 @@ export function ProductPerformanceTable({ dateRange }: ProductPerformanceTablePr
 			)}
 
 			<Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-				<DialogContent className="sm:max-w-[425px]">
+				<DialogContent className="sm:max-w-[600px]">
 					<DialogHeader>
 						<DialogTitle>Filter Product Performance</DialogTitle>
 						<DialogDescription>
@@ -279,6 +284,11 @@ export function ProductPerformanceTable({ dateRange }: ProductPerformanceTablePr
 					</DialogHeader>
 
 					<div className="grid gap-6 py-4">
+						<div className="space-y-3">
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date Range</Label>
+							<DateRangeSelector onRangeChange={setTempDateRange} initialRange={tempDateRange} />
+						</div>
+
 						<div className="space-y-3">
 							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Category</Label>
 							<div className="flex flex-wrap gap-4">

@@ -3,6 +3,7 @@ import { Search, SlidersHorizontal, Upload, X, ChevronLeft, ChevronRight } from 
 import { useQuery } from "@apollo/client/react";
 import { gql } from "@/gql";
 import { getDateRange } from "@/lib/date-utils";
+import { DateRangeSelector } from "@/modules/reports/components/DateRangeSelector";
 import {
 	Table,
 	TableBody,
@@ -36,9 +37,7 @@ interface Transaction {
 	status: "Completed" | "Pending";
 }
 
-interface AnalyticsTransactionTableProps {
-	dateRange: string;
-}
+interface AnalyticsTransactionTableProps { }
 
 interface FilterState {
 	paymentTypes: string[];
@@ -65,9 +64,9 @@ const GET_ANALYTICS_TRANSACTIONS = gql(`
 	}
 `) as any;
 
-export function AnalyticsTransactionTable({
-	dateRange,
-}: AnalyticsTransactionTableProps) {
+export function AnalyticsTransactionTable({ }: AnalyticsTransactionTableProps) {
+	const [dateRange, setDateRange] = useState("This Month");
+	const [tempDateRange, setTempDateRange] = useState("This Month");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -148,7 +147,9 @@ export function AnalyticsTransactionTable({
 	};
 
 	const handleApplyFilters = () => {
+		if (!tempDateRange) return;
 		setAppliedFilters(tempFilters);
+		setDateRange(tempDateRange);
 		setIsFilterOpen(false);
 		setCurrentPage(1);
 	};
@@ -162,6 +163,8 @@ export function AnalyticsTransactionTable({
 		};
 		setTempFilters(defaultFilters);
 		setAppliedFilters(defaultFilters);
+		setTempDateRange("This Month");
+		setDateRange("This Month");
 		setIsFilterOpen(false);
 		setCurrentPage(1);
 	};
@@ -306,7 +309,7 @@ export function AnalyticsTransactionTable({
 			)}
 
 			<Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-				<DialogContent className="sm:max-w-[425px]">
+				<DialogContent className="sm:max-w-[600px]">
 					<DialogHeader>
 						<DialogTitle>Filter Transactions</DialogTitle>
 						<DialogDescription>
@@ -315,22 +318,31 @@ export function AnalyticsTransactionTable({
 					</DialogHeader>
 
 					<div className="grid gap-6 py-4">
+						<div className="space-y-3">
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date Range</Label>
+							{/* Assuming DateRangeSelector is imported and available */}
+							<DateRangeSelector onRangeChange={setTempDateRange} initialRange={tempDateRange} />
+						</div>
 
 						<div className="space-y-3">
 							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Payment Type</Label>
 							<div className="flex flex-wrap gap-4">
-								{["Online", "Cash", "Credit"].map((type) => (
-									<div key={type} className="flex items-center space-x-2">
+								{[
+									{ label: "Online", value: "ONLINE" },
+									{ label: "Cash", value: "CASH" },
+									{ label: "Credit", value: "CREDIT" },
+								].map(({ label, value }) => (
+									<div key={value} className="flex items-center space-x-2">
 										<Checkbox
-											id={`payment-${type}`}
-											checked={tempFilters.paymentTypes.includes(type)}
-											onCheckedChange={(checked) => handlePaymentTypeChange(type, checked as boolean)}
+											id={`payment-${value}`}
+											checked={tempFilters.paymentTypes.includes(value)}
+											onCheckedChange={(checked) => handlePaymentTypeChange(value, checked as boolean)}
 										/>
 										<label
-											htmlFor={`payment-${type}`}
+											htmlFor={`payment-${value}`}
 											className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 										>
-											{type}
+											{label}
 										</label>
 									</div>
 								))}
