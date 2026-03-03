@@ -1,7 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { Search, SlidersHorizontal, Upload, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@apollo/client/react";
-import { gql } from "@/gql";
+import {
+	GetInventoryReportQuery,
+	GetInventoryReportQueryVariables,
+	InventoryReport,
+} from "@/gql/graphql";
+import { GET_INVENTORY_REPORT } from "@/services/reportsAnalytics.service";
 import {
 	Table,
 	TableBody,
@@ -26,33 +31,7 @@ import {
 } from "@kosh/ui/components/dialog";
 import { cn } from "@/lib/utils";
 
-interface InventoryReport {
-	id: string;
-	name: string;
-	sku: string;
-	category: string;
-	stock: number;
-	value: number;
-	status: string;
-}
 
-const GET_INVENTORY_REPORT = gql(`
-	query getInventoryReport ($filters: InventoryReportFilter!){
-		getInventoryReport (filters: $filters) {
-			success
-			data {
-				id
-				name
-				sku
-				category
-				stock
-				value
-				status
-			}
-			totalCount
-		}
-	}
-`) as any;
 
 export function InventoryReportTable() {
 	const [dateRange, setDateRange] = useState("This Month");
@@ -64,7 +43,6 @@ export function InventoryReportTable() {
 	const [currentPage, setCurrentPage] = useState(1);
 	const pageSize = 10;
 
-	// State for filters that are currently applied to the query
 	const [appliedFilters, setAppliedFilters] = useState({
 		categories: [] as string[],
 		statuses: [] as string[],
@@ -72,7 +50,6 @@ export function InventoryReportTable() {
 		maxStock: "",
 	});
 
-	// State for filters currently being edited in the dialog
 	const [tempFilters, setTempFilters] = useState({
 		categories: [] as string[],
 		statuses: [] as string[],
@@ -80,16 +57,15 @@ export function InventoryReportTable() {
 		maxStock: "",
 	});
 
-	// Debounce logic for search
 	useEffect(() => {
 		const handler = setTimeout(() => {
 			setDebouncedSearch(searchQuery);
-			setCurrentPage(1); // Reset to first page on search
+			setCurrentPage(1); 
 		}, 500);
 		return () => clearTimeout(handler);
 	}, [searchQuery]);
 
-	const { data, loading } = useQuery<{ getInventoryReport: { items: InventoryReport[], totalCount: number } }>(GET_INVENTORY_REPORT, {
+	const { data: rawData, loading } = useQuery<GetInventoryReportQuery, GetInventoryReportQueryVariables>(GET_INVENTORY_REPORT, {
 		variables: {
 			filters: {
 				categories: appliedFilters.categories.length > 0 ? appliedFilters.categories : undefined,
@@ -103,26 +79,30 @@ export function InventoryReportTable() {
 		}
 	});
 
-	const items = data?.getInventoryReport?.items || [];
-	const totalCount = data?.getInventoryReport?.totalCount || 0;
+	const inventoryData = useMemo(() =>
+		rawData?.getInventoryReport?.data || [],
+		[rawData]
+	);
+
+	const totalCount = rawData?.getInventoryReport?.totalCount || 0;
 	const totalPages = Math.ceil(totalCount / pageSize);
 
 	const handleCategoryChange = (category: string, checked: boolean) => {
-		setTempFilters(prev => ({
-			...prev,
-			categories: checked
+		setTempFilters((prev: any) => {
+			const categories = checked
 				? [...prev.categories, category]
-				: prev.categories.filter(c => c !== category)
-		}));
+				: prev.categories.filter((c: string) => c !== category);
+			return { ...prev, categories };
+		});
 	};
 
 	const handleStatusChange = (status: string, checked: boolean) => {
-		setTempFilters(prev => ({
-			...prev,
-			statuses: checked
+		setTempFilters((prev: any) => {
+			const statuses = checked
 				? [...prev.statuses, status]
-				: prev.statuses.filter(s => s !== status)
-		}));
+				: prev.statuses.filter((s: string) => s !== status);
+			return { ...prev, statuses };
+		});
 	};
 
 	const handleApplyFilters = () => {
@@ -198,14 +178,14 @@ export function InventoryReportTable() {
 									</div>
 								</TableCell>
 							</TableRow>
-						) : items.length === 0 ? (
+						) : inventoryData.length === 0 ? (
 							<TableRow>
 								<TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
 									No inventory items found matching your criteria.
 								</TableCell>
 							</TableRow>
 						) : (
-							items.map((item) => (
+							inventoryData.map((item: InventoryReport) => (
 								<TableRow key={item.id} className="hover:bg-muted/30 border-border [&_td]:py-4 transition-colors">
 									<TableCell className="font-medium text-foreground">{item.name}</TableCell>
 									<TableCell className="text-muted-foreground text-sm">{item.category}</TableCell>
@@ -231,7 +211,6 @@ export function InventoryReportTable() {
 				</Table>
 			</div>
 
-			{/* Pagination Controls */}
 			{totalPages > 1 && (
 				<div className="flex items-center justify-between px-2">
 					<p className="text-sm text-muted-foreground">

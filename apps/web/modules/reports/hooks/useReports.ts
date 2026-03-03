@@ -4,7 +4,8 @@ import {
 	GET_SALES_TREND,
 	GET_TOP_PRODUCTS,
 	GET_PRODUCT_PERFORMANCE,
-	GET_ANALYTICS_TRANSACTIONS
+	GET_ANALYTICS_TRANSACTIONS,
+	GET_SALES_REPORT
 } from "@/services/reportsAnalytics.service";
 import {
 	GetReportDataQuery,
@@ -17,6 +18,11 @@ import {
 	GetProductPerformanceQueryVariables,
 	GetAnalyticsTransactionsQuery,
 	GetAnalyticsTransactionsQueryVariables,
+	GetSalesReportQuery,
+	GetSalesReportQueryVariables,
+	ProductPerformanceFilter,
+	AnalyticsTransactionFilter,
+	SaleReportFilter
 } from "@/gql/graphql";
 
 export const reportKeys = {
@@ -55,7 +61,7 @@ export function useTopProducts(startDate: string, endDate: string) {
 	);
 }
 
-export function useProductPerformance(filters: any) {
+export function useProductPerformance(filters: ProductPerformanceFilter) {
 	return useApolloQuery<GetProductPerformanceQuery, GetProductPerformanceQueryVariables>(
 		GET_PRODUCT_PERFORMANCE,
 		{
@@ -64,9 +70,18 @@ export function useProductPerformance(filters: any) {
 	);
 }
 
-export function useAnalyticsTransactions(filters: any) {
+export function useAnalyticsTransactions(filters: AnalyticsTransactionFilter) {
 	return useApolloQuery<GetAnalyticsTransactionsQuery, GetAnalyticsTransactionsQueryVariables>(
 		GET_ANALYTICS_TRANSACTIONS,
+		{
+			variables: { filters },
+		}
+	);
+}
+
+export function useSalesReport(filters: SaleReportFilter) {
+	return useApolloQuery<GetSalesReportQuery, GetSalesReportQueryVariables>(
+		GET_SALES_REPORT,
 		{
 			variables: { filters },
 		}

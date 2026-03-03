@@ -1,8 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { Search, SlidersHorizontal, Upload, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@apollo/client/react";
-import { gql } from "@/gql";
 import { getDateRange } from "@/lib/date-utils";
+import {
+	GetProductPerformanceQuery,
+	GetProductPerformanceQueryVariables,
+	ProductPerformance,
+} from "@/gql/graphql";
+import { GET_PRODUCT_PERFORMANCE } from "@/services/reportsAnalytics.service";
 import { DateRangeSelector } from "@/modules/reports/components/DateRangeSelector";
 import {
 	Table,
@@ -27,36 +32,9 @@ import {
 } from "@kosh/ui/components/dialog";
 import { cn } from "@/lib/utils";
 
-interface ProductPerformance {
-	id: string;
-	name: string;
-	sku: string;
-	category: string;
-	sold: number;
-	revenue: number;
-	margin: number;
-	status: string;
-}
 
 interface ProductPerformanceTableProps { }
 
-const GET_PRODUCT_PERFORMANCE = gql(`
-	query getProductPerformance ($filters: ProductPerformanceFilter!){
-		getProductPerformance (filters: $filters) {
-			items {
-				id
-				name
-				sku
-				category
-				sold
-				revenue
-				margin
-				status
-			}
-			totalCount
-		}
-	}
-`) as any;
 
 export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 	const [dateRange, setDateRange] = useState("This Month");
@@ -67,8 +45,6 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 
 	const [currentPage, setCurrentPage] = useState(1);
 	const pageSize = 10;
-
-	// State for filters that are currently applied to the query
 	const [appliedFilters, setAppliedFilters] = useState({
 		categories: [] as string[],
 		statuses: [] as string[],
@@ -76,7 +52,6 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 		maxSold: "",
 	});
 
-	// State for filters currently being edited in the dialog
 	const [tempFilters, setTempFilters] = useState({
 		categories: [] as string[],
 		statuses: [] as string[],
@@ -84,19 +59,17 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 		maxSold: "",
 	});
 
-	// Debounce logic for search
 	useEffect(() => {
 		const handler = setTimeout(() => {
 			setDebouncedSearch(searchQuery);
-			setCurrentPage(1); // Reset to first page on search
+			setCurrentPage(1);
 		}, 500);
 		return () => clearTimeout(handler);
 	}, [searchQuery]);
 
-	// Convert dateRange prop to actual dates
 	const { startDate, endDate } = useMemo(() => getDateRange(dateRange), [dateRange]);
 
-	const { data, loading } = useQuery<{ getProductPerformance: { items: ProductPerformance[], totalCount: number } }>(GET_PRODUCT_PERFORMANCE, {
+	const { data: rawData, loading } = useQuery<GetProductPerformanceQuery, GetProductPerformanceQueryVariables>(GET_PRODUCT_PERFORMANCE, {
 		variables: {
 			filters: {
 				startDate,
@@ -112,26 +85,29 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 		}
 	});
 
-	const products = data?.getProductPerformance?.items || [];
-	const totalCount = data?.getProductPerformance?.totalCount || 0;
+	const products = useMemo(() =>
+		rawData?.getProductPerformance?.items || [],
+		[rawData]
+	);
+	const totalCount = rawData?.getProductPerformance?.totalCount || 0;
 	const totalPages = Math.ceil(totalCount / pageSize);
 
 	const handleCategoryChange = (category: string, checked: boolean) => {
-		setTempFilters((prev) => ({
-			...prev,
-			categories: checked
+		setTempFilters((prev: any) => {
+			const categories = checked
 				? [...prev.categories, category]
-				: prev.categories.filter((c: string) => c !== category)
-		}));
+				: prev.categories.filter((c: string) => c !== category);
+			return { ...prev, categories };
+		});
 	};
 
 	const handleStatusChange = (status: string, checked: boolean) => {
-		setTempFilters((prev) => ({
-			...prev,
-			statuses: checked
+		setTempFilters((prev: any) => {
+			const statuses = checked
 				? [...prev.statuses, status]
-				: prev.statuses.filter((s: string) => s !== status)
-		}));
+				: prev.statuses.filter((s: string) => s !== status);
+			return { ...prev, statuses };
+		});
 	};
 
 	const handleApplyFilters = () => {
@@ -215,7 +191,7 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 								</TableCell>
 							</TableRow>
 						) : (
-							products.map((product) => (
+							products.map((product: ProductPerformance) => (
 								<TableRow key={product.id} className="hover:bg-muted/30 border-border [&_td]:py-4 transition-colors">
 									<TableCell className="font-medium text-foreground">{product.name}</TableCell>
 									<TableCell className="text-muted-foreground text-sm font-mono">{product.sku}</TableCell>
@@ -240,7 +216,6 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 				</Table>
 			</div>
 
-			{/* Pagination Controls */}
 			{totalPages > 1 && (
 				<div className="flex items-center justify-between px-2">
 					<p className="text-sm text-muted-foreground">

@@ -25,32 +25,19 @@ import {
 	DialogTitle,
 } from "@kosh/ui/components/dialog";
 import { useQuery } from "@apollo/client/react";
-import { gql } from "@/gql";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getDateRange } from "@/lib/date-utils";
 import { parseGraphQLListResponse } from "@/lib/graphql/utils";
-import { PaymentType } from "@/gql/graphql";
+import {
+	SaleReport,
+	SaleReportFilter,
+	PaymentType,
+} from "@/gql/graphql";
+import { GET_SALES_REPORT } from "@/services/reportsAnalytics.service";
 
 interface SalesReportTableProps { }
 
-const GET_SALES_REPORT = gql(`
-	query getSalesReport ($filters: SaleReportFilter!){
-		getSalesReport (filters: $filters) {
-			success
-			message
-			data {
-				id
-				date
-				customer
-				items
-				total
-				payment
-				status
-			}
-		}
-	}
-`)
 
 export function SalesReportTable({ }: SalesReportTableProps) {
 	const [dateRange, setDateRange] = useState("This Month");
@@ -83,10 +70,10 @@ export function SalesReportTable({ }: SalesReportTableProps) {
 			filters: {
 				startDate,
 				endDate,
-				paymentMethods: appliedFilters.paymentMethods.length > 0 ? appliedFilters.paymentMethods : undefined,
+				paymentMethods: appliedFilters.paymentMethods.length > 0 ? (appliedFilters.paymentMethods as PaymentType[]) : undefined,
 				statuses: appliedFilters.statuses.length > 0 ? appliedFilters.statuses : undefined,
 				searchQuery: debouncedSearch || undefined,
-			}
+			} as SaleReportFilter
 		}
 	});
 
@@ -111,12 +98,12 @@ export function SalesReportTable({ }: SalesReportTableProps) {
 		doc.setFontSize(10);
 		doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 22);
 
-		const tableData = filteredSales.map(sale => [
+		const tableData = filteredSales.map((sale: SaleReport) => [
 			sale.id,
 			sale.date,
 			sale.customer,
-			sale.items.toString(),
-			`Rs ${sale.total.toLocaleString()}`,
+			sale.items,
+			sale.total,
 			sale.payment,
 			sale.status
 		]);
@@ -130,22 +117,22 @@ export function SalesReportTable({ }: SalesReportTableProps) {
 		doc.save(`sales-report-${new Date().toISOString().split('T')[0]}.pdf`);
 	};
 
-	const handlePaymentChange = (type: PaymentType, checked: boolean) => {
-		setTempFilters((prev) => ({
-			...prev,
-			paymentMethods: checked
-				? [...prev.paymentMethods, type]
-				: prev.paymentMethods.filter((t: PaymentType) => t !== type)
-		}));
+	const handlePaymentMethodChange = (method: PaymentType, checked: boolean) => {
+		setTempFilters((prev: any) => {
+			const paymentMethods = checked
+				? [...prev.paymentMethods, method]
+				: prev.paymentMethods.filter((m: PaymentType) => m !== method);
+			return { ...prev, paymentMethods };
+		});
 	};
 
 	const handleStatusChange = (status: string, checked: boolean) => {
-		setTempFilters((prev) => ({
-			...prev,
-			statuses: checked
+		setTempFilters((prev: any) => {
+			const statuses = checked
 				? [...prev.statuses, status]
-				: prev.statuses.filter((s: string) => s !== status)
-		}));
+				: prev.statuses.filter((s: string) => s !== status);
+			return { ...prev, statuses };
+		});
 	};
 
 	const handleApplyFilters = () => {
@@ -221,20 +208,18 @@ export function SalesReportTable({ }: SalesReportTableProps) {
 								</TableCell>
 							</TableRow>
 						) : (
-							filteredSales.map((sale) => (
+							filteredSales.map((sale: SaleReport) => (
 								<TableRow key={sale.id} className="hover:bg-muted/30 border-border [&_td]:py-4 transition-colors">
-									<TableCell className="font-medium text-foreground">{sale.id}</TableCell>
-									<TableCell className="text-muted-foreground text-sm">{sale.date}</TableCell>
-									<TableCell className="text-sm">{sale.customer}</TableCell>
-									<TableCell className="text-sm">{sale.items}</TableCell>
-									<TableCell className="font-medium">Rs {sale.total.toLocaleString()}</TableCell>
-									<TableCell>
-										<Badge variant="outline" className="font-normal">{sale.payment}</Badge>
-									</TableCell>
+									<TableCell className="font-medium">{sale.id}</TableCell>
+									<TableCell>{sale.date}</TableCell>
+									<TableCell>{sale.customer}</TableCell>
+									<TableCell>{sale.items}</TableCell>
+									<TableCell>{sale.total}</TableCell>
+									<TableCell>{sale.payment}</TableCell>
 									<TableCell>
 										<Badge
-											variant={sale.status === 'Completed' ? 'default' : 'secondary'}
-											className={sale.status === 'Completed' ? "bg-green-100 text-green-700 hover:bg-green-100 border-0" : "bg-orange-100 text-orange-700 hover:bg-orange-100 border-0"}
+											variant={sale.status === 'Paid' ? 'default' : 'secondary'}
+											className={sale.status === 'Paid' ? "bg-green-100 text-green-700 hover:bg-green-100 border-0" : "bg-orange-100 text-orange-700 hover:bg-orange-100 border-0"}
 										>
 											{sale.status}
 										</Badge>
@@ -273,7 +258,7 @@ export function SalesReportTable({ }: SalesReportTableProps) {
 										<Checkbox
 											id={`payment-${value}`}
 											checked={tempFilters.paymentMethods.includes(value)}
-											onCheckedChange={(checked) => handlePaymentChange(value, checked as boolean)}
+											onCheckedChange={(checked) => handlePaymentMethodChange(value, !!checked)}
 										/>
 										<label
 											htmlFor={`payment-${value}`}
