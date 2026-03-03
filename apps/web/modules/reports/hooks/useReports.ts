@@ -7,8 +7,8 @@ import {
 	GET_ANALYTICS_TRANSACTIONS
 } from "@/services/reportsAnalytics.service";
 import {
-	GetReportMetricsQuery,
-	GetReportMetricsQueryVariables,
+	GetReportDataQuery,
+	GetReportDataQueryVariables,
 	GetSalesTrendQuery,
 	GetSalesTrendQueryVariables,
 	GetTopProductsQuery,
@@ -16,7 +16,7 @@ import {
 	GetProductPerformanceQuery,
 	GetProductPerformanceQueryVariables,
 	GetAnalyticsTransactionsQuery,
-	GetAnalyticsTransactionsQueryVariables
+	GetAnalyticsTransactionsQueryVariables,
 } from "@/gql/graphql";
 
 export const reportKeys = {
@@ -26,7 +26,7 @@ export const reportKeys = {
 };
 
 export function useAnalyticsMetrics(startDate: string, endDate: string) {
-	return useApolloQuery<GetReportMetricsQuery, GetReportMetricsQueryVariables>(
+	return useApolloQuery<GetReportDataQuery, GetReportDataQueryVariables>(
 		GET_ANALYTICS_METRICS,
 		{
 			variables: { startDate, endDate },

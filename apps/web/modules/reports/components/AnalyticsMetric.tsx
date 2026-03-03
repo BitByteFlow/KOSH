@@ -19,7 +19,7 @@ export function AnalyticsMetricCard({
 					<p className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
 						{label}
 					</p>
-					<p className="text-3xl font-bold text-foreground tabular-nums">{value}</p>
+					<p className="text-3xl font-bold text-foreground tabular-nums">{value.toFixed(2)}</p>
 					{subtitle && (
 						<p className="text-xs text-muted-foreground font-medium">{subtitle}</p>
 					)}
