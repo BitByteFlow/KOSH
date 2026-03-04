@@ -8,7 +8,8 @@ import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/utils/jwt.guard';
 import { CurrentUser } from 'src/utils/currentUser.decorator';
 import type { AuthenticatedUser } from 'src/types/jwt.types';
-import { AccountResponse } from './entities/account.entity';
+import { AccountResponse, UpdateAccountTransactionResponse } from './entities/account.entity';
+import { UpdateTransactionInput } from './dto/updateTransaction.dto';
 
 @Resolver(() => AccountTransaction)
 @UseGuards(JwtAuthGuard)
@@ -28,6 +29,16 @@ export class AccountsResolver {
   async getCurrentCashBalance(@CurrentUser() user: AuthenticatedUser): Promise<BalanceResponse> {
     const userId = user.id;
     return this.accountsService.getCurrentCashBalance(userId);
+  }
+
+  @Mutation(() => UpdateAccountTransactionResponse)
+  async updateAccountTransactions(
+    @CurrentUser() user: AuthenticatedUser,
+    @Args('transactionId', { type: () => String }) transactionId: string,
+    @Args('updateTransactionInput', { type: () => UpdateTransactionInput }) updateTransactionDto: UpdateTransactionInput,
+  ): Promise<UpdateAccountTransactionResponse> {
+    const userId = user.id;
+    return this.accountsService.updateAccountTransaction(transactionId, updateTransactionDto, userId);
   }
 
   @Query(() => PaginatedTransactionsResponse)

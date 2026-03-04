@@ -317,8 +317,12 @@ export class SalesService {
 
 	async getSales(userId: string): Promise<SaleResponse> {
 		try {
+			const now = new Date();
+			const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+			const tomorrow = new Date(today);
+			tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 			const sales = await this.database.prisma.sale.findMany({
-				where: { userId, deletedAt: null },
+				where: { userId, deletedAt: null, createdAt: { gte: today, lt: tomorrow } },
 				include: {
 					items: true,
 				},
