@@ -1,11 +1,15 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, Inject } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
 import { NotificationType } from "@kosh/db";
 import { NotificationResponse } from "./entities/notificationResponse.entity";
+import { PubSub } from 'graphql-subscriptions';
 
 @Injectable()
 export class NotificationService {
-	constructor(private readonly database: DatabaseService) { }
+	constructor(
+		private readonly database: DatabaseService,
+		@Inject('PUB_SUB') private readonly pubSub: PubSub
+	) { }
 
 	async getNotifications(userId: string): Promise<NotificationResponse> {
 		try {
@@ -44,7 +48,7 @@ export class NotificationService {
 	}
 
 	async createNotification(userId: string, type: NotificationType, message: string, variantId?: string, isGlobal: boolean = false): Promise<any> {
-		return this.database.prisma.notification.create({
+		const notification = await this.database.prisma.notification.create({
 			data: {
 				userId,
 				type,
@@ -53,5 +57,10 @@ export class NotificationService {
 				isGlobal
 			}
 		});
+
+		// Publish notification to subscribers
+		this.pubSub.publish('notificationAdded', { notificationAdded: notification });
+
+		return notification;
 	}
 }
