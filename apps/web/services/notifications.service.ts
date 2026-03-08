@@ -29,6 +29,20 @@ export const MARK_ALL_AS_READ = gql`
   }
 `;
 
+export const NOTIFICATION_SUBSCRIPTION = gql`
+  subscription OnNotificationAdded {
+    notificationAdded {
+      id
+      type
+      message
+      isRead
+      variantId
+      isGlobal
+      createdAt
+    }
+  }
+`;
+
 export enum NotificationType {
 	LOW_STOCK = "LOW_STOCK",
 	NEW_FEATURE_ADDED = "NEW_FEATURE_ADDED",
