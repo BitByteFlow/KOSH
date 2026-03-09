@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@kosh/ui/components/button";
 import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
 import {
@@ -47,18 +46,18 @@ export function TopProductsChart({ dateRange }: TopProductsChartProps) {
 		);
 	}
 
-	const maxRevenue = topProducts.length > 0 ? Math.max(...topProducts.map((d: TopProduct) => d.value)) : 0;
+	// const maxRevenue = topProducts.length > 0 ? Math.max(...topProducts.map((d: TopProduct) => d.value)) : 0;
 
 	return (
 		<div className="rounded-xl shadow-sm border border-border bg-card p-6">
 			<div className="mb-6 flex items-center justify-between">
 				<h3 className="text-lg font-semibold text-foreground">Top Products</h3>
-				<Button
+				{/* <Button
 					variant="link"
 					className="text-sm"
 				>
 					View All
-				</Button>
+				</Button> */}
 			</div>
 			<div className="space-y-4">
 				{topProducts.length > 0 ? (
@@ -76,11 +75,8 @@ export function TopProductsChart({ dateRange }: TopProductsChartProps) {
 							<div className="flex items-center gap-4">
 								<span className="text-sm text-muted-foreground">
 									{product.revenue
-										? `$${product.revenue.toLocaleString()}`
-										: "$0"}
-								</span>
-								<span className="w-12 text-right text-sm font-semibold">
-									{product.value}%
+										? `${product.revenue.toLocaleString()}`
+										: "0"}
 								</span>
 							</div>
 						</div>
