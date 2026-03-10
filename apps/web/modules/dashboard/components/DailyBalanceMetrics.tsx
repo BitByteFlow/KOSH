@@ -87,42 +87,42 @@ const DailyBalanceMetrics = () => {
 		{
 			label: "Opening Cash",
 			value: formatCurrency(metrics.openingCash),
-			icon: Wallet,
+			// icon: Wallet,
 			sublabel: "Start of day",
-			iconColor: "text-info",
+			// iconColor: "text-info",
 		},
 		{
 			label: "Sales Today",
 			value: formatCurrency(metrics.totalSales),
-			icon: DollarSign,
-			iconColor: "text-success",
+			// icon: DollarSign,
+			// iconColor: "text-success",
 		},
 		{
 			label: "Cash In",
 			value: formatCurrency(metrics.totalCashIn),
-			icon: TrendingUp,
+			// icon: TrendingUp,
 			sublabel: "Total inflows",
-			iconColor: "text-success",
+			// iconColor: "text-success",
 		},
 		{
 			label: "Total Expenses",
 			value: formatCurrency(metrics.totalExpense),
-			icon: ShoppingCart,
-			iconColor: "text-destructive",
+			// icon: ShoppingCart,
+			// iconColor: "text-destructive",
 		},
 		{
 			label: "Cash Out",
 			value: formatCurrency(metrics.totalCashOut),
-			icon: TrendingDown,
+			// icon: TrendingDown,
 			sublabel: "Total outflows",
-			iconColor: "text-destructive",
+			// iconColor: "text-destructive",
 		},
 		{
 			label: "Closing Cash",
 			value: formatCurrency(metrics.closingCash),
-			icon: Wallet,
+			// icon: Wallet,
 			sublabel: "Cash in hand",
-			iconColor: "text-info",
+			// iconColor: "text-info",
 		},
 	];
 
@@ -133,10 +133,10 @@ const DailyBalanceMetrics = () => {
 					label={item.label}
 					value={item.value}
 					change={item.change}
-					icon={item.icon}
+					// icon={item.icon}
 					key={item.label}
 					sublabel={item.sublabel}
-					iconColor={item.iconColor}
+					// iconColor={item.iconColor}
 				/>
 			))}
 		</div>

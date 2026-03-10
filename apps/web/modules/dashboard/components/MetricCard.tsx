@@ -8,9 +8,9 @@ export function MetricCard({
 	label,
 	value,
 	change,
-	icon: Icon,
+	// icon: Icon,
 	sublabel,
-	iconColor,
+	// iconColor,
 }: MetricCardProps) {
 	return (
 		<Card className="p-5 border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow">
@@ -42,16 +42,16 @@ export function MetricCard({
 						</div>
 					)}
 				</div>
-				<div className={cn(
+				{/* <div className={cn(
 					"p-3 rounded-xl transition-colors ring-1 ring-border/50 shadow-inner",
-					iconColor === "text-success" ? "bg-success/10" :
-						iconColor === "text-destructive" ? "bg-destructive/10" :
-							iconColor === "text-warning" ? "bg-warning/10" :
-								iconColor === "text-info" ? "bg-info/10" :
-									"bg-muted/50"
+					// iconColor === "text-success" ? "bg-success/10" :
+						// iconColor === "text-destructive" ? "bg-destructive/10" :
+							// iconColor === "text-warning" ? "bg-warning/10" :
+								// iconColor === "text-info" ? "bg-info/10" :
+									// "bg-muted/50"
 				)}>
 					<Icon className={cn("w-4 h-4 transition-transform hover:scale-110", iconColor || "text-primary")} />
-				</div>
+				</div> */}
 			</div>
 		</Card>
 	);
