@@ -4,27 +4,7 @@ import React, { useMemo } from "react";
 import { getDateRange } from "@/lib/date-utils";
 import { AnalyticsMetricCard } from "./AnalyticsMetric";
 import { MetricCardSkeleton } from "@/components/MetricCardSkeletion";
-import { useQuery } from "@apollo/client/react";
-import { gql } from "@/gql";
-import { parseGraphQLListResponse } from "@/lib/graphql/utils";
-
-
-const GET_REPORT_METRICS = gql(`
-	query getReportMetrics($startDate: String!, $endDate: String!){
-		getAnalyticsMetrics (startDate: $startDate, endDate: $endDate) {
-			success
-			message
-			data {
-				label
-				value
-				trend
-				trendLabel
-				isPositive
-				subtitle
-			}
-		}
-	}
-`)
+import { useAnalyticsMetrics } from "../hooks/useReports";
 
 const ReportMetrics = ({ dateRange }: { dateRange: string }) => {
 	const { startDate, endDate } = useMemo(
@@ -32,20 +12,16 @@ const ReportMetrics = ({ dateRange }: { dateRange: string }) => {
 		[dateRange],
 	);
 
-	const { data: rawData, loading, error } = useQuery(GET_REPORT_METRICS, {
-		variables: { startDate, endDate }
-	});
+	const { data: rawData, loading, error } = useAnalyticsMetrics(startDate, endDate);
 
-	const metricsResponse = useMemo(() =>
-		parseGraphQLListResponse(rawData?.getAnalyticsMetrics),
-		[rawData?.getAnalyticsMetrics]
+	const metrics = useMemo(() =>
+		rawData?.getAnalyticsMetrics?.data ?? [],
+		[rawData?.getAnalyticsMetrics?.data]
 	);
-
-	const metrics = metricsResponse.data || [];
 
 	if (loading) {
 		return (
-			<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+			<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
 				<MetricCardSkeleton />
 				<MetricCardSkeleton />
 				<MetricCardSkeleton />
@@ -58,7 +34,7 @@ const ReportMetrics = ({ dateRange }: { dateRange: string }) => {
 	}
 
 	return (
-		<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+		<div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
 			{metrics.map((metric) => (
 				<AnalyticsMetricCard
 					key={metric.label}

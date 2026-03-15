@@ -5,14 +5,19 @@ import {
 	NotFoundException,
 } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
-import { TransactionType } from "@kosh/db";
+import { TransactionType, NotificationType } from "@kosh/db";
 import { CreateSaleInput } from "./dto/CreateSaleDto.dto";
 import { Sale, SaleResponse } from "./entities/sale.entity";
 import { SalesMetricsResponse } from "./entities/salesMetrics.entity";
 
+import { NotificationService } from "../notification/notification.service";
+
 @Injectable()
 export class SalesService {
-	constructor(private readonly database: DatabaseService) { }
+	constructor(
+		private readonly database: DatabaseService,
+		private readonly notificationService: NotificationService,
+	) { }
 
 	async createSale(
 		createSaleDto: CreateSaleInput,
@@ -90,14 +95,33 @@ export class SalesService {
 				});
 
 				for (const item of items) {
-					await tsx.productVariant.update({
+					const updatedVariant = await tsx.productVariant.update({
 						where: { id: item.variantId },
 						data: {
 							stock: {
 								decrement: item.quantity,
 							},
 						},
+						include: {
+							product: true
+						}
 					});
+
+					// Low stock check
+					const settings = await tsx.settings.findUnique({
+						where: { userId }
+					});
+
+					const threshold = settings?.lowStockThreshold ?? 10;
+
+					if (updatedVariant.stock <= threshold) {
+						await this.notificationService.createNotification(
+							userId,
+							NotificationType.LOW_STOCK,
+							`Product "${updatedVariant.product.name}" is low on stock (${updatedVariant.stock} remaining)`,
+							updatedVariant.id
+						);
+					}
 				}
 
 				if (paymentType === "CASH" || paymentType === "ONLINE") {
@@ -293,8 +317,12 @@ export class SalesService {
 
 	async getSales(userId: string): Promise<SaleResponse> {
 		try {
+			const now = new Date();
+			const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+			const tomorrow = new Date(today);
+			tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 			const sales = await this.database.prisma.sale.findMany({
-				where: { userId, deletedAt: null },
+				where: { userId, deletedAt: null, createdAt: { gte: today, lt: tomorrow } },
 				include: {
 					items: true,
 				},

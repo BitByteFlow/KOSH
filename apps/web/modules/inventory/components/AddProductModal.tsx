@@ -97,8 +97,8 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 
 export function AddProductModal() {
 	const [isOpen, setIsOpen] = useState(false);
-	const { data: categoryData, isLoading: categoriesLoading } = useCategoryList();
-	const createProduct = useCreateProduct();
+	const { data: categoryData, loading: categoriesLoading } = useCategoryList();
+	const [createProduct, { loading: isCreating }] = useCreateProduct();
 
 	const form = useForm<CreateProductInput>({
 		resolver: zodResolver(createProductSchema),
@@ -136,12 +136,28 @@ export function AddProductModal() {
 
 	const onSubmit = async (data: CreateProductInput) => {
 		try {
-			await createProduct.mutateAsync(data);
-			toast.success("Product created successfully");
-			setIsOpen(false);
-			reset();
+			const result = await createProduct({
+				variables: {
+					input: {
+						...data,
+						categoryId: data.categoryId,
+						variants: data.variants.map(v => ({
+							...v,
+							costPrice: Number(v.costPrice),
+							sellingPrice: Number(v.sellingPrice),
+							stock: Number(v.stock)
+						}))
+					}
+				}
+			});
+
+			if (result.data?.createProduct.success) {
+				toast.success("Product created successfully");
+				setIsOpen(false);
+				reset();
+			}
 		} catch (error: any) {
-			toast.error(error.response?.data?.message || "Failed to create product");
+			console.error("Failed to create product:", error);
 		}
 	};
 
@@ -205,7 +221,7 @@ export function AddProductModal() {
 										<option value="" disabled>
 											{categoriesLoading ? "Loading..." : "Select a category"}
 										</option>
-										{categoryData?.categories?.map((cat: any) => (
+										{categoryData?.getCategories?.data?.map((cat: any) => (
 											<option key={cat.id} value={cat.id}>
 												{cat.name}
 											</option>
@@ -390,10 +406,10 @@ export function AddProductModal() {
 						</Button>
 						<Button
 							type="submit"
-							disabled={createProduct.isPending}
+							disabled={isCreating}
 							className="w-full sm:w-auto"
 						>
-							{createProduct.isPending ? (
+							{isCreating ? (
 								<>
 									<Loader2 className="h-4 w-4 animate-spin mr-2" />
 									Saving...

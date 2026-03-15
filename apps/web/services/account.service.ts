@@ -1,5 +1,65 @@
+import { gql } from "@apollo/client";
 import { clientApiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/config";
+
+export const GET_CURRENT_CASH_BALANCE = gql`
+  query GetCurrentCashBalance {
+    getCurrentCashBalance {
+      success
+      message
+      data {
+        openingCash
+        closingCash
+        totalSales
+        totalExpense
+        totalCashIn
+        totalCashOut
+      }
+    }
+  }
+`;
+
+export const GET_ACCOUNT_TRANSACTIONS = gql`
+  query GetAccountTransactions($page: Int, $limit: Int, $sortBy: String, $sortOrder: String) {
+    getAccountTransactions(page: $page, limit: $limit, sortBy: $sortBy, sortOrder: $sortOrder) {
+      success
+      message
+      data {
+        id
+        type
+        amount
+        note
+        createdAt
+        updatedAt
+      }
+      meta {
+        total
+        page
+        limit
+        totalPages
+        hasNext
+        hasPrev
+      }
+    }
+  }
+`;
+
+export const CREATE_TRANSACTION = gql`
+  mutation CreateTransaction($input: CreateTransactionInput!) {
+    createTransaction(createTransactionInput: $input) {
+      success
+      message
+      data {
+        id
+        type
+        amount
+        note
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`;
 
 export interface DashboardMetrics {
 	openingCash: string;

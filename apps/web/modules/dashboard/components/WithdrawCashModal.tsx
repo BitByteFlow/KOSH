@@ -19,25 +19,24 @@ import {
 	SelectValue,
 } from "@kosh/ui/components/select";
 import { useCreateTransaction } from "../hooks/useAccount";
-import type { TransactionType } from "@/types/transcation";
 import { useState } from "react";
 
 const TRANSACTION_TYPES = [
-	{ value: "WITHDRAWAL" as TransactionType, label: "Withdrawal" },
-	{ value: "EXPENSES" as TransactionType, label: "Expenses" },
-	{ value: "DEBT_PAID" as TransactionType, label: "Debt Paid" },
-	{ value: "DEBT" as TransactionType, label: "Debt" },
+	{ value: "WITHDRAWAL", label: "Withdrawal" },
+	{ value: "EXPENSES", label: "Expenses" },
+	{ value: "DEBT_PAID", label: "Debt Paid" },
+	{ value: "DEBT", label: "Debt" },
 ] as const;
 
 interface FormData {
-	type: TransactionType;
+	type: string;
 	amount: string;
 	note: string;
 }
 
 export const WithdrawCashModal = () => {
 	const [isOpen, setIsOpen] = useState(false);
-	const createTransaction = useCreateTransaction();
+	const [createTransaction, { loading }] = useCreateTransaction();
 
 	const {
 		register,
@@ -59,14 +58,20 @@ export const WithdrawCashModal = () => {
 			return;
 		}
 
-		await createTransaction.mutateAsync({
-			amount: amountValue,
-			note: data.note,
-			type: data.type,
+		const result = await createTransaction({
+			variables: {
+				input: {
+					amount: amountValue,
+					note: data.note,
+					type: data.type as any,
+				},
+			},
 		});
 
-		setIsOpen(false);
-		reset();
+		if (result.data?.createTransaction?.success) {
+			setIsOpen(false);
+			reset();
+		}
 	};
 
 	return (

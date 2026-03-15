@@ -13,10 +13,11 @@ import { Label } from "@kosh/ui/components/label";
 
 interface DateRangeSelectorProps {
 	onRangeChange: (range: string) => void;
+	initialRange?: string;
 }
 
-export function DateRangeSelector({ onRangeChange }: DateRangeSelectorProps) {
-	const [activeRange, setActiveRange] = useState("This Month");
+export function DateRangeSelector({ onRangeChange, initialRange }: DateRangeSelectorProps) {
+	const [activeRange, setActiveRange] = useState(initialRange || "This Month");
 	const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
 	const [customDates, setCustomDates] = useState({
 		start: new Date().toISOString().split('T')[0],

@@ -16,7 +16,6 @@ export class ReportService {
 		try {
 			const currentMetrics = await this.calculateMetrics(userId, startDate, endDate);
 
-			// Calculate previous range for trend comparison
 			const duration = endDate.getTime() - startDate.getTime();
 			const prevEndDate = new Date(startDate);
 			const prevStartDate = new Date(startDate.getTime() - duration);

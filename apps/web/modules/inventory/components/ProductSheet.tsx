@@ -9,9 +9,13 @@ import {
 	Loader2,
 	Package,
 } from "lucide-react";
-import { useQuery, useMutation, useApolloClient } from "@apollo/client/react";
-import { gql } from "@/gql";
+import { useApolloClient } from "@apollo/client/react";
 import { Button } from "@kosh/ui/components/button";
+import {
+	useCreateProduct,
+	useUpdateProduct,
+	useCategoryList
+} from "../hooks/useProducts";
 import {
 	Sheet,
 	SheetContent,
@@ -38,7 +42,6 @@ import {
 } from "@kosh/validation";
 import { toast } from "sonner";
 import { Product } from "@/gql/graphql";
-import { parseGraphQLListResponse } from "@/lib/graphql/utils";
 
 interface AttributeListProps {
 	variantIndex: number;
@@ -142,89 +145,6 @@ interface ProductSheetProps {
 	product: Product | null;
 }
 
-const GET_CATEGORIES = gql(`
-	query GetCategoriesSheet {
-		getCategories {
-			success
-			message
-			data {
-				id
-				name
-			}
-		}
-	}
-`);
-
-const CREATE_PRODUCT = gql(`
-	mutation CreateProductInSheet($createProductInput: CreateProductInput!) {
-		createProduct(createProductInput: $createProductInput) {
-			success
-			message
-			data {
-				id
-				productName
-				category {
-					id
-					name
-				}
-				totalStock
-				variantCount
-				status
-				variants {
-					id
-					sku
-					barcode
-					attributes {
-						name
-						value
-					}
-					price
-					stock
-					lowStock
-					status
-					sellingPrice
-					costPrice
-				}
-			}
-		}
-	}
-`);
-
-const UPDATE_PRODUCT_DETAILS = gql(`
-	mutation UpdateProductInSheet($productId: ID!, $updateProductInput: UpdateProductInput!) {
-		updateProduct(productId: $productId, updateProductInput: $updateProductInput) {
-			success
-			message
-			data {
-				id
-				productName
-				category {
-					id
-					name
-				}
-				totalStock
-				variantCount
-				status
-				variants {
-					id
-					sku
-					barcode
-					attributes {
-						name
-						value
-					}
-					price
-					stock
-					lowStock
-					status
-					sellingPrice
-					costPrice
-				}
-			}
-		}
-	}
-`);
-
 export function ProductSheet({
 	open,
 	onOpenChange,
@@ -233,36 +153,15 @@ export function ProductSheet({
 }: ProductSheetProps) {
 	const client = useApolloClient();
 	const [internalOpen, setInternalOpen] = useState(false);
-	const { data: rawCategoryData, loading: categoriesLoading } = useQuery(GET_CATEGORIES);
+	const { data: rawCategoryData, loading: categoriesLoading } = useCategoryList();
 
 	const categories = useMemo(() =>
-		parseGraphQLListResponse(rawCategoryData?.getCategories),
-		[rawCategoryData?.getCategories]
+		rawCategoryData?.getCategories?.data ?? [],
+		[rawCategoryData?.getCategories?.data]
 	);
 
-	const [createProductMutation, { loading: isCreating }] = useMutation(CREATE_PRODUCT, {
-		update(cache, { data }: any) {
-			const newProduct = data?.createProduct?.data?.[0];
-			if (newProduct) {
-				cache.modify({
-					fields: {
-						listProductsWithFilter(existingData, { storeFieldName }) {
-							if (!existingData) return existingData;
-							return {
-								...existingData,
-								data: [newProduct, ...existingData.data],
-								meta: {
-									...existingData.meta,
-									total: (existingData.meta?.total || 0) + 1
-								}
-							};
-						}
-					}
-				});
-			}
-		}
-	});
-	const [updateProductMutation, { loading: isUpdating }] = useMutation(UPDATE_PRODUCT_DETAILS);
+	const [createProductMutation, { loading: isCreating }] = useCreateProduct();
+	const [updateProductMutation, { loading: isUpdating }] = useUpdateProduct();
 
 	const isControlled = open !== undefined && onOpenChange !== undefined;
 	const isOpen = isControlled ? open : internalOpen;
@@ -359,7 +258,7 @@ export function ProductSheet({
 				const { data: updateResult } = await updateProductMutation({
 					variables: {
 						productId: product.id,
-						updateProductInput: {
+						input: {
 							name: basePayload.name,
 							categoryId: basePayload.categoryId,
 							variants: basePayload.variants.map((v: any) => ({
@@ -384,7 +283,7 @@ export function ProductSheet({
 			} else {
 				const { data: createResult } = await createProductMutation({
 					variables: {
-						createProductInput: {
+						input: {
 							name: basePayload.name,
 							categoryId: basePayload.categoryId,
 							variants: basePayload.variants.map((v: any) => ({
@@ -507,7 +406,7 @@ export function ProductSheet({
 														? "Loading..."
 														: "Select a category"}
 												</option>
-												{categories.data?.map((cat) => (
+												{categories?.map((cat: any) => (
 													<option
 														key={cat.id}
 														value={cat.id}

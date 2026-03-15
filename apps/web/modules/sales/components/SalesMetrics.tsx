@@ -43,7 +43,7 @@ const SalesMetrics = () => {
 
 	if (loading) {
 		return (
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+			<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 				<MetricCardSkeleton />
 				<MetricCardSkeleton />
 				<MetricCardSkeleton />
@@ -58,29 +58,33 @@ const SalesMetrics = () => {
 			value: `Rs ${metrics.totalSales.toLocaleString()}`,
 			change: { value: 0, label: "Today", positive: true },
 			icon: DollarSign,
+			iconColor: "text-success",
 		},
 		{
 			label: "Transactions",
 			value: metrics.totalTransactions.toString(),
 			sublabel: "Today's sales count",
 			icon: Files,
+			iconColor: "text-info",
 		},
 		{
 			label: "Avg. Sale Value",
 			value: `Rs ${Math.round(metrics.avgSaleValue).toLocaleString()}`,
 			change: { value: 0, label: "Today", positive: true },
 			icon: TrendingUp,
+			iconColor: "text-success",
 		},
 		{
 			label: "Total Profit",
 			value: `Rs ${metrics.totalProfit.toLocaleString()}`,
 			sublabel: "Today's net profit",
 			icon: Wallet,
+			iconColor: "text-success",
 		},
 	];
 
 	return (
-		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+		<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 			{salesMetrics.map((metric) => (
 				<MetricCard
 					key={metric.label}
@@ -89,6 +93,7 @@ const SalesMetrics = () => {
 					change={metric.change}
 					icon={metric.icon}
 					sublabel={metric.sublabel}
+					iconColor={metric.iconColor}
 				/>
 			))}
 		</div>

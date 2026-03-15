@@ -13,7 +13,7 @@ interface NotificationChannelsProps {
 export function NotificationChannels({
 	initialData,
 }: NotificationChannelsProps) {
-	const updateSettings = useUpdateSettings();
+	const { mutate, loading } = useUpdateSettings();
 	const [channels, setChannels] = useState(
 		initialData || {
 			emailReports: true,
@@ -31,8 +31,12 @@ export function NotificationChannels({
 		setChannels((prev) => ({ ...prev, [field]: !prev[field] }));
 	};
 
+	const isDirty = JSON.stringify(channels) !== JSON.stringify(initialData);
+
 	const handleSave = () => {
-		updateSettings.mutate(channels);
+		if (isDirty) {
+			mutate(channels);
+		}
 	};
 
 	return (
@@ -76,9 +80,9 @@ export function NotificationChannels({
 				<div className="flex justify-end pt-4 border-t border-border">
 					<Button
 						onClick={handleSave}
-						disabled={updateSettings.isPending}
+						disabled={loading || !isDirty}
 					>
-						{updateSettings.isPending ? "Saving..." : "Save Changes"}
+						{loading ? "Saving..." : "Save Changes"}
 					</Button>
 				</div>
 			</div>

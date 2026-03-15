@@ -17,6 +17,7 @@ import { ReportModule } from './modules/report/report.module';
 import { SaleModule } from './modules/sale/sale.module';
 import { UserModule } from './modules/user/user.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -28,7 +29,14 @@ import { SettingsModule } from './modules/settings/settings.module';
       driver: ApolloDriver,
       autoSchemaFile: true,
       sortSchema: true,
-      context: ({ req }: { req: Request }) => ({ req })
+      subscriptions: {
+        'graphql-ws': true
+      },
+      context: ({ req, extra }: { req: Request, extra: any }) => {
+        // For subscriptions, the user data is in extra.user (if populated by onConnect)
+        // or we might need to handle it differently depending on the auth setup.
+        return { req: req || extra?.request };
+      }
     }),
     DatabaseModule,
     AccountsModule,
@@ -40,7 +48,8 @@ import { SettingsModule } from './modules/settings/settings.module';
     ReportModule,
     SaleModule,
     UserModule,
-    SettingsModule
+    SettingsModule,
+    NotificationModule
   ],
   controllers: [AppController],
   providers: [

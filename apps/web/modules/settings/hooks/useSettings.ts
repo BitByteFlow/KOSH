@@ -1,46 +1,41 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import { settingsService, type UpdateSettingsInput } from "@/services/settings.service";
+import { useMutation, useQuery } from "@apollo/client/react";
+import {
+	settingsService,
+	GET_SETTINGS,
+	UPDATE_SETTINGS,
+	SettingsResponse,
+	UpdateSettingsInput
+} from "@/services/settings.service";
 import { toast } from "sonner";
 import { getUserFriendlyErrorMessage } from "@/lib/api/errors";
 
-export const settingsKeys = {
-	all: ["settings"] as const,
-};
-
 export function useSettings() {
-	const { data: session } = useSession();
-	const token = session?.user?.token;
-
-	return useQuery({
-		queryKey: settingsKeys.all,
-		queryFn: () => settingsService.getSettings(token),
-		enabled: !!token,
-	});
+	return useQuery<{ settings: SettingsResponse }>(GET_SETTINGS);
 }
 
 export function useUpdateSettings() {
-	const queryClient = useQueryClient();
-	const { data: session } = useSession();
-	const token = session?.user?.token;
+	const [mutate, { loading }] = useMutation<{ updateSettings: SettingsResponse }, { input: UpdateSettingsInput }>(
+		UPDATE_SETTINGS,
+		{
+			onCompleted: (data) => {
+				if (data.updateSettings.success) {
+					toast.success("Settings updated successfully!");
+				} else {
+					toast.error(data.updateSettings.message || "Failed to update settings");
+				}
+			},
+			onError: (error) => {
+				console.error("[useUpdateSettings] Error:", error);
+				const message = getUserFriendlyErrorMessage(error);
+				toast.error(message || "Failed to update settings");
+			},
+			// Invalidate/refetch queries after mutation
+			refetchQueries: [GET_SETTINGS]
+		}
+	);
 
-	return useMutation({
-		mutationFn: (data: UpdateSettingsInput) =>
-			settingsService.updateSettings(data, token),
-
-		onSuccess: (response) => {
-			if (response.success) {
-				toast.success("Settings updated successfully!");
-				queryClient.invalidateQueries({ queryKey: settingsKeys.all });
-			} else {
-				toast.error(response.message || "Failed to update settings");
-			}
-		},
-
-		onError: (error) => {
-			console.error("[useUpdateSettings] Error:", error);
-			const message = getUserFriendlyErrorMessage(error);
-			toast.error(message || "Failed to update settings");
-		},
-	});
+	return {
+		mutate: (input: UpdateSettingsInput) => mutate({ variables: { input } }),
+		loading
+	};
 }

@@ -17,9 +17,28 @@ import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import { TransactionTableSkeleton } from "@/components/TableSkeleton";
 import { gql } from "@/gql";
-import { useQuery } from "@apollo/client/react";
+import { useQuery, useMutation } from "@apollo/client/react";
 import { parseGraphQLResponse } from "@/lib/graphql/utils";
 import { AccountTransaction } from "@/gql/graphql";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@kosh/ui/components/dialog";
+import { Label } from "@kosh/ui/components/label";
+import { Input } from "@kosh/ui/components/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@kosh/ui/components/select";
+import { toast } from "sonner";
+
 
 const TRANSACTION_TYPE_CONFIG: Record<
 	string,
@@ -64,6 +83,22 @@ const GET_TRANSACTIONS = gql(`
 	}
 `)
 
+const UPDATE_ACCOUNT_TRANSACTION = gql(`
+	mutation UpdateAccountTransactions($transactionId: String!, $updateTransactionInput: UpdateTransactionInput!) {
+		updateAccountTransactions(transactionId: $transactionId, updateTransactionInput: $updateTransactionInput) {
+			success
+			message
+			data {
+				id
+				type
+				amount
+				note
+				updatedAt
+			}
+		}
+	}
+`)
+
 const DEFAULT_TRANSACTIONS_DATA = {
 	data: [] as AccountTransaction[],
 	meta: {
@@ -79,6 +114,9 @@ const DEFAULT_TRANSACTIONS_DATA = {
 export function TransactionTable() {
 	const [page, setPage] = useState(1);
 	const limit = 10;
+
+	const [editingTransaction, setEditingTransaction] = useState<AccountTransaction | null>(null);
+	const [editFormState, setEditFormState] = useState({ amount: 0, note: "", type: "" });
 
 	const { data: rawData, loading, error } = useQuery(GET_TRANSACTIONS, {
 		variables: {
@@ -96,6 +134,42 @@ export function TransactionTable() {
 			meta: result.meta || DEFAULT_TRANSACTIONS_DATA.meta
 		};
 	}, [rawData?.getAccountTransactions]);
+
+	const [updateTransaction, { loading: updating }] = useMutation(UPDATE_ACCOUNT_TRANSACTION);
+
+	const handleEditClick = (transaction: AccountTransaction) => {
+		setEditingTransaction(transaction);
+		setEditFormState({
+			amount: transaction.amount,
+			note: transaction.note || "",
+			type: transaction.type,
+		});
+	};
+
+	const handleUpdateSubmit = async () => {
+		if (!editingTransaction) return;
+		try {
+			const { data } = await updateTransaction({
+				variables: {
+					transactionId: editingTransaction.id,
+					updateTransactionInput: {
+						amount: parseFloat(editFormState.amount.toString()),
+						note: editFormState.note,
+						type: editFormState.type,
+					},
+				},
+			});
+
+			if (data?.updateAccountTransactions?.success) {
+				toast.success(data.updateAccountTransactions.message || "Updated successfully");
+				setEditingTransaction(null);
+			} else {
+				toast.error(data?.updateAccountTransactions?.message || "Failed to update");
+			}
+		} catch (error) {
+			toast.error("An error occurred");
+		}
+	};
 
 	const handlePreviousPage = () => {
 		if (meta.hasPrev) {
@@ -138,26 +212,29 @@ export function TransactionTable() {
 				) : (
 					<>
 						<Table>
-							<TableHeader className="bg-gray-100 ">
-								<TableRow className="border-bottom border-slate-200 shadow-sm rounded-md">
-									<TableHead className="text-left text-muted-foreground">
+							<TableHeader className="bg-muted/50">
+								<TableRow className="border-b border-border transition-colors">
+									<TableHead className="text-left font-semibold text-foreground">
 										Transaction Date
 									</TableHead>
-									<TableHead className="text-left text-muted-foreground">
+									<TableHead className="text-left font-semibold text-foreground">
 										Transaction Type
 									</TableHead>
-									<TableHead className="text-right text-muted-foreground">
+									<TableHead className="text-right font-semibold text-foreground">
 										Amount
 									</TableHead>
-									<TableHead className="text-left text-muted-foreground">
+									<TableHead className="text-left font-semibold text-foreground">
 										Note
 									</TableHead>
-									<TableHead className="text-center text-muted-foreground">
+									<TableHead className="text-left font-semibold text-foreground">
+										Updated At
+									</TableHead>
+									<TableHead className="text-center font-semibold text-foreground">
 										Actions
 									</TableHead>
 								</TableRow>
 							</TableHeader>
-							<TableBody className="gap-4 [&_tr_td]:py-4">
+							<TableBody className="[&_tr_td]:py-4">
 								{transactions.map((transaction) => {
 									const typeConfig = TRANSACTION_TYPE_CONFIG[
 										transaction.type
@@ -169,7 +246,7 @@ export function TransactionTable() {
 									return (
 										<TableRow
 											key={transaction.id}
-											className="border-bottom border-gray-200 shadow-sm rounded-md"
+											className="border-b border-border/50 hover:bg-muted/30 transition-colors"
 										>
 											<TableCell className="text-sm">
 												{format(
@@ -188,15 +265,18 @@ export function TransactionTable() {
 											<TableCell className="text-sm text-muted-foreground max-w-xs truncate">
 												{transaction.note || "-"}
 											</TableCell>
+											<TableCell className="text-sm text-muted-foreground">
+												{format(
+													new Date(transaction.updatedAt),
+													"MMM dd, yyyy HH:mm",
+												)}
+											</TableCell>
 											<TableCell className="text-center">
 												<Button
 													variant="ghost"
 													size="sm"
 													className="h-8 w-8 p-0"
-													onClick={() => {
-														// TODO: Implement edit functionality
-														console.log("Edit transaction:", transaction.id);
-													}}
+													onClick={() => handleEditClick(transaction)}
 												>
 													<Pencil className="h-4 w-4" />
 												</Button>
@@ -237,6 +317,66 @@ export function TransactionTable() {
 					</>
 				)}
 			</div>
+
+			<Dialog open={!!editingTransaction} onOpenChange={(open) => !open && setEditingTransaction(null)}>
+				<DialogContent className="sm:max-w-[425px]">
+					<DialogHeader>
+						<DialogTitle>Edit Transaction</DialogTitle>
+						<DialogDescription>
+							Make changes to the selected transaction here.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="grid gap-4 py-4">
+						<div className="space-y-2">
+							<Label htmlFor="type">Transaction Type</Label>
+							<Select
+								value={editFormState.type}
+								onValueChange={(value) => setEditFormState({ ...editFormState, type: value })}
+							>
+								<SelectTrigger id="type">
+									<SelectValue placeholder="Select type" />
+								</SelectTrigger>
+								<SelectContent>
+									{Object.entries(TRANSACTION_TYPE_CONFIG).map(([key, config]) => (
+										<SelectItem key={key} value={key}>
+											{config.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="amount">Amount</Label>
+							<Input
+								id="amount"
+								type="number"
+								value={editFormState.amount}
+								onChange={(e) => setEditFormState({ ...editFormState, amount: Number(e.target.value) })}
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="note">Note</Label>
+							<Input
+								id="note"
+								value={editFormState.note}
+								onChange={(e) => setEditFormState({ ...editFormState, note: e.target.value })}
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => setEditingTransaction(null)}
+							disabled={updating}
+						>
+							Cancel
+						</Button>
+						<Button onClick={handleUpdateSubmit} disabled={updating}>
+							{updating ? "Saving..." : "Save changes"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</Card>
 	);
 }

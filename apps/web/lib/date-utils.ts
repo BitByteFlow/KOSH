@@ -1,7 +1,8 @@
 export const getDateRange = (range: string) => {
 	const now = new Date();
-	const end = new Date();
-	let start = new Date();
+	now.setSeconds(0, 0);
+	const end = new Date(now);
+	let start = new Date(now);
 
 	if (range.startsWith("Custom:")) {
 		const parts = range.split(":");
@@ -18,7 +19,7 @@ export const getDateRange = (range: string) => {
 	switch (range) {
 		case "This Week":
 			const day = now.getDay();
-			const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+			const diff = now.getDate() - day + (day === 0 ? -6 : 1); 
 			start = new Date(now.setDate(diff));
 			start.setHours(0, 0, 0, 0);
 			break;
@@ -34,7 +35,6 @@ export const getDateRange = (range: string) => {
 			start.setHours(0, 0, 0, 0);
 			break;
 		default:
-			// Default to This Month if unknown
 			start = new Date(now.getFullYear(), now.getMonth(), 1);
 			start.setHours(0, 0, 0, 0);
 	}

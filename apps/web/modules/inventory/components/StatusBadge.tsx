@@ -11,10 +11,10 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, children }: StatusBadgeProps) {
 	const statusStyles = {
-		[Status.Active]: "bg-green-50 text-green-700 border-green-200",
-		[Status.Inactive]: "bg-gray-50 text-gray-700 border-gray-200",
-		[Status.OutOfStock]: "bg-red-50 text-red-700 border-red-200",
-		"low-stock": "bg-orange-50 text-orange-700 border-orange-200",
+		[Status.Active]: "bg-success/15 text-success border-success/30",
+		[Status.Inactive]: "bg-muted text-muted-foreground border-border",
+		[Status.OutOfStock]: "bg-destructive/15 text-destructive border-destructive/30",
+		"low-stock": "bg-warning/15 text-warning border-warning/30",
 	};
 
 	return (

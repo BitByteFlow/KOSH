@@ -10,7 +10,6 @@ import {
 	ShoppingCart,
 	BookOpen,
 	HelpCircle,
-	Search,
 	Bolt,
 	ChevronDown,
 	LogOut,
@@ -27,9 +26,9 @@ import {
 	SidebarGroup,
 	SidebarGroupLabel,
 	SidebarGroupContent,
-	SidebarTrigger,
+	useSidebar,
 } from "@kosh/ui/components/sidebar";
-import { Input } from "@kosh/ui/components/input";
+import Image from "next/image";
 import {
 	Avatar,
 	AvatarFallback,
@@ -61,44 +60,70 @@ const supportItems = [
 const DashboardSidebar = () => {
 	const pathname = usePathname();
 	const router = useRouter();
-	const session = useSession()
+	const session = useSession();
+	const { setOpen } = useSidebar();
+	const lastBreakpoint = React.useRef<"mobile" | "medium" | "desktop" | null>(
+		null,
+	);
+
+	React.useEffect(() => {
+		const handleResize = () => {
+			const width = window.innerWidth;
+			let currentBreakpoint: "mobile" | "medium" | "desktop" = "desktop";
+
+			if (width < 768) {
+				currentBreakpoint = "mobile";
+			} else if (width < 1200) {
+				currentBreakpoint = "medium";
+			}
+
+			if (currentBreakpoint !== lastBreakpoint.current) {
+				if (currentBreakpoint === "medium") {
+					setOpen(false);
+				} else if (currentBreakpoint === "desktop") {
+					setOpen(true);
+				}
+				lastBreakpoint.current = currentBreakpoint;
+			}
+		};
+
+		handleResize();
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, [setOpen]);
+
 	const handleLogout = async () => {
 		await signOut({
 			redirect: true,
-			redirectTo: "/auth/get-started"
-		})
-	}
+			redirectTo: "/auth/get-started",
+		});
+	};
 	return (
 		<Sidebar
-			className="border-r border-gray-200 bg-white flex-col max-h-screen"
+			className="border-r border-sidebar-border bg-sidebar flex-col max-h-screen"
 			collapsible="icon"
 			side="left"
 		>
 			<SidebarHeader>
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-2 overflow-hidden transition-all duration-200 ease-linear max-w-[200px] opacity-100 group-data-[state=collapsed]:max-w-0 group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:gap-0">
-						<div className="h-8 w-8 rounded-lg flex items-center justify-center bg-gray-900 text-white shrink-0">
-							<Bolt className="h-5 w-5" />
-						</div>
-						<span className="text-xl font-semibold tracking-tight text-gray-900 whitespace-nowrap">
+				<div className="flex items-center gap-2 px-2 py-4 transition-all duration-300 ease-in-out group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:gap-0 group-data-[state=collapsed]:px-0">
+					<Image
+						src="/logo.ico"
+						alt="Logo"
+						width={52}
+						height={62}
+						// className="object-contain"
+					/>
+					<div className="overflow-hidden transition-all duration-300 ease-in-out max-w-50 opacity-100 group-data-[state=collapsed]:max-w-0 group-data-[state=collapsed]:opacity-0">
+						<span className="text-xl font-semibold tracking-tight text-foreground whitespace-nowrap ml-1">
 							KOSH
 						</span>
 					</div>
-					<SidebarTrigger className="hover:cursor-pointer transition-colors text-gray-400 hover:text-gray-600 ml-auto" />
-				</div>
-
-				<div className="mt-6 relative group overflow-hidden transition-all duration-300 ease-in-out group-data-[state=collapsed]:h-0 group-data-[state=collapsed]:mt-0 group-data-[state=collapsed]:opacity-0">
-					<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-gray-600 transition-colors" />
-					<Input
-						placeholder="Search"
-						className="pl-9 py-2 bg-gray-50 border-none focus-visible:ring-1 focus-visible:ring-gray-200 placeholder:text-gray-400 rounded-md"
-					/>
 				</div>
 			</SidebarHeader>
 
 			<SidebarContent className="custom-scrollbar">
 				<SidebarGroup>
-					<SidebarGroupLabel className="text-xs font-medium uppercase tracking-wider text-gray-400 px-2">
+					<SidebarGroupLabel className="text-xs font-medium uppercase tracking-wider text-muted-foreground px-2">
 						Menu
 					</SidebarGroupLabel>
 					<SidebarGroupContent>
@@ -107,20 +132,27 @@ const DashboardSidebar = () => {
 								const isActive = pathname.startsWith(item.url);
 								return (
 									<SidebarMenuItem key={item.title}>
-										<SidebarMenuButton className="mt-2 hover:cursor-pointer" onClick={() => router.push(item.url)}>
+										<SidebarMenuButton
+											className="mt-2 hover:cursor-pointer"
+											onClick={() => router.push(item.url)}
+											isActive={isActive}
+											tooltip={item.title}
+										>
 											<item.icon
-												className={`h-5 w-5 transition-transform ${isActive
-													? "text-gray-900"
-													: "text-gray-500 hover:scale-105"
-													}`}
+												className={`h-5 w-5 transition-all duration-300 ease-in-out ${
+													isActive
+														? "text-primary scale-110"
+														: "text-muted-foreground hover:scale-110"
+												}`}
 											/>
 											<div
-												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-colors overflow-hidden transition-all duration-200 ease-linear opacity-100 max-w-[200px] group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0 ${isActive
-													? "bg-gray-50 text-gray-900"
-													: "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-													}`}
+												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-all duration-300 ease-in-out opacity-100 max-w-[200px] group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0 ${
+													isActive
+														? "bg-accent text-accent-foreground font-semibold"
+														: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+												}`}
 											>
-												<span className="text-base font-medium whitespace-nowrap">
+												<span className="text-base whitespace-nowrap">
 													{item.title}
 												</span>
 											</div>
@@ -133,7 +165,7 @@ const DashboardSidebar = () => {
 				</SidebarGroup>
 
 				<SidebarGroup>
-					<SidebarGroupLabel className="text-xs font-medium uppercase tracking-wider text-gray-400 px-2">
+					<SidebarGroupLabel className="text-xs font-medium uppercase tracking-wider text-muted-foreground px-2">
 						Help & Support
 					</SidebarGroupLabel>
 					<SidebarGroupContent>
@@ -146,20 +178,23 @@ const DashboardSidebar = () => {
 											isActive={isActive}
 											className="mt-2 hover:cursor-pointer"
 											onClick={() => router.push(item.url)}
+											tooltip={item.title}
 										>
 											<item.icon
-												className={`h-5 w-5 transition-transform ${isActive
-													? "text-gray-900"
-													: "text-gray-500 hover:scale-105"
-													}`}
+												className={`h-5 w-5 transition-all duration-300 ease-in-out ${
+													isActive
+														? "text-primary scale-110"
+														: "text-muted-foreground hover:scale-110"
+												}`}
 											/>
 											<div
-												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-colors overflow-hidden transition-all duration-200 ease-linear opacity-100 max-w-[200px] group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0 ${isActive
-													? "bg-gray-50 text-gray-900"
-													: "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-													}`}
+												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-all duration-300 ease-in-out opacity-100 max-w-[200px] group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0 ${
+													isActive
+														? "bg-accent text-accent-foreground font-semibold"
+														: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+												}`}
 											>
-												<span className="text-base font-medium whitespace-nowrap">
+												<span className="text-base whitespace-nowrap">
 													{item.title}
 												</span>
 											</div>
@@ -175,7 +210,7 @@ const DashboardSidebar = () => {
 			<SidebarFooter>
 				<SidebarMenu>
 					<SidebarMenuItem>
-						<DropdownMenu>
+						<DropdownMenu modal={false}>
 							<DropdownMenuTrigger asChild>
 								<SidebarMenuButton
 									size="lg"
@@ -183,11 +218,15 @@ const DashboardSidebar = () => {
 								>
 									<Avatar className="h-8 w-8 rounded-lg shrink-0">
 										<AvatarImage
-											src={session.data?.user?.image || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100&h=100&fit=crop"}
+											src={
+												session.data?.user?.image ||
+												"https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100&h=100&fit=crop"
+											}
 											alt={session.data?.user?.name || "User"}
 										/>
 										<AvatarFallback className="rounded-lg">
-											{session.data?.user?.name?.slice(0, 2).toUpperCase() || "KH"}
+											{session.data?.user?.name?.slice(0, 2).toUpperCase() ||
+												"KH"}
 										</AvatarFallback>
 									</Avatar>
 									<div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
@@ -215,7 +254,8 @@ const DashboardSidebar = () => {
 												alt={session.data?.user?.name || ""}
 											/>
 											<AvatarFallback className="rounded-lg">
-												{session.data?.user?.name?.slice(0, 2).toUpperCase() || "KH"}
+												{session.data?.user?.name?.slice(0, 2).toUpperCase() ||
+													"KH"}
 											</AvatarFallback>
 										</Avatar>
 										<div className="grid flex-1 text-left text-sm leading-tight">
@@ -228,11 +268,10 @@ const DashboardSidebar = () => {
 										</div>
 									</div>
 								</DropdownMenuItem>
-								<DropdownMenuItem onClick={() => router.push("/settings")}>
-									<Settings className="mr-2 h-4 w-4" />
-									<span>Settings</span>
-								</DropdownMenuItem>
-								<DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+								<DropdownMenuItem
+									onClick={handleLogout}
+									className="text-destructive focus:text-destructive"
+								>
 									<LogOut className="mr-2 h-4 w-4" />
 									<span>Log out</span>
 								</DropdownMenuItem>

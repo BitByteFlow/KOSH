@@ -1,8 +1,8 @@
 "use client";
 
-import { gql } from "@/gql";
 import { getDateRange } from "@/lib/date-utils";
 import { parseGraphQLListResponse } from "@/lib/graphql/utils";
+import { GET_SALES_TREND } from "@/services/reportsAnalytics.service";
 import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
 import {
@@ -14,22 +14,15 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
+import {
+	GetSalesTrendQuery,
+	GetSalesTrendQueryVariables,
+} from "@/gql/graphql";
 
 interface SalesTrendChartProps {
 	dateRange: string
 }
 
-const GET_SALES_TREND = gql(`
-	query getSalesTrend ($startDate: String!, $endDate: String!){
-		getSalesTrend (startDate: $startDate, endDate: $endDate) {
-			success
-			data {
-				label
-				value
-			}
-		}
-	}
-`);
 
 export function SalesTrendChart({ dateRange }: SalesTrendChartProps) {
 
@@ -38,16 +31,16 @@ export function SalesTrendChart({ dateRange }: SalesTrendChartProps) {
 		[dateRange],
 	);
 
-	const { data: rawData, loading: trendLoading } = useQuery(GET_SALES_TREND, {
+	const { data: rawData, loading: trendLoading } = useQuery<GetSalesTrendQuery, GetSalesTrendQueryVariables>(GET_SALES_TREND, {
 		variables: { startDate, endDate }
 	});
 
-	const salesResponse = useMemo(() =>
+	const trendData = useMemo(() =>
 		parseGraphQLListResponse(rawData?.getSalesTrend),
 		[rawData?.getSalesTrend]
 	);
 
-	const chartData = salesResponse.data || [];
+	const chartData = trendData.data || [];
 
 	if (trendLoading) {
 		return (

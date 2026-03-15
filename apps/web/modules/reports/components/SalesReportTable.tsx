@@ -10,6 +10,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@kosh/ui/components/table";
+import { DateRangeSelector } from "@/modules/reports/components/DateRangeSelector";
 import { Badge } from "@kosh/ui/components/badge";
 import { Button } from "@kosh/ui/components/button";
 import { Input } from "@kosh/ui/components/input";
@@ -24,36 +25,23 @@ import {
 	DialogTitle,
 } from "@kosh/ui/components/dialog";
 import { useQuery } from "@apollo/client/react";
-import { gql } from "@/gql";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getDateRange } from "@/lib/date-utils";
 import { parseGraphQLListResponse } from "@/lib/graphql/utils";
-import { PaymentType } from "@/gql/graphql";
+import {
+	SaleReport,
+	SaleReportFilter,
+	PaymentType,
+} from "@/gql/graphql";
+import { GET_SALES_REPORT } from "@/services/reportsAnalytics.service";
 
-interface SalesReportTableProps {
-	dateRange: string;
-}
+interface SalesReportTableProps { }
 
-const GET_SALES_REPORT = gql(`
-	query getSalesReport ($filters: SaleReportFilter!){
-		getSalesReport (filters: $filters) {
-			success
-			message
-			data {
-				id
-				date
-				customer
-				items
-				total
-				payment
-				status
-			}
-		}
-	}
-`)
 
-export function SalesReportTable({ dateRange }: SalesReportTableProps) {
+export function SalesReportTable({ }: SalesReportTableProps) {
+	const [dateRange, setDateRange] = useState("This Month");
+	const [tempDateRange, setTempDateRange] = useState("This Month");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -82,10 +70,10 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 			filters: {
 				startDate,
 				endDate,
-				paymentMethods: appliedFilters.paymentMethods.length > 0 ? appliedFilters.paymentMethods : undefined,
+				paymentMethods: appliedFilters.paymentMethods.length > 0 ? (appliedFilters.paymentMethods as PaymentType[]) : undefined,
 				statuses: appliedFilters.statuses.length > 0 ? appliedFilters.statuses : undefined,
 				searchQuery: debouncedSearch || undefined,
-			}
+			} as SaleReportFilter
 		}
 	});
 
@@ -110,12 +98,12 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 		doc.setFontSize(10);
 		doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 22);
 
-		const tableData = filteredSales.map(sale => [
+		const tableData = filteredSales.map((sale: SaleReport) => [
 			sale.id,
 			sale.date,
 			sale.customer,
-			sale.items.toString(),
-			`Rs ${sale.total.toLocaleString()}`,
+			sale.items,
+			sale.total,
 			sale.payment,
 			sale.status
 		]);
@@ -129,26 +117,28 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 		doc.save(`sales-report-${new Date().toISOString().split('T')[0]}.pdf`);
 	};
 
-	const handlePaymentChange = (type: PaymentType, checked: boolean) => {
-		setTempFilters((prev) => ({
-			...prev,
-			paymentMethods: checked
-				? [...prev.paymentMethods, type]
-				: prev.paymentMethods.filter((t: PaymentType) => t !== type)
-		}));
+	const handlePaymentMethodChange = (method: PaymentType, checked: boolean) => {
+		setTempFilters((prev: any) => {
+			const paymentMethods = checked
+				? [...prev.paymentMethods, method]
+				: prev.paymentMethods.filter((m: PaymentType) => m !== method);
+			return { ...prev, paymentMethods };
+		});
 	};
 
 	const handleStatusChange = (status: string, checked: boolean) => {
-		setTempFilters((prev) => ({
-			...prev,
-			statuses: checked
+		setTempFilters((prev: any) => {
+			const statuses = checked
 				? [...prev.statuses, status]
-				: prev.statuses.filter((s: string) => s !== status)
-		}));
+				: prev.statuses.filter((s: string) => s !== status);
+			return { ...prev, statuses };
+		});
 	};
 
 	const handleApplyFilters = () => {
+		if (!tempDateRange) return;
 		setAppliedFilters(tempFilters);
+		setDateRange(tempDateRange);
 		setIsFilterOpen(false);
 	};
 
@@ -159,6 +149,8 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 		};
 		setTempFilters(defaultFilters);
 		setAppliedFilters(defaultFilters);
+		setTempDateRange("This Month");
+		setDateRange("This Month");
 		setIsFilterOpen(false);
 	};
 
@@ -216,20 +208,18 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 								</TableCell>
 							</TableRow>
 						) : (
-							filteredSales.map((sale) => (
+							filteredSales.map((sale: SaleReport) => (
 								<TableRow key={sale.id} className="hover:bg-muted/30 border-border [&_td]:py-4 transition-colors">
-									<TableCell className="font-medium text-foreground">{sale.id}</TableCell>
-									<TableCell className="text-muted-foreground text-sm">{sale.date}</TableCell>
-									<TableCell className="text-sm">{sale.customer}</TableCell>
-									<TableCell className="text-sm">{sale.items}</TableCell>
-									<TableCell className="font-medium">Rs {sale.total.toLocaleString()}</TableCell>
-									<TableCell>
-										<Badge variant="outline" className="font-normal">{sale.payment}</Badge>
-									</TableCell>
+									<TableCell className="font-medium">{sale.id}</TableCell>
+									<TableCell>{sale.date}</TableCell>
+									<TableCell>{sale.customer}</TableCell>
+									<TableCell>{sale.items}</TableCell>
+									<TableCell>{sale.total}</TableCell>
+									<TableCell>{sale.payment}</TableCell>
 									<TableCell>
 										<Badge
-											variant={sale.status === 'Completed' ? 'default' : 'secondary'}
-											className={sale.status === 'Completed' ? "bg-green-100 text-green-700 hover:bg-green-100 border-0" : "bg-orange-100 text-orange-700 hover:bg-orange-100 border-0"}
+											variant={sale.status === 'Paid' ? 'default' : 'secondary'}
+											className={sale.status === 'Paid' ? "bg-green-100 text-green-700 hover:bg-green-100 border-0" : "bg-orange-100 text-orange-700 hover:bg-orange-100 border-0"}
 										>
 											{sale.status}
 										</Badge>
@@ -242,7 +232,7 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 			</div>
 
 			<Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-				<DialogContent className="sm:max-w-[425px]">
+				<DialogContent className="sm:max-w-[600px]">
 					<DialogHeader>
 						<DialogTitle>Filter Sales</DialogTitle>
 						<DialogDescription>
@@ -252,20 +242,29 @@ export function SalesReportTable({ dateRange }: SalesReportTableProps) {
 
 					<div className="grid gap-6 py-4">
 						<div className="space-y-3">
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date Range</Label>
+							<DateRangeSelector onRangeChange={setTempDateRange} initialRange={tempDateRange} />
+						</div>
+
+						<div className="space-y-3">
 							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Payment Method</Label>
 							<div className="flex flex-wrap gap-4">
-								{["Online", "Cash", "Credit"].map((type) => (
-									<div key={type} className="flex items-center space-x-2">
+								{[
+									{ label: "Online", value: PaymentType.Online },
+									{ label: "Cash", value: PaymentType.Cash },
+									{ label: "Credit", value: PaymentType.Credit },
+								].map(({ label, value }) => (
+									<div key={value} className="flex items-center space-x-2">
 										<Checkbox
-											id={`payment-${type}`}
-											checked={tempFilters.paymentMethods.includes(type as PaymentType)}
-											onCheckedChange={(checked) => handlePaymentChange(type as PaymentType, checked as boolean)}
+											id={`payment-${value}`}
+											checked={tempFilters.paymentMethods.includes(value)}
+											onCheckedChange={(checked) => handlePaymentMethodChange(value, !!checked)}
 										/>
 										<label
-											htmlFor={`payment-${type}`}
+											htmlFor={`payment-${value}`}
 											className="text-sm font-medium leading-none"
 										>
-											{type}
+											{label}
 										</label>
 									</div>
 								))}

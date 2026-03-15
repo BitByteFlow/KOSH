@@ -18,8 +18,7 @@ import { cn } from "@/lib/utils";
 
 import { Status } from "@/gql/graphql";
 import { gql } from "@/gql";
-import { useQuery } from "@apollo/client/react";
-import { parseGraphQLListResponse } from "@/lib/graphql/utils";
+import { useCategoryList } from "../hooks/useProducts";
 
 interface InventorySearchProps {
 	onSearch?: (query: string) => void;
@@ -31,21 +30,6 @@ interface InventorySearchProps {
 	activeStatus?: string | null;
 }
 
-const GET_CATEGORIES = gql(`
-	query GetCategoriesForSearch {
-		getCategories {
-			success
-			message
-			data {
-				id
-				name
-				createdAt
-				updatedAt
-			}
-		}
-	}
-`)
-
 const InventorySearch = ({
 	onSearch,
 	onCategoryFilter,
@@ -55,25 +39,25 @@ const InventorySearch = ({
 	activeCategoryId,
 	activeStatus,
 }: InventorySearchProps) => {
-	const { data: rawData } = useQuery(GET_CATEGORIES)
+	const { data: rawData, loading } = useCategoryList();
 
 	const categories = useMemo(() =>
-		parseGraphQLListResponse(rawData?.getCategories),
-		[rawData?.getCategories]
+		rawData?.getCategories?.data ?? [],
+		[rawData?.getCategories?.data]
 	);
 
 	const [categorySearch, setCategorySearch] = useState("");
 
 	const filteredCategories = useMemo(() => {
-		if (!categorySearch) return categories.data ?? [];
-		return categories.data?.filter((cat) =>
+		if (!categorySearch) return categories;
+		return categories?.filter((cat: any) =>
 			cat.name.toLowerCase().includes(categorySearch.toLowerCase())
 		) ?? [];
 	}, [categories, categorySearch]);
 
 	const selectedCategoryName = useMemo(() => {
-		if (!activeCategoryId || categories.data?.length === 0) return "Category";
-		const cat = categories.data?.find((c) => c.id === activeCategoryId);
+		if (!activeCategoryId || categories?.length === 0) return "Category";
+		const cat = categories?.find((c: any) => c.id === activeCategoryId);
 		return cat ? cat.name : "Category";
 	}, [activeCategoryId, categories]);
 
@@ -92,14 +76,14 @@ const InventorySearch = ({
 	return (
 		<div className="flex flex-col gap-4">
 			<div className="flex items-center gap-3">
-				<div className="flex-1 relative">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+				<div className="flex-1 relative group">
+					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-foreground transition-colors" />
 					<Input
 						id="inventory-search"
 						type="text"
-						placeholder="Search by name, SKU, or category..."
+						placeholder="Search product name, SKU..."
 						onChange={(e) => onSearch?.(e.target.value)}
-						className="w-full pl-10 pr-4 py-2 h-10"
+						className="w-full pl-10 pr-4 py-2 h-10 border-border focus-visible:ring-primary/20"
 					/>
 				</div>
 
@@ -114,14 +98,14 @@ const InventorySearch = ({
 				/>
 				<AddCategoryModal />
 
-				<DropdownMenu>
+				<DropdownMenu modal={false}>
 					<DropdownMenuTrigger asChild>
 						<Button
 							variant="outline"
 							size="sm"
 							className={cn(
-								"flex items-center gap-2 h-10 px-4 bg-transparent",
-								activeCategoryId && "border-blue-500 text-blue-600 bg-blue-50/50"
+								"flex items-center gap-2 h-10 px-4 bg-transparent border-border hover:bg-muted/50",
+								activeCategoryId && "border-primary text-primary bg-primary/5"
 							)}
 						>
 							<span className="max-w-[100px] truncate">{selectedCategoryName}</span>
@@ -167,14 +151,14 @@ const InventorySearch = ({
 					</DropdownMenuContent>
 				</DropdownMenu>
 
-				<DropdownMenu>
+				<DropdownMenu modal={false}>
 					<DropdownMenuTrigger asChild>
 						<Button
 							variant="outline"
 							size="sm"
 							className={cn(
-								"flex items-center gap-2 h-10 px-4 bg-transparent",
-								activeStatus && "border-blue-500 text-blue-600 bg-blue-50/50"
+								"flex items-center gap-2 h-10 px-4 bg-transparent border-border hover:bg-muted/50",
+								activeStatus && "border-primary text-primary bg-primary/5"
 							)}
 						>
 							{selectedStatusLabel}
@@ -209,8 +193,8 @@ const InventorySearch = ({
 					onClick={onGenerateBarcodes}
 					disabled={selectedCount === 0}
 					className={cn(
-						"flex items-center gap-2 h-10 px-4 bg-transparent",
-						selectedCount > 0 && "border-green-500 text-green-600 bg-green-50/50"
+						"flex items-center gap-2 h-10 px-4 bg-transparent border-border",
+						selectedCount > 0 && "border-success text-success bg-success/5"
 					)}
 				>
 					<Tooltip>
@@ -220,7 +204,7 @@ const InventorySearch = ({
 								<span>Barcodes {selectedCount > 0 && `(${selectedCount})`}</span>
 							</div>
 						</TooltipTrigger>
-						<TooltipContent>
+						<TooltipContent className="bg-popover text-popover-foreground border-border shadow-md">
 							{selectedCount > 0
 								? `Generate barcodes for ${selectedCount} products`
 								: "Select products to generate barcodes"}

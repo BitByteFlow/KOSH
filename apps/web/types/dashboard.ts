@@ -8,7 +8,7 @@ export interface MetricCardProps {
 		label: string;
 		positive: boolean;
 	};
-	icon: LucideIcon;
+	icon?: LucideIcon;
 	sublabel?: string;
 	iconColor?: string;
 }

@@ -45,7 +45,7 @@ const DASHBOARD_METRICS = gql(`
 const Dashboard = async () => {
 	return (
 		<PreloadQuery query={DASHBOARD_METRICS} variables={{ page: 1, limit: 10, sortBy: 'createdAt', sortOrder: 'desc' }}>
-			<section className="flex-1 overflow-y-auto p-8">
+			<section className="flex-1 overflow-y-auto p-4 md:p-8">
 				<div className="space-y-8">
 					<section>
 						<div className="flex items-center justify-between mb-6">

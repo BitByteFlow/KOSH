@@ -1,5 +1,0 @@
-modules/inventory/components/ChangeCategoryDialog.tsx(76,71): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'DocumentNode | TypedDocumentNode<unknown, OperationVariables>'.
-modules/inventory/components/ProductSheet.tsx(232,71): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'DocumentNode | TypedDocumentNode<unknown, OperationVariables>'.
-modules/inventory/components/ProductSheet.tsx(234,29): error TS2339: Property 'createProduct' does not exist on type '{}'.
-modules/inventory/components/ProductSheet.tsx(256,71): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'DocumentNode | TypedDocumentNode<unknown, OperationVariables>'.
-modules/inventory/pages/InventoryPage.tsx(159,53): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'DocumentNode | TypedDocumentNode<unknown, OperationVariables>'.

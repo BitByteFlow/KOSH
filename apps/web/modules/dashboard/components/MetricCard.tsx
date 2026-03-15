@@ -4,60 +4,35 @@ import { Card } from "@kosh/ui/components/card";
 import type { MetricCardProps } from "@/types/dashboard";
 import { cn } from "@/lib/utils";
 
-const colorMap: { [key: string]: { bg: string; text: string } } = {
-	"Sales Today": {
-		bg: "bg-green-100 dark:bg-green-900/30",
-		text: "text-green-600 dark:text-green-400",
-	},
-	Orders: {
-		bg: "bg-blue-100 dark:bg-blue-900/30",
-		text: "text-blue-600 dark:text-blue-400",
-	},
-	"Cash in Hand": {
-		bg: "bg-orange-100 dark:bg-orange-900/30",
-		text: "text-orange-600 dark:text-orange-400",
-	},
-	"Credit Given": {
-		bg: "bg-purple-100 dark:bg-purple-900/30",
-		text: "text-purple-600 dark:text-purple-400",
-	},
-};
-
 export function MetricCard({
 	label,
 	value,
 	change,
-	icon: Icon,
+	// icon: Icon,
 	sublabel,
-	iconColor,
+	// iconColor,
 }: MetricCardProps) {
-	const colors =
-		colorMap[label] ||
-		({
-			bg: "bg-muted",
-			text: "text-muted-foreground",
-		} as (typeof colorMap)[string]);
 	return (
-		<Card className="p-4 border border-border rounded-lg shadow-sm">
+		<Card className="p-5 border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow">
 			<div className="flex items-start justify-between">
-				<div>
-					<p className="text-sm font-medium text-muted-foreground">{label}</p>
-					<p className="text-2xl font-semibold mt-1 text-foreground">{value}</p>
+				<div className="space-y-1">
+					<p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+					<p className="text-xl font-bold text-foreground tabular-nums">{value}</p>
 					{sublabel && (
-						<p className="text-xs text-muted-foreground mt-1">{sublabel}</p>
+						<p className="text-xs text-muted-foreground font-medium">{sublabel}</p>
 					)}
 					{change && (
-						<div className="flex items-center gap-1 mt-2 text-sm">
+						<div className="flex items-center gap-1.5 mt-2 text-sm">
 							<TrendingUp
 								className={cn(
 									"h-4 w-4",
-									change.positive ? "text-green-500" : "text-red-500",
+									change.positive ? "text-success" : "text-destructive",
 								)}
 							/>
 							<span
 								className={cn(
-									"font-medium",
-									change.positive ? "text-green-500" : "text-red-500",
+									"font-semibold",
+									change.positive ? "text-success" : "text-destructive",
 								)}
 							>
 								{change.positive ? "+" : "-"}
@@ -67,9 +42,16 @@ export function MetricCard({
 						</div>
 					)}
 				</div>
-				<div className={cn("p-3 rounded-lg", colors.bg)}>
-					<Icon className={cn("w-5 h-5", iconColor || colors.text)} />
-				</div>
+				{/* <div className={cn(
+					"p-3 rounded-xl transition-colors ring-1 ring-border/50 shadow-inner",
+					// iconColor === "text-success" ? "bg-success/10" :
+						// iconColor === "text-destructive" ? "bg-destructive/10" :
+							// iconColor === "text-warning" ? "bg-warning/10" :
+								// iconColor === "text-info" ? "bg-info/10" :
+									// "bg-muted/50"
+				)}>
+					<Icon className={cn("w-4 h-4 transition-transform hover:scale-110", iconColor || "text-primary")} />
+				</div> */}
 			</div>
 		</Card>
 	);

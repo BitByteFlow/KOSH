@@ -6,6 +6,11 @@ import InventoryItem from "@/modules/inventory/components/InventoryItem";
 import { InventoryPagination } from "@/modules/inventory/components/InventoryPagination";
 import { ProductSheet } from "@/modules/inventory/components/ProductSheet";
 import { ProductDetailsSheet } from "@/modules/inventory/components/ProductDetailsSheet";
+import {
+	useProductList,
+	useDeleteProduct,
+	useUpdateVariant
+} from "../hooks/useProducts";
 import { ChangeCategoryDialog } from "@/modules/inventory/components/ChangeCategoryDialog";
 import { BarcodeDialog } from "@/modules/inventory/components/BarcodeDialog";
 import {
@@ -28,101 +33,10 @@ import {
 	DialogTitle,
 } from "@kosh/ui/components/dialog";
 import { Button } from "@kosh/ui/components/button";
-import { useQuery, useMutation } from "@apollo/client/react";
 import { ProductVariant, Status } from "@/gql/graphql";
-import { gql } from "@/gql";
 import { Product } from "@/gql/graphql";
-import { parseGraphQLResponse, parseGraphQLListResponse } from "@/lib/graphql/utils";
-
-const GET_INVENTORY_DATA = gql(`
-	query GetInventoryList ($filterInput: ProductFilterInput!) {
-		listProductsWithFilter (filterInput: $filterInput) {
-			success
-			message
-			data {
-				id
-				productName
-				category {
-					id
-					name
-					createdAt
-					updatedAt
-				} 
-				totalStock
-				variantCount
-				status
-				variants {
-					id
-					sku
-					barcode
-					attributes {
-						name
-						value
-					}
-					price
-					stock
-					lowStock
-					status
-					sellingPrice
-					costPrice
-				}
-			}
-			meta {
-				page
-				limit
-				total
-				totalPages
-				hasNext
-				hasPrev
-			}	
-		}
-	}
-`)
 
 
-const DELETE_PRODUCT = gql(`
-	mutation DeleteProductFromInventory($productId: ID!) {
-		deleteProduct(productId: $productId) {
-			success
-			message
-		}
-	}
-`);
-
-const UPDATE_PRODUCT_VARIANT = gql(`
-	mutation UpdateVariantFromInventory($updateProductVariantInput: UpdateProductVariantInput!, $productVariantId: ID!) {
-		updateProductVariant(updateProductVariantInput: $updateProductVariantInput, productVariantId: $productVariantId) {
-			success
-			message
-			data {
-				id
-				productName
-				category {
-					id
-					name
-				}
-				totalStock
-				variantCount
-				status
-				variants {
-					id
-					sku
-					barcode
-					attributes {
-						name
-						value
-					}
-					price
-					stock
-					lowStock
-					status
-					sellingPrice
-					costPrice
-				}
-			}
-		}
-	}
-`);
 
 const DEFAULT_INVENTORY_DATA = {
 	data: [],
@@ -152,39 +66,28 @@ const InventoryPage = () => {
 	const [categoryProduct, setCategoryProduct] = useState<Product | null>(null);
 
 
-	const { data: rawData, loading, error, refetch } = useQuery(GET_INVENTORY_DATA, {
-		variables: {
-			filterInput: {
-				page: currentPage,
-				limit: itemsPerPage,
-				search: debouncedSearch,
-				categoryId: categoryFilter || undefined,
-				status: statusFilter || undefined
-			}
-		}
-	})
-
-	const [deleteProductMutation] = useMutation(DELETE_PRODUCT, {
-		update(cache, { data }, { variables }) {
-			if (data?.deleteProduct?.success && variables?.productId) {
-				cache.evict({ id: cache.identify({ __typename: "Product", id: variables.productId }) });
-				cache.gc();
-			}
-		}
+	const { data: rawData, loading, error, refetch } = useProductList({
+		page: currentPage,
+		limit: itemsPerPage,
+		search: debouncedSearch,
+		categoryId: categoryFilter || undefined,
+		status: statusFilter || undefined
 	});
 
-	const [updateProductVariantMutation] = useMutation(UPDATE_PRODUCT_VARIANT);
+	const [deleteProductMutation] = useDeleteProduct();
+	const [updateProductVariantMutation] = useUpdateVariant();
 
 	const [productToDelete, setProductToDelete] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
 
-	const productsResponse = useMemo(() =>
-		parseGraphQLListResponse<Product>(rawData?.listProductsWithFilter as any),
-		[rawData?.listProductsWithFilter]
+	const products = useMemo(() =>
+		rawData?.listProductsWithFilter?.data ?? [],
+		[rawData?.listProductsWithFilter?.data]
 	);
-
-	const products = (productsResponse.data || []) as Product[];
-	const meta = productsResponse.meta || DEFAULT_INVENTORY_DATA.meta;
+	const meta = useMemo(() =>
+		rawData?.listProductsWithFilter?.meta ?? DEFAULT_INVENTORY_DATA.meta,
+		[rawData?.listProductsWithFilter?.meta]
+	);
 
 	const totalPages = meta.totalPages;
 	const totalItems = meta.total;
@@ -262,12 +165,12 @@ const InventoryPage = () => {
 	};
 
 	return (
-		<div className="flex-1 flex flex-col h-screen bg-background">
-			<div className="border-b border-border px-8 py-6 flex items-center justify-between sticky top-0 bg-background z-10">
+		<div className="flex-1 flex flex-col min-h-0 bg-background">
+			<div className="border-b border-border px-4 md:px-8 py-6 flex items-center justify-between sticky top-0 bg-background z-10">
 				<h1 className="text-2xl font-bold">Inventory</h1>
 			</div>
 
-			<div className="flex-1 overflow-auto px-8 py-6">
+			<div className="flex-1 overflow-auto px-4 md:px-8 py-6">
 				<div className="space-y-6">
 					<InventorySearch
 						onSearch={setSearchQuery}
@@ -281,31 +184,31 @@ const InventoryPage = () => {
 					{loading ? (
 						<TransactionTableSkeleton />
 					) : (
-						<div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+						<div className="bg-card rounded-xl border border-border overflow-x-auto shadow-sm">
 							<Table>
-								<TableHeader className="bg-gray-50/50">
+								<TableHeader className="bg-muted/50">
 									<TableRow className="border-border">
-										<TableHead className="w-12 pl-6">
+										<TableHead className="w-12 pl-6 text-center">
 											<input
 												type="checkbox"
 												checked={isAllSelected}
 												onChange={(e) => handleSelectAll(e.target.checked)}
-												className="w-4 h-4 rounded border-gray-300 cursor-pointer"
+												className="w-4 h-4 rounded border-border cursor-pointer accent-primary"
 											/>
 										</TableHead>
-										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider h-12">
+										<TableHead className="text-xs font-bold text-foreground uppercase tracking-wider h-12">
 											Product Name
 										</TableHead>
-										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider h-12">
+										<TableHead className="text-xs font-bold text-foreground uppercase tracking-wider h-12">
 											Category
 										</TableHead>
-										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider h-12">
+										<TableHead className="text-xs font-bold text-foreground uppercase tracking-wider h-12">
 											Total Stock
 										</TableHead>
-										<TableHead className="text-xs font-semibold text-gray-600 uppercase tracking-wider h-12">
+										<TableHead className="text-xs font-bold text-foreground uppercase tracking-wider h-12">
 											Status
 										</TableHead>
-										<TableHead className="text-right text-xs font-semibold text-gray-600 uppercase tracking-wider h-12 pr-6">
+										<TableHead className="text-right text-xs font-bold text-foreground uppercase tracking-wider h-12 pr-6">
 											Actions
 										</TableHead>
 									</TableRow>
@@ -325,10 +228,10 @@ const InventoryPage = () => {
 											onEditVariant={(id) => console.log("Edit variant:", id)}
 											onUpdateVariant={async (variant: ProductVariant) => {
 												try {
-													await updateProductVariantMutation({
+													const result = await updateProductVariantMutation({
 														variables: {
-															productVariantId: variant.id,
-															updateProductVariantInput: {
+															variantId: variant.id,
+															input: {
 																productId: product.id,
 																costPrice: variant.costPrice,
 																sellingPrice: variant.sellingPrice,
@@ -341,7 +244,9 @@ const InventoryPage = () => {
 															}
 														}
 													});
-													toast.success("Variant updated successfully");
+													if (result.data?.updateProductVariant.success) {
+														toast.success("Variant updated successfully");
+													}
 												} catch (error) {
 													toast.error("Failed to update variant");
 												}

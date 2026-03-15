@@ -1,10 +1,11 @@
-import { BadRequestException, ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { BalanceResponse } from './entities/balance.entity';
 import { PaginatedTransactionsResponse } from './entities/paginatedTransactions.entity';
 import { Prisma } from '@kosh/db';
 import { CreateTransactionInput } from './dto/createTransaction.dto';
-import { AccountResponse } from './entities/account.entity';
+import { AccountResponse, UpdateAccountTransactionResponse } from './entities/account.entity';
+import { UpdateTransactionInput } from './dto/updateTransaction.dto';
 
 @Injectable()
 export class AccountsService {
@@ -187,37 +188,37 @@ export class AccountsService {
           },
         });
 
-        const openingCash = lastRecord?.closingCash ?? new Prisma.Decimal(0);
+        // const openingCash = lastRecord?.closingCash ?? new Prisma.Decimal(0);
 
-        const balance = await tsx.dailyBalance.upsert({
-          where: {
-            userId_date: {
-              userId: userId,
-              date: today,
-            },
-          },
-          update: {},
-          create: {
-            userId: userId,
-            date: today,
-            openingCash: openingCash,
-            closingCash: openingCash,
-            totalCashIn: 0,
-            totalCashOut: 0,
-            totalSales: 0,
-            totalExpense: 0,
-          },
-        });
+        // const balance = await tsx.dailyBalance.upsert({
+        //   where: {
+        //     userId_date: {
+        //       userId: userId,
+        //       date: today,
+        //     },
+        //   },
+        //   update: {},
+        //   create: {
+        //     userId: userId,
+        //     date: today,
+        //     openingCash: openingCash,
+        //     closingCash: openingCash,
+        //     totalCashIn: 0,
+        //     totalCashOut: 0,
+        //     totalSales: 0,
+        //     totalExpense: 0,
+        //   },
+        // });
         return {
           success: true,
           message: "Today's balance retrieved successfully",
           data: {
-            openingCash: balance.openingCash.toNumber(),
-            closingCash: balance.closingCash.toNumber(),
-            totalCashIn: balance.totalCashIn.toNumber(),
-            totalCashOut: balance.totalCashOut.toNumber(),
-            totalExpense: balance.totalExpense.toNumber(),
-            totalSales: balance.totalSales.toNumber(),
+            openingCash: lastRecord?.openingCash.toNumber() ?? 0,
+            closingCash: lastRecord?.closingCash.toNumber() ?? 0,
+            totalCashIn: lastRecord?.totalCashIn.toNumber() ?? 0,
+            totalCashOut: lastRecord?.totalCashOut.toNumber() ?? 0,
+            totalExpense: lastRecord?.totalExpense.toNumber() ?? 0,
+            totalSales: lastRecord?.totalSales.toNumber() ?? 0,
           },
         };
       });
@@ -236,11 +237,19 @@ export class AccountsService {
   ): Promise<PaginatedTransactionsResponse> {
     try {
       const skip = (page - 1) * limit;
+      const now = new Date();
+      const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+      const tomorrow = new Date(today);
+      tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
       const [transactions, total] = await Promise.all([
         this.database.prisma.accountTransaction.findMany({
           where: {
             userId: userId,
+            createdAt: {
+              gte: today,
+              lt: tomorrow,
+            },
           },
           orderBy: {
             [sortBy]: sortOrder,
@@ -259,12 +268,15 @@ export class AccountsService {
         this.database.prisma.accountTransaction.count({
           where: {
             userId: userId,
+            createdAt: {
+              gte: today,
+              lt: tomorrow,
+            },
           },
         }),
       ]);
 
       const totalPages = Math.ceil(total / limit);
-
       return {
         success: true,
         message: "Transactions fetched successfully",
@@ -288,6 +300,57 @@ export class AccountsService {
     } catch (error) {
       console.error("Error fetching transactions:", error);
       throw new InternalServerErrorException("Failed to fetch transactions");
+    }
+  }
+
+  async updateAccountTransaction(
+    transactionId: string,
+    updateTransactionDto: UpdateTransactionInput,
+    userId: string,
+  ): Promise<UpdateAccountTransactionResponse> {
+    try {
+      const transaction = await this.database.prisma.accountTransaction.findUnique({
+        where: {
+          id: transactionId,
+        },
+      });
+
+      if (!transaction) {
+        throw new NotFoundException("Transaction not found");
+      }
+
+      if (transaction.userId !== userId) {
+        throw new ForbiddenException("You are not authorized to update this transaction");
+      }
+
+      const updatedTransaction = await this.database.prisma.accountTransaction.update({
+        where: {
+          id: transactionId,
+        },
+        data: {
+          //TODO: update the logic and make it type safe
+          type: updateTransactionDto.type as any,
+          amount: updateTransactionDto.amount,
+          note: updateTransactionDto.note,
+        },
+      });
+
+      return {
+        success: true,
+        message: "Transaction updated successfully",
+        data: {
+          ...updatedTransaction,
+          amount: updatedTransaction.amount.toNumber(),
+          note: updatedTransaction.note || undefined,
+          updatedAt: updatedTransaction.updatedAt,
+          createdAt: updatedTransaction.createdAt,
+          id: updatedTransaction.id,
+          type: updatedTransaction.type,
+        },
+      };
+    } catch (error) {
+      console.error("Error updating transaction:", error);
+      throw new InternalServerErrorException("Failed to update transaction");
     }
   }
 }

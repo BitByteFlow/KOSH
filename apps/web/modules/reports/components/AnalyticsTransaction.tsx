@@ -1,8 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { Search, SlidersHorizontal, Upload, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@apollo/client/react";
-import { gql } from "@/gql";
 import { getDateRange } from "@/lib/date-utils";
+import {
+	GetAnalyticsTransactionsQuery,
+	GetAnalyticsTransactionsQueryVariables,
+	AnalyticsTransaction,
+} from "@/gql/graphql";
+import { GET_ANALYTICS_TRANSACTIONS } from "@/services/reportsAnalytics.service";
+import { DateRangeSelector } from "@/modules/reports/components/DateRangeSelector";
 import {
 	Table,
 	TableBody,
@@ -36,9 +42,7 @@ interface Transaction {
 	status: "Completed" | "Pending";
 }
 
-interface AnalyticsTransactionTableProps {
-	dateRange: string;
-}
+interface AnalyticsTransactionTableProps { }
 
 interface FilterState {
 	paymentTypes: string[];
@@ -47,27 +51,9 @@ interface FilterState {
 	maxAmount: string;
 }
 
-const GET_ANALYTICS_TRANSACTIONS = gql(`
-	query getAnalyticsTransactions ($filters: AnalyticsTransactionFilter!){
-		getAnalyticsTransactions (filters: $filters) {
-			success
-			data {
-				id
-				date
-				time
-				paymentType
-				amount
-				profit
-				status
-			}
-			totalCount
-		}
-	}
-`) as any;
-
-export function AnalyticsTransactionTable({
-	dateRange,
-}: AnalyticsTransactionTableProps) {
+export function AnalyticsTransactionTable({ }: AnalyticsTransactionTableProps) {
+	const [dateRange, setDateRange] = useState("This Month");
+	const [tempDateRange, setTempDateRange] = useState("This Month");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -75,7 +61,6 @@ export function AnalyticsTransactionTable({
 	const [currentPage, setCurrentPage] = useState(1);
 	const pageSize = 10;
 
-	// State for filters that are currently applied to the query
 	const [appliedFilters, setAppliedFilters] = useState<FilterState>({
 		paymentTypes: [],
 		status: "all",
@@ -83,7 +68,6 @@ export function AnalyticsTransactionTable({
 		maxAmount: "",
 	});
 
-	// State for filters currently being edited in the dialog
 	const [tempFilters, setTempFilters] = useState<FilterState>({
 		paymentTypes: [],
 		status: "all",
@@ -91,25 +75,23 @@ export function AnalyticsTransactionTable({
 		maxAmount: "",
 	});
 
-	// Debounce logic for search
 	useEffect(() => {
 		const handler = setTimeout(() => {
 			setDebouncedSearch(searchQuery);
-			setCurrentPage(1); // Reset to first page on search
+			setCurrentPage(1); 
 		}, 500);
 		return () => clearTimeout(handler);
 	}, [searchQuery]);
 
-	// Convert dateRange prop to actual dates
 	const { startDate, endDate } = useMemo(() => getDateRange(dateRange), [dateRange]);
 
-	const { data, loading } = useQuery<{ getAnalyticsTransactions: { items: Transaction[], totalCount: number } }>(GET_ANALYTICS_TRANSACTIONS, {
+	const { data: rawData, loading } = useQuery<GetAnalyticsTransactionsQuery, GetAnalyticsTransactionsQueryVariables>(GET_ANALYTICS_TRANSACTIONS, {
 		variables: {
 			filters: {
 				startDate,
 				endDate,
 				paymentTypes: appliedFilters.paymentTypes.length > 0 ? appliedFilters.paymentTypes : undefined,
-				status: appliedFilters.status !== 'all' ? appliedFilters.status : undefined,
+				status: appliedFilters.status !== "all" ? appliedFilters.status : undefined,
 				minAmount: appliedFilters.minAmount ? parseFloat(appliedFilters.minAmount) : undefined,
 				maxAmount: appliedFilters.maxAmount ? parseFloat(appliedFilters.maxAmount) : undefined,
 				searchQuery: debouncedSearch || undefined,
@@ -119,8 +101,12 @@ export function AnalyticsTransactionTable({
 		}
 	});
 
-	const transactions = data?.getAnalyticsTransactions?.items || [];
-	const totalCount = data?.getAnalyticsTransactions?.totalCount || 0;
+	const transactions = useMemo(() =>
+		rawData?.getAnalyticsTransactions?.data || [],
+		[rawData]
+	);
+
+	const totalCount = rawData?.getAnalyticsTransactions?.totalCount || 0;
 	const totalPages = Math.ceil(totalCount / pageSize);
 
 	const getPaymentVariant = (
@@ -138,17 +124,19 @@ export function AnalyticsTransactionTable({
 		}
 	};
 
-	const handlePaymentTypeChange = (type: string, checked: boolean) => {
-		setTempFilters(prev => {
-			const types = checked
+	const handleTypeChange = (type: string, checked: boolean) => {
+		setTempFilters((prev: FilterState) => {
+			const paymentTypes = checked
 				? [...prev.paymentTypes, type]
-				: prev.paymentTypes.filter(t => t !== type);
-			return { ...prev, paymentTypes: types };
+				: prev.paymentTypes.filter((t: string) => t !== type);
+			return { ...prev, paymentTypes };
 		});
 	};
 
 	const handleApplyFilters = () => {
+		if (!tempDateRange) return;
 		setAppliedFilters(tempFilters);
+		setDateRange(tempDateRange);
 		setIsFilterOpen(false);
 		setCurrentPage(1);
 	};
@@ -162,6 +150,8 @@ export function AnalyticsTransactionTable({
 		};
 		setTempFilters(defaultFilters);
 		setAppliedFilters(defaultFilters);
+		setTempDateRange("This Month");
+		setDateRange("This Month");
 		setIsFilterOpen(false);
 		setCurrentPage(1);
 	};
@@ -227,7 +217,7 @@ export function AnalyticsTransactionTable({
 								</TableCell>
 							</TableRow>
 						) : (
-							transactions.map((transaction) => (
+							transactions.map((transaction: AnalyticsTransaction) => (
 								<TableRow
 									key={transaction.id}
 									className="hover:bg-muted/30 border-border [&_td]:py-4 transition-colors"
@@ -271,7 +261,6 @@ export function AnalyticsTransactionTable({
 				</Table>
 			</div>
 
-			{/* Pagination Controls */}
 			{totalPages > 1 && (
 				<div className="flex items-center justify-between px-2">
 					<p className="text-sm text-muted-foreground">
@@ -306,7 +295,7 @@ export function AnalyticsTransactionTable({
 			)}
 
 			<Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-				<DialogContent className="sm:max-w-[425px]">
+				<DialogContent className="sm:max-w-[600px]">
 					<DialogHeader>
 						<DialogTitle>Filter Transactions</DialogTitle>
 						<DialogDescription>
@@ -315,22 +304,30 @@ export function AnalyticsTransactionTable({
 					</DialogHeader>
 
 					<div className="grid gap-6 py-4">
+						<div className="space-y-3">
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date Range</Label>
+							<DateRangeSelector onRangeChange={setTempDateRange} initialRange={tempDateRange} />
+						</div>
 
 						<div className="space-y-3">
 							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Payment Type</Label>
 							<div className="flex flex-wrap gap-4">
-								{["Online", "Cash", "Credit"].map((type) => (
-									<div key={type} className="flex items-center space-x-2">
+								{[
+									{ label: "Online", value: "ONLINE" },
+									{ label: "Cash", value: "CASH" },
+									{ label: "Credit", value: "CREDIT" },
+								].map(({ label, value }) => (
+									<div key={value} className="flex items-center space-x-2">
 										<Checkbox
-											id={`payment-${type}`}
-											checked={tempFilters.paymentTypes.includes(type)}
-											onCheckedChange={(checked) => handlePaymentTypeChange(type, checked as boolean)}
+											id={`payment-${value}`}
+											checked={tempFilters.paymentTypes.includes(value)}
+											onCheckedChange={(checked) => handleTypeChange(value, checked as boolean)}
 										/>
 										<label
-											htmlFor={`payment-${type}`}
+											htmlFor={`payment-${value}`}
 											className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 										>
-											{type}
+											{label}
 										</label>
 									</div>
 								))}

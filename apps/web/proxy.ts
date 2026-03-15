@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "./app/api/auth/[...nextauth]/auth"
 
-const proxy = async (req: NextRequest) => {	
+const proxy = async (req: NextRequest) => {
 	const path = req.nextUrl.pathname
 	const session = await auth()
-	const isPublicPath = path === "/auth/get-started"  || path === "/"
-	console.log(isPublicPath, path)
+	const isPublicPath = path === "/auth/get-started" || path === "/"
+	if (session?.expires && new Date(session.expires) < new Date()) {
+		return NextResponse.redirect(new URL("/auth/get-started", req.url));
+	}
 	if (isPublicPath && session && session.user) {
 		return NextResponse.redirect(new URL("/dashboard", req.url));
 	}
@@ -16,11 +18,10 @@ const proxy = async (req: NextRequest) => {
 	if (isPrivateRoute && !session) {
 		return NextResponse.redirect(new URL("/auth/get-started", req.url));
 	}
-	console.log("no after session")
 	return NextResponse.next()
 }
 
-export default proxy 
+export default proxy
 
 export const config = {
 	matcher: ["/", "/auth/get-started", "/dashboard/:path*", "/inventory/:path*", "/sales/:path*", "/reports-analytics/:path*", "/settings/:path*"],

@@ -55,7 +55,7 @@ const DailyBalanceMetrics = () => {
 
 	if (loading) {
 		return (
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 				<MetricCardSkeleton />
 				<MetricCardSkeleton />
 				<MetricCardSkeleton />
@@ -87,56 +87,56 @@ const DailyBalanceMetrics = () => {
 		{
 			label: "Opening Cash",
 			value: formatCurrency(metrics.openingCash),
-			icon: Wallet,
+			// icon: Wallet,
 			sublabel: "Start of day",
-			iconColor: "text-blue-500",
+			// iconColor: "text-info",
 		},
 		{
 			label: "Sales Today",
 			value: formatCurrency(metrics.totalSales),
-			icon: DollarSign,
-			iconColor: "text-green-500",
+			// icon: DollarSign,
+			// iconColor: "text-success",
 		},
 		{
 			label: "Cash In",
 			value: formatCurrency(metrics.totalCashIn),
-			icon: TrendingUp,
+			// icon: TrendingUp,
 			sublabel: "Total inflows",
-			iconColor: "text-emerald-500",
+			// iconColor: "text-success",
 		},
 		{
 			label: "Total Expenses",
 			value: formatCurrency(metrics.totalExpense),
-			icon: ShoppingCart,
-			iconColor: "text-orange-500",
+			// icon: ShoppingCart,
+			// iconColor: "text-destructive",
 		},
 		{
 			label: "Cash Out",
 			value: formatCurrency(metrics.totalCashOut),
-			icon: TrendingDown,
+			// icon: TrendingDown,
 			sublabel: "Total outflows",
-			iconColor: "text-red-500",
+			// iconColor: "text-destructive",
 		},
 		{
 			label: "Closing Cash",
 			value: formatCurrency(metrics.closingCash),
-			icon: Wallet,
+			// icon: Wallet,
 			sublabel: "Cash in hand",
-			iconColor: "text-purple-500",
+			// iconColor: "text-info",
 		},
 	];
 
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+		<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 			{metricCardValues.map((item) => (
 				<MetricCard
 					label={item.label}
 					value={item.value}
 					change={item.change}
-					icon={item.icon}
+					// icon={item.icon}
 					key={item.label}
 					sublabel={item.sublabel}
-					iconColor={item.iconColor}
+					// iconColor={item.iconColor}
 				/>
 			))}
 		</div>
