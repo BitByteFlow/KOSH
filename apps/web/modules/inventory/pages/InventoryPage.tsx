@@ -21,7 +21,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@kosh/ui/components/table";
-import { useDebounce } from "@/components/useDebounce";
+import { useDebounce } from "@/hooks/useDebounce";
 import { TransactionTableSkeleton } from "@/components/TableSkeleton";
 import { toast } from "sonner";
 import {

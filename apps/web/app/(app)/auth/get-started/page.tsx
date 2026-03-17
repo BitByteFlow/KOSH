@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Button } from "@kosh/ui/components/button";
-import { Card} from "@kosh/ui/components/card";
-import { Zap, Loader2, ArrowRight } from "lucide-react";
+import { Card } from "@kosh/ui/components/card";
+import { Loader2, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "sonner";
+import Logo from "public/logo.svg";
 
 const GetStartedPage = () => {
 	const [isLoading, setIsLoading] = useState(false);
@@ -25,27 +27,30 @@ const GetStartedPage = () => {
 
 	return (
 		<div className="min-h-screen flex bg-white font-sans text-gray-900 selection:bg-gray-900 selection:text-white">
-
 			<div className="flex-1 flex flex-col p-6 md:p-12 lg:p-16">
 				<nav>
-					<Link href="/" className="flex items-center gap-2 group">
-						<div className="h-8 w-8 bg-black text-white flex items-center justify-center rounded-lg group-hover:scale-95 transition-transform">
-							<Zap size={18} className="fill-current" />
-						</div>
+					<Link
+						href="/"
+						className="flex items-center gap-2 group"
+					>
+						<Image
+							src={Logo}
+							height={40}
+							width={40}
+							alt="Logo"
+						/>
 						<span className="text-lg font-semibold tracking-tight">Kosh</span>
 					</Link>
 				</nav>
-
-				<main className="flex-1 flex flex-col justify-center max-w-[340px] mx-auto w-full pb-20">
+				<main className="flex-1 flex flex-col justify-center max-w-85 mx-auto w-full pb-20">
 					<div className="mb-8">
-						<h1 className="text-2xl font-bold tracking-tight mb-2 text-center">
+						<h1 className="text-3xl font-bold tracking-tight mb-2 text-center">
 							Welcome to Kosh
 						</h1>
-						<p className="text-gray-500 text-sm text-center">
+						<p className="text-gray-500 text-center">
 							Get started to manage your workspace.
 						</p>
 					</div>
-
 					<Button
 						variant="outline"
 						size="lg"
@@ -56,7 +61,11 @@ const GetStartedPage = () => {
 						{isLoading ? (
 							<Loader2 className="h-4 w-4 animate-spin" />
 						) : (
-							<svg className="h-4 w-4" viewBox="0 0 24 24">
+							<svg
+								className="h-16 w-16"
+								viewBox="0 0 24 24"
+							>
+								<title>Google Icon</title>
 								<path
 									d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
 									fill="#4285F4"
@@ -75,68 +84,68 @@ const GetStartedPage = () => {
 								/>
 							</svg>
 						)}
-						{isLoading ? "Connecting..." : "Continue with Google"}
+						{isLoading ? (
+							<p className="text-normal">Connecting... </p>
+						) : (
+							<p className="text-[0.9rem]">Continue with Google</p>
+						)}
 					</Button>
-
 					<p className="mt-6 text-sm text-gray-400 text-center leading-relaxed">
 						By clicking continue, you agree to our{" "}
-						<Link href="#" className="text-gray-900 hover:underline">Terms of Service</Link> and{" "}
-						<Link href="#" className="text-gray-900 hover:underline">Privacy Policy</Link>.
+						<Link
+							href="#"
+							className="text-primary font-semibold hover:underline"
+						>
+							Terms of Service
+						</Link>{" "}
+						and{" "}
+						<Link
+							href="#"
+							className="text-primary font-semibold hover:underline"
+						>
+							Privacy Policy
+						</Link>
+						.
 					</p>
 				</main>
-
-				<footer className="text-[11px] text-gray-400">
-					© 2026 Kosh Inc.
-				</footer>
+				<footer className="text-sm text-gray-400">© 2026 Kosh Inc.</footer>
 			</div>
-
 			<div className="hidden lg:flex flex-1 bg-gray-50 border-l border-gray-100 items-center justify-center p-12 overflow-hidden">
 				<div className="w-full max-w-lg space-y-12">
 					<div className="relative">
 						<Card className="border-0 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.06)] bg-white rounded-3xl overflow-hidden p-8 space-y-10 group cursor-default">
 							<div className="flex justify-between items-start">
 								<div className="space-y-1.5">
-									<p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Growth Velocity</p>
-									<p className="text-4xl font-bold tracking-tight text-gray-900 group-hover:tracking-normal transition-all duration-700">+142.8%</p>
+									<p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+										Growth Velocity
+									</p>
+									<p className="text-4xl font-bold tracking-tight text-gray-900 group-hover:tracking-normal transition-all duration-700">
+										+142.8%
+									</p>
 								</div>
-								<div className="h-10 w-10 bg-black text-white flex items-center justify-center rounded-xl">
+								{/* <div className="h-10 w-10 bg-green-500 text-white flex items-center justify-center rounded-xl">
 									<ArrowRight size={18} />
-								</div>
+								</div> */}
 							</div>
-
 							<div className="h-32 flex items-end gap-2.5 px-1">
-								{[30, 45, 40, 60, 85, 55, 95].map((h, i) => (
+								{[30, 45, 40, 60, 85, 55, 95].map((h) => (
 									<div
-										key={i}
-										className={`flex-1 rounded-lg transition-all duration-1000 ease-in-out ${i === 6
-											? "bg-green-500"
-											: "bg-gray-100"
-											}`}
+										key={`bar-${h}`}
+										className={`flex-1 rounded-lg transition-all duration-1000 ease-in-out ${
+											h === 95 ? "bg-green-500" : "bg-gray-100"
+										}`}
 										style={{ height: `${h}%` }}
 									/>
 								))}
 							</div>
-
-							<div className="grid grid-cols-2 gap-8 pt-2">
-								<div className="space-y-1">
-									<p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Active nodes</p>
-									<p className="text-xl font-bold">1,842</p>
-								</div>
-								<div className="space-y-1">
-									<p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Uptime</p>
-									<p className="text-xl font-bold">99.9%</p>
-								</div>
-							</div>
 						</Card>
-
 						<div className="absolute -top-6 -right-6 h-12 w-12 bg-gray-200/50 rounded-full blur-2xl group-hover:bg-gray-300/60 transition-colors duration-1000" />
 					</div>
-
 					<div className="space-y-6 px-4">
-
 						<blockquote className="space-y-4">
-							<p className="text-2xl font-medium leading-snug tracking-tight text-gray-900">
-								"Kosh isn't just a tool, it's the infrastructure that allows us to move at light speed."
+							<p className="text-2xl italic font-medium leading-snug text-center tracking-tight text-gray-700 ">
+								Kosh isn't just a tool, it's the infrastructure that allows you
+								to move at light speed.
 							</p>
 						</blockquote>
 					</div>
@@ -144,6 +153,6 @@ const GetStartedPage = () => {
 			</div>
 		</div>
 	);
-}
+};
 
-export default GetStartedPage
+export default GetStartedPage;

@@ -59,3 +59,8 @@ details > summary {
 details > summary::-webkit-details-marker {
 	display: none;
 }
+
+::selection {
+	background-color: var(--primary);
+	color: var(--primary-foreground);
+}

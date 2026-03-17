@@ -4,6 +4,7 @@ import { auth } from "./app/api/auth/[...nextauth]/auth"
 const proxy = async (req: NextRequest) => {
 	const path = req.nextUrl.pathname
 	const session = await auth()
+	console.log("this is expires: ", session?.expires)
 	const isPublicPath = path === "/auth/get-started" || path === "/"
 	if (session?.expires && new Date(session.expires) < new Date()) {
 		return NextResponse.redirect(new URL("/auth/get-started", req.url));
