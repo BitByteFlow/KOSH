@@ -83,11 +83,11 @@ export const OpeningCashModal = () => {
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-[425px]">
 				<DialogHeader>
-					<DialogTitle>Add Cash</DialogTitle>
+					<DialogTitle className="text-xl tracking-tighter">Add Cash</DialogTitle>
 				</DialogHeader>
 				<form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
 					<div className="grid gap-2">
-						<label htmlFor="type" className="text-sm font-medium leading-none">
+						<label htmlFor="type" className="text-base font-medium leading-none">
 							Transaction Type
 						</label>
 						<Controller
@@ -102,7 +102,7 @@ export const OpeningCashModal = () => {
 									<SelectTrigger className="w-full">
 										<SelectValue placeholder="Select type" />
 									</SelectTrigger>
-									<SelectContent>
+									<SelectContent className="text-base">
 										{TRANSACTION_TYPES.map((t) => (
 											<SelectItem key={t.value} value={t.value}>
 												{t.label}
@@ -114,7 +114,7 @@ export const OpeningCashModal = () => {
 						/>
 					</div>
 					<div className="grid gap-2">
-						<label htmlFor="amount" className="text-sm font-medium leading-none">
+						<label htmlFor="amount" className="text-base font-medium leading-none">
 							Amount
 						</label>
 						<Input
@@ -123,17 +123,19 @@ export const OpeningCashModal = () => {
 							step="0.01"
 							placeholder="0.00"
 							disabled={isSubmitting}
+							className="h-12 text-base"
 							{...register("amount", { required: true, min: 0.01 })}
 						/>
 					</div>
 					<div className="grid gap-2">
-						<label htmlFor="note" className="text-sm font-medium leading-none">
+						<label htmlFor="note" className="text-base font-medium leading-none">
 							Note (Optional)
 						</label>
 						<Input
 							id="note"
 							placeholder="Description"
 							disabled={isSubmitting}
+							className="h-12 text-base"
 							{...register("note")}
 						/>
 					</div>
