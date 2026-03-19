@@ -166,8 +166,8 @@ const InventoryPage = () => {
 
 	return (
 		<div className="flex-1 flex flex-col min-h-0 bg-background">
-			<div className="border-b border-border px-4 md:px-8 py-6 flex items-center justify-between sticky top-0 bg-background z-10">
-				<h1 className="text-2xl font-bold">Inventory</h1>
+			<div className="px-4 md:px-8 py-6 flex items-center justify-between sticky top-0 bg-background z-10">
+				<h1 className="text-3xl font-bold tracking-tighter">Inventory</h1>
 			</div>
 
 			<div className="flex-1 overflow-auto px-4 md:px-8 py-6">
@@ -184,7 +184,7 @@ const InventoryPage = () => {
 					{loading ? (
 						<TransactionTableSkeleton />
 					) : (
-						<div className="bg-card rounded-xl border border-border overflow-x-auto shadow-sm">
+						<div className="bg-gray-100/60 bg-card rounded-xl border border-border overflow-x-auto shadow-sm">
 							<Table>
 								<TableHeader className="bg-muted/50">
 									<TableRow className="border-border">
@@ -196,19 +196,19 @@ const InventoryPage = () => {
 												className="w-4 h-4 rounded border-border cursor-pointer accent-primary"
 											/>
 										</TableHead>
-										<TableHead className="text-xs font-bold text-foreground uppercase tracking-wider h-12">
+										<TableHead className="font-semibold text-foreground tracking-wider h-12">
 											Product Name
 										</TableHead>
-										<TableHead className="text-xs font-bold text-foreground uppercase tracking-wider h-12">
+										<TableHead className="font-semibold text-foreground tracking-wider h-12">
 											Category
 										</TableHead>
-										<TableHead className="text-xs font-bold text-foreground uppercase tracking-wider h-12">
+										<TableHead className="font-semibold text-foreground tracking-wider h-12">
 											Total Stock
 										</TableHead>
-										<TableHead className="text-xs font-bold text-foreground uppercase tracking-wider h-12">
+										<TableHead className="font-semibold text-foreground tracking-wider h-12">
 											Status
 										</TableHead>
-										<TableHead className="text-right text-xs font-bold text-foreground uppercase tracking-wider h-12 pr-6">
+										<TableHead className="text-right font-semibold text-foreground tracking-wider h-12 pr-6">
 											Actions
 										</TableHead>
 									</TableRow>

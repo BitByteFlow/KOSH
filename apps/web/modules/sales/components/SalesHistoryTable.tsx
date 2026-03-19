@@ -175,7 +175,7 @@ export function SalesHistoryTable() {
 				<div className="flex gap-2">
 					<Button
 						variant="outline"
-						className="flex items-center gap-2 h-10 relative"
+						className="flex items-center gap-2 h-10 relative hover:cursor-pointer"
 						onClick={() => setIsFilterOpen(true)}
 					>
 						<SlidersHorizontal className="h-4 w-4" />
@@ -200,16 +200,16 @@ export function SalesHistoryTable() {
 				</div>
 			</div>
 
-			<div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-x-auto">
+			<div className="bg-gray-100/60 rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-x-auto">
 				<Table>
 					<TableHeader className="bg-muted/50">
 						<TableRow className="border-border">
-							<TableHead className="w-[120px] font-bold text-foreground">Invoice</TableHead>
-							<TableHead className="font-bold text-foreground">Date</TableHead>
-							<TableHead className="text-center font-bold text-foreground">Items</TableHead>
-							<TableHead className="font-bold text-foreground">Payment</TableHead>
-							<TableHead className="text-right font-bold text-foreground">Total</TableHead>
-							<TableHead className="text-right font-bold text-foreground">Profit</TableHead>
+							<TableHead className="w-[120px] text-base font-semibold text-foreground">Invoice</TableHead>
+							<TableHead className="text-base font-semibold text-foreground">Date</TableHead>
+							<TableHead className="text-center text-base font-semibold text-foreground">Items</TableHead>
+							<TableHead className="text-base font-semibold text-foreground">Payment</TableHead>
+							<TableHead className="text-right text-base font-semibold text-foreground">Total</TableHead>
+							<TableHead className="text-right text-base font-semibold text-foreground">Profit</TableHead>
 							<TableHead className="w-[50px]"></TableHead>
 						</TableRow>
 					</TableHeader>

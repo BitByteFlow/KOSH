@@ -48,7 +48,7 @@ export function DateRangeSelector({ onRangeChange, initialRange }: DateRangeSele
 					<Button
 						key={range}
 						onClick={() => handleRangeClick(range)}
-						variant={activeRange === range ? "secondary" : "ghost"}
+						variant={activeRange === range ? "default" : "ghost"}
 						className="h-8 px-3 text-sm"
 					>
 						{range === "Custom Range" && <Calendar className="mr-2 h-4 w-4" />}

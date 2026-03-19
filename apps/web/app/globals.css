@@ -64,3 +64,56 @@ details > summary::-webkit-details-marker {
 	background-color: var(--primary);
 	color: var(--primary-foreground);
 }
+
+.cardAvgBasket {
+	background: linear-gradient(135deg, #fff5f5 0%, #fff0e5 100%);
+}
+.cardOrders {
+	background: radial-gradient(circle at top right, #f3f0ff 0%, #ffffff 100%);
+}
+
+.cardLowStock {
+	background: linear-gradient(135deg, #fff9f5 0%, #fdf2e9 100%);
+}
+
+.cardSalesToday {
+	background: linear-gradient(135deg, #4285f4 0%, #2b65d9 100%);
+	color: white;
+}
+
+.cardInventory {
+	background: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 100%);
+	color: #0f766e;
+}
+
+.cardRevenue {
+	background: linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%);
+	color: #166534;
+}
+
+.cardWarning {
+	background: linear-gradient(135deg, #fff1f2 0%, #fff7ed 100%);
+	color: #9f1239;
+}
+.cardSystem {
+	background: linear-gradient(to top right, #b3a4ff 0%, #ffffff 100%);
+	color: #5b21b6;
+}
+
+
+.gradient-soft-primary { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); }
+.gradient-soft-success { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); }
+.gradient-soft-danger  { background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%); }
+.gradient-soft-warning { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
+.gradient-soft-purple  { background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%); }
+
+.gradient-rich-primary { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+.gradient-rich-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+.gradient-rich-danger  { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+.gradient-rich-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+.gradient-rich-purple  { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); }
+
+.gradient-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+.gradient-redish { background: linear-gradient(45deg, #fdcfcf4a 100%); }
+.gradient-pink { background: linear-gradient(45deg, #fce9f460 100%); }
+.gradient-orange { background: linear-gradient(45deg, #fff3e13e 100%); }

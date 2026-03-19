@@ -1,18 +1,9 @@
-"use client";
-
-import { usePathname } from "next/navigation";
 import React from "react";
-import { cn, capitalizeWords } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import NotificationDropdown from "@/modules/notifications/components/NotificationDropdown";
 import { SidebarTrigger } from "@kosh/ui/components/sidebar";
 
 const SharedHeader = () => {
-	const pathname = usePathname();
-
-	const pathSegments = pathname.substring(1, pathname.length);
-	const displayTitle =
-		pathSegments.length > 0 ? capitalizeWords(pathSegments) : "Dashboard";
-
 	return (
 		<header
 			className={cn(
@@ -23,7 +14,7 @@ const SharedHeader = () => {
 		>
 			<div className="flex items-center gap-3">
 				<SidebarTrigger className="-ml-1" />
-				<h2 className="text-lg font-semibold">{displayTitle}</h2>
+				<p className="text-sm text-muted-foreground">{new Date().toDateString()}</p>
 			</div>
 			<div className="flex items-center gap-2">
 				<NotificationDropdown />

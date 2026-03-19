@@ -302,9 +302,9 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 		<Sheet open={isOpen} onOpenChange={setIsOpen}>
 			<SheetTrigger asChild>
 				{children || (
-					<Button className="flex items-center gap-2 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">
-						<Plus className="h-4 w-4" />
-						New Sale
+					<Button className="py-6 flex items-center gap-2 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 hover:cursor-pointer">
+						<Plus className="h-6 w-6" />
+						<span className="text-base font-semibold">New Sale</span>
 					</Button>
 				)}
 			</SheetTrigger>

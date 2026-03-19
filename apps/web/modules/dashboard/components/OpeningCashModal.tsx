@@ -77,7 +77,7 @@ export const OpeningCashModal = () => {
 	return (
 		<Dialog open={isOpen} onOpenChange={setIsOpen}>
 			<DialogTrigger asChild>
-				<Button variant="outline" size="sm">
+				<Button size="lg" className="text-base hover rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 hover:cursor-pointer">
 					Add Cash
 				</Button>
 			</DialogTrigger>
