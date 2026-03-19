@@ -17,7 +17,6 @@ import {
 import { cn } from "@/lib/utils";
 
 import { Status } from "@/gql/graphql";
-import { gql } from "@/gql";
 import { useCategoryList } from "../hooks/useProducts";
 
 interface InventorySearchProps {

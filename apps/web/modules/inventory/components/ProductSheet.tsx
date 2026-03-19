@@ -56,7 +56,7 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 
 	return (
 		<div className="space-y-3">
-			<Label className="text-xs font-semibold text-gray-500">Attributes</Label>
+			<Label className="text-sm font-semibold text-gray-500">Attributes</Label>
 			{fields.map((attr, attrIndex) => (
 				<div
 					key={attr.id}
@@ -128,7 +128,7 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 					type="button"
 					variant="link"
 					size="sm"
-					className="px-0 h-auto text-xs text-blue-600"
+					className="px-0 h-auto text-sm text-blue-600"
 					onClick={() => append({ name: "", value: "" })}
 				>
 					+ Add Attribute
@@ -350,7 +350,6 @@ export function ProductSheet({
 					className="flex flex-col flex-1 overflow-hidden"
 				>
 					<div className="flex-1 overflow-y-auto p-6 space-y-8 bg-gray-50/30">
-						{/* Product Details Section */}
 						<div className="space-y-6">
 							<div className="space-y-4">
 								<h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
@@ -361,7 +360,7 @@ export function ProductSheet({
 									<div className="space-y-2">
 										<Label
 											htmlFor="name"
-											className="text-[11px] font-bold uppercase text-muted-foreground"
+											className="text-sm font-bold text-muted-foreground"
 										>
 											Product Name *
 										</Label>
@@ -384,7 +383,7 @@ export function ProductSheet({
 									<div className="space-y-2">
 										<Label
 											htmlFor="categoryId"
-											className="text-[11px] font-bold uppercase text-muted-foreground"
+											className="text-sm font-bold text-muted-foreground"
 										>
 											Category *
 										</Label>
@@ -478,7 +477,7 @@ export function ProductSheet({
 										<div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-50">
 											<div className="space-y-2">
 
-												<Label className="text-[11px] font-bold uppercase text-muted-foreground">
+												<Label className="text-sm font-bold text-muted-foreground">
 													Cost Price
 												</Label>
 												<div className="relative group/input">
@@ -507,7 +506,7 @@ export function ProductSheet({
 											</div>
 
 											<div className="space-y-2">
-												<Label className="text-[11px] font-bold uppercase text-muted-foreground">
+												<Label className="text-sm font-bold text-muted-foreground">
 													Sale Price
 												</Label>
 												<div className="relative">
@@ -536,7 +535,7 @@ export function ProductSheet({
 												}
 											</div>
 											<div className="space-y-2">
-												<Label className="text-[11px] font-bold uppercase text-muted-foreground">
+												<Label className="text-sm font-bold text-muted-foreground">
 													Stock
 												</Label>
 												<Input
@@ -586,7 +585,7 @@ export function ProductSheet({
 										>
 											Initial Stock Purchase Log
 										</Label>
-										<p className="text-xs text-primary/60">
+										<p className="text-xs">
 											Automatically record a purchase entry for the initial
 											stock. This will subtract from your cash balance.
 										</p>
@@ -598,13 +597,15 @@ export function ProductSheet({
 								<div className="grid gap-2 pl-4 animate-in slide-in-from-top-2 fade-in duration-300">
 									<Label
 										htmlFor="supplierName"
-										className="text-[11px] font-bold uppercase text-muted-foreground"
+										className="text-sm font-bold text-muted-foreground"
 									>
 										Supplier Name
 									</Label>
 									<Input
 										id="supplierName"
 										placeholder="e.g. Main Vendor"
+										minLength={2}
+										maxLength={50}
 										className={cn(
 											"h-10 bg-white rounded-xl shadow-sm border-gray-100",
 											errors.supplierName && "border-red-500",
@@ -628,7 +629,7 @@ export function ProductSheet({
 							type="button"
 							variant="ghost"
 							onClick={() => setIsOpen(false)}
-							className="rounded-xl px-8"
+							className="rounded-xl px-8 hover:cursor-pointer"
 						>
 							Discard
 						</Button>
@@ -644,15 +645,15 @@ export function ProductSheet({
 							className="rounded-xl px-8 shadow-md shadow-primary/20 gap-2 min-w-[140px]"
 						>
 							{isCreating || isUpdating ? (
-								<>
+								<div className="flex items-center gap-2">
 									<Loader2 className="h-4 w-4 animate-spin" />
 									Saving...
-								</>
+								</div>
 							) : (
-								<>
+								<div className="flex items-center gap-2 hover:cursor-pointer">
 									<Save className="h-4 w-4" />
 									{product ? "Update Product" : "Create Product"}
-								</>
+								</div>
 							)}
 						</Button>
 					</SheetFooter>
