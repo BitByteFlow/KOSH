@@ -33,6 +33,10 @@ interface AuthResponse {
 		username: string;
 	};
 	token: string;
+	store: {
+		storeId: string
+		storeName: string
+	}
 }
 
 const nextAuth = NextAuth({
@@ -69,6 +73,8 @@ const nextAuth = NextAuth({
 
 				user.id = loginData.user.id;
 				user.token = loginData.token;
+				user.storeId = loginData.store.storeId;
+				user.storeName = loginData.store.storeName;
 			} catch (error: any) {
 				console.error(`Login failed for user: ${googleProfile.email}`, error);
 
@@ -88,6 +94,8 @@ const nextAuth = NextAuth({
 
 						user.id = signUpData.user.id;
 						user.token = signUpData.token;
+						user.storeId = signUpData.store.storeId
+						user.storeName = signUpData.store.storeName
 					} catch (registerError: any) {
 						console.log("Failed to signup user Email: ", googleProfile.email);
 						return false;
@@ -110,6 +118,8 @@ const nextAuth = NextAuth({
 				token.name = googleProfile.name;
 				token.picture = googleProfile.picture;
 				token.username = googleProfile.name;
+				token.storeId = user.storeId;
+				token.storeName = user.storeName;
 				if (user.token) {
 					token.accessToken = user.token;
 				}
@@ -124,6 +134,8 @@ const nextAuth = NextAuth({
 				session.user.name = token.name as string;
 				session.user.image = token.picture as string;
 				session.user.token = token.accessToken as string;
+				session.user.storeId = token.storeId as string;
+				session.user.storeName = token.storeName as string;
 			}
 			return session;
 		},

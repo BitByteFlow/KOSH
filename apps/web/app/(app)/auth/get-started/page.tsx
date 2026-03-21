@@ -4,9 +4,8 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Button } from "@kosh/ui/components/button";
 import { Card } from "@kosh/ui/components/card";
-import { Loader2, ArrowRight } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { toast } from "sonner";
 import Logo from "public/logo.svg";
 
@@ -33,12 +32,7 @@ const GetStartedPage = () => {
 						href="/"
 						className="flex items-center gap-2 group"
 					>
-						<Image
-							src={Logo}
-							height={40}
-							width={40}
-							alt="Logo"
-						/>
+						<Logo className="h-10 w-10" />
 						<span className="text-lg font-semibold tracking-tight">Kosh</span>
 					</Link>
 				</nav>
@@ -131,9 +125,8 @@ const GetStartedPage = () => {
 								{[30, 45, 40, 60, 85, 55, 95].map((h) => (
 									<div
 										key={`bar-${h}`}
-										className={`flex-1 rounded-lg transition-all duration-1000 ease-in-out ${
-											h === 95 ? "bg-green-500" : "bg-gray-100"
-										}`}
+										className={`flex-1 rounded-lg transition-all duration-1000 ease-in-out ${h === 95 ? "bg-green-500" : "bg-gray-100"
+											}`}
 										style={{ height: `${h}%` }}
 									/>
 								))}

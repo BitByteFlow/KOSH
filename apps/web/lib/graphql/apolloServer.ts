@@ -9,7 +9,8 @@ const {getClient, query, PreloadQuery} = registerApolloClient(async() => {
 		link: new HttpLink({
 			uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:5000/graphql",
 			headers: {
-				"Authorization": session?.user?.token ? `Bearer ${session.user.token}` : ""
+				"Authorization": session?.user?.token ? `Bearer ${session.user.token}` : "",
+				"x-store-id": session?.user?.storeId || ""
 			}
 		}) 
 

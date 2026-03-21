@@ -100,7 +100,7 @@ const DashboardSidebar = () => {
 			collapsible="icon"
 			side="left"
 		>
-			<SidebarHeader>
+			<SidebarHeader className="gap-4">
 				<div className="flex items-center transition-all duration-300 ease-in-out group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:gap-0 group-data-[state=collapsed]:px-0">
 					<Logo className="h-8 w-8"/>
 					<div className="overflow-hidden transition-all duration-300 ease-in-out max-w-50 opacity-100 group-data-[state=collapsed]:max-w-0 group-data-[state=collapsed]:opacity-0">
@@ -109,6 +109,7 @@ const DashboardSidebar = () => {
 						</span>
 					</div>
 				</div>
+
 			</SidebarHeader>
 
 			<SidebarContent className="custom-scrollbar">

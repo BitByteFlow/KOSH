@@ -29,17 +29,12 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getDateRange } from "@/lib/date-utils";
 import { parseGraphQLListResponse } from "@/lib/graphql/utils";
-import {
-	SaleReport,
-	SaleReportFilter,
-	PaymentType,
-} from "@/gql/graphql";
+import { SaleReport, SaleReportFilter, PaymentType } from "@/gql/graphql";
 import { GET_SALES_REPORT } from "@/services/reportsAnalytics.service";
 
-interface SalesReportTableProps { }
+// interface SalesReportTableProps { }
 
-
-export function SalesReportTable({ }: SalesReportTableProps) {
+export function SalesReportTable() {
 	const [dateRange, setDateRange] = useState("This Month");
 	const [tempDateRange, setTempDateRange] = useState("This Month");
 	const [searchQuery, setSearchQuery] = useState("");
@@ -63,23 +58,32 @@ export function SalesReportTable({ }: SalesReportTableProps) {
 		return () => clearTimeout(handler);
 	}, [searchQuery]);
 
-	const { startDate, endDate } = useMemo(() => getDateRange(dateRange), [dateRange]);
+	const { startDate, endDate } = useMemo(
+		() => getDateRange(dateRange),
+		[dateRange],
+	);
 
 	const { data: rawData, loading } = useQuery(GET_SALES_REPORT, {
 		variables: {
 			filters: {
 				startDate,
 				endDate,
-				paymentMethods: appliedFilters.paymentMethods.length > 0 ? (appliedFilters.paymentMethods as PaymentType[]) : undefined,
-				statuses: appliedFilters.statuses.length > 0 ? appliedFilters.statuses : undefined,
+				paymentMethods:
+					appliedFilters.paymentMethods.length > 0
+						? (appliedFilters.paymentMethods as PaymentType[])
+						: undefined,
+				statuses:
+					appliedFilters.statuses.length > 0
+						? appliedFilters.statuses
+						: undefined,
 				searchQuery: debouncedSearch || undefined,
-			} as SaleReportFilter
-		}
+			} as SaleReportFilter,
+		},
 	});
 
-	const salesResponse = useMemo(() =>
-		parseGraphQLListResponse(rawData?.getSalesReport),
-		[rawData?.getSalesReport]
+	const salesResponse = useMemo(
+		() => parseGraphQLListResponse(rawData?.getSalesReport),
+		[rawData?.getSalesReport],
 	);
 
 	const filteredSales = salesResponse.data || [];
@@ -105,16 +109,18 @@ export function SalesReportTable({ }: SalesReportTableProps) {
 			sale.items,
 			sale.total,
 			sale.payment,
-			sale.status
+			sale.status,
 		]);
 
 		autoTable(doc, {
 			startY: 30,
-			head: [["Invoice", "Date", "Customer", "Items", "Total", "Payment", "Status"]],
+			head: [
+				["Invoice", "Date", "Customer", "Items", "Total", "Payment", "Status"],
+			],
 			body: tableData,
 		});
 
-		doc.save(`sales-report-${new Date().toISOString().split('T')[0]}.pdf`);
+		doc.save(`sales-report-${new Date().toISOString().split("T")[0]}.pdf`);
 	};
 
 	const handlePaymentMethodChange = (method: PaymentType, checked: boolean) => {
@@ -187,29 +193,49 @@ export function SalesReportTable({ }: SalesReportTableProps) {
 				</div>
 			</div>
 
-			<div className="rounded-lg border border-border bg-white overflow-hidden shadow-sm">
+			<div className="rounded-lg border border-border bg-gray-50 overflow-hidden shadow-sm">
 				<Table>
 					<TableHeader className="bg-gray-50/50">
 						<TableRow className="border-border hover:bg-transparent">
-							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">Invoice</TableHead>
-							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">Date</TableHead>
-							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">Customer</TableHead>
-							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">Items</TableHead>
-							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">Total</TableHead>
-							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">Payment</TableHead>
-							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">Status</TableHead>
+							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">
+								Invoice
+							</TableHead>
+							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">
+								Date
+							</TableHead>
+							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">
+								Customer
+							</TableHead>
+							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">
+								Items
+							</TableHead>
+							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">
+								Total
+							</TableHead>
+							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">
+								Payment
+							</TableHead>
+							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">
+								Status
+							</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{filteredSales.length === 0 ? (
 							<TableRow>
-								<TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+								<TableCell
+									colSpan={7}
+									className="h-24 text-center text-muted-foreground"
+								>
 									No sales found matching your criteria.
 								</TableCell>
 							</TableRow>
 						) : (
 							filteredSales.map((sale: SaleReport) => (
-								<TableRow key={sale.id} className="hover:bg-muted/30 border-border [&_td]:py-4 transition-colors">
+								<TableRow
+									key={sale.id}
+									className="hover:bg-muted/30 border-border [&_td]:py-4 transition-colors"
+								>
 									<TableCell className="font-medium">{sale.id}</TableCell>
 									<TableCell>{sale.date}</TableCell>
 									<TableCell>{sale.customer}</TableCell>
@@ -218,8 +244,12 @@ export function SalesReportTable({ }: SalesReportTableProps) {
 									<TableCell>{sale.payment}</TableCell>
 									<TableCell>
 										<Badge
-											variant={sale.status === 'Paid' ? 'default' : 'secondary'}
-											className={sale.status === 'Paid' ? "bg-green-100 text-green-700 hover:bg-green-100 border-0" : "bg-orange-100 text-orange-700 hover:bg-orange-100 border-0"}
+											variant={sale.status === "Paid" ? "default" : "secondary"}
+											className={
+												sale.status === "Paid"
+													? "bg-green-100 text-green-700 hover:bg-green-100 border-0"
+													: "bg-orange-100 text-orange-700 hover:bg-orange-100 border-0"
+											}
 										>
 											{sale.status}
 										</Badge>
@@ -231,7 +261,10 @@ export function SalesReportTable({ }: SalesReportTableProps) {
 				</Table>
 			</div>
 
-			<Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+			<Dialog
+				open={isFilterOpen}
+				onOpenChange={setIsFilterOpen}
+			>
 				<DialogContent className="sm:max-w-[600px]">
 					<DialogHeader>
 						<DialogTitle>Filter Sales</DialogTitle>
@@ -242,23 +275,35 @@ export function SalesReportTable({ }: SalesReportTableProps) {
 
 					<div className="grid gap-6 py-4">
 						<div className="space-y-3">
-							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date Range</Label>
-							<DateRangeSelector onRangeChange={setTempDateRange} initialRange={tempDateRange} />
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+								Date Range
+							</Label>
+							<DateRangeSelector
+								onRangeChange={setTempDateRange}
+								initialRange={tempDateRange}
+							/>
 						</div>
 
 						<div className="space-y-3">
-							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Payment Method</Label>
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+								Payment Method
+							</Label>
 							<div className="flex flex-wrap gap-4">
 								{[
 									{ label: "Online", value: PaymentType.Online },
 									{ label: "Cash", value: PaymentType.Cash },
 									{ label: "Credit", value: PaymentType.Credit },
 								].map(({ label, value }) => (
-									<div key={value} className="flex items-center space-x-2">
+									<div
+										key={value}
+										className="flex items-center space-x-2"
+									>
 										<Checkbox
 											id={`payment-${value}`}
 											checked={tempFilters.paymentMethods.includes(value)}
-											onCheckedChange={(checked) => handlePaymentMethodChange(value, !!checked)}
+											onCheckedChange={(checked) =>
+												handlePaymentMethodChange(value, !!checked)
+											}
 										/>
 										<label
 											htmlFor={`payment-${value}`}
@@ -272,14 +317,21 @@ export function SalesReportTable({ }: SalesReportTableProps) {
 						</div>
 
 						<div className="space-y-3">
-							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</Label>
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+								Status
+							</Label>
 							<div className="flex flex-wrap gap-4">
 								{["Completed", "Pending"].map((status) => (
-									<div key={status} className="flex items-center space-x-2">
+									<div
+										key={status}
+										className="flex items-center space-x-2"
+									>
 										<Checkbox
 											id={`status-${status}`}
 											checked={tempFilters.statuses.includes(status)}
-											onCheckedChange={(checked) => handleStatusChange(status, checked as boolean)}
+											onCheckedChange={(checked) =>
+												handleStatusChange(status, checked as boolean)
+											}
 										/>
 										<label
 											htmlFor={`status-${status}`}
@@ -294,7 +346,10 @@ export function SalesReportTable({ }: SalesReportTableProps) {
 					</div>
 
 					<DialogFooter>
-						<Button variant="outline" onClick={handleResetFilters}>
+						<Button
+							variant="outline"
+							onClick={handleResetFilters}
+						>
 							Reset
 						</Button>
 						<Button onClick={handleApplyFilters}>Apply Filters</Button>

@@ -62,9 +62,7 @@ const Dashboard = async () => {
 						</div>
 						<DailyBalanceMetrics />
 					</section>
-					<section>
-						<TransactionTable />
-					</section>
+					<TransactionTable />
 				</div>
 			</section>
 		</PreloadQuery>

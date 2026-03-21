@@ -10,16 +10,18 @@ async function serverRequest<T>(
 	const { skipAuth = false, ...fetchOptions } = options;
 	
 	let token: string | undefined;
+	let storeId: string | undefined;
 	if (!skipAuth) {
 		try {
 			const session = await auth();
 			token = session?.user?.token;
+			storeId = session?.user?.storeId;
 		} catch (error) {
 			console.error("[API] Failed to get session:", error);
 		}
 	}
 	
-	return coreRequest<T>(endpoint, fetchOptions, token);
+	return coreRequest<T>(endpoint, fetchOptions, token, storeId);
 }
 
 export const serverApiClient = {

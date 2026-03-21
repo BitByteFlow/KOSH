@@ -188,7 +188,7 @@ export function AnalyticsTransactionTable({ }: AnalyticsTransactionTableProps) {
 				</div>
 			</div>
 
-			<div className="rounded-lg border border-border bg-white overflow-hidden shadow-sm">
+			<div className="bg-gray-50 rounded-lg border border-border overflow-hidden shadow-sm">
 				<Table>
 					<TableHeader className="bg-gray-50/50">
 						<TableRow className="border-border hover:bg-transparent">

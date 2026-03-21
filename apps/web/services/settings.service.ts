@@ -9,7 +9,6 @@ export const GET_SETTINGS = gql`
       message
       data {
         id
-        userId
         lowStockThreshold
         autoArchive
         emailReports
@@ -26,7 +25,6 @@ export const UPDATE_SETTINGS = gql`
       message
       data {
         id
-        userId
         lowStockThreshold
         autoArchive
         emailReports
@@ -38,7 +36,6 @@ export const UPDATE_SETTINGS = gql`
 
 export interface Settings {
 	id: string;
-	userId: string;
 	lowStockThreshold: number;
 	autoArchive: boolean;
 	emailReports: boolean;
