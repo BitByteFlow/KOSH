@@ -2,6 +2,7 @@ import { Field, ObjectType } from "@nestjs/graphql";
 
 @ObjectType()
 export class User {
+    @Field(() => String)
     id: string;
     @Field(() => String)
     username: string
@@ -17,6 +18,6 @@ export class UserResponse {
     @Field(() => String, { nullable: true })
     message?: string
 
-    @Field(() => User)
-    data: User
+    @Field(() => User, { nullable: true })
+    data?: User;
 }

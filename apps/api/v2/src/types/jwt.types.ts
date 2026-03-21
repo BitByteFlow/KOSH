@@ -12,7 +12,6 @@ export interface AuthenticatedUser {
   username: string;
   googleId: string | null;
   image: string | null;
-  contactNumber: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

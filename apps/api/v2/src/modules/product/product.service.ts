@@ -1,17 +1,18 @@
 import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
-import { Prisma, ProductStatus } from "@kosh/db";
+import { Prisma, ProductStatus, ProductVariant, VariantAttribute } from "@kosh/db";
 import { ProductResponse } from "./entities/productResponse.entity";
 import { ProductFilterInput } from "./dto/productFilter.input";
 import { CreateProductInput } from "./dto/createProductInput";
 import { UpdateProductInput } from "./dto/updateProductInput";
 import { UpdateProductVariantInput } from "./dto/updateProductVariant.input";
+import { VariantInput } from "./dto/variant.input";
 
 @Injectable()
 export class ProductService {
     constructor(private readonly database: DatabaseService) { }
 
-    async createProduct(userId: string, productDetail: CreateProductInput): Promise<ProductResponse> {
+    async createProduct(userId: string, storeId: string, productDetail: CreateProductInput): Promise<ProductResponse> {
         try {
             return await this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
                 const category = await tsx.category.findUnique({
@@ -20,7 +21,7 @@ export class ProductService {
                 if (!category) throw new ConflictException("Category doesn't exist");
 
                 const existingProduct = await tsx.product.findFirst({
-                    where: { name: productDetail.name, categoryId: productDetail.categoryId, userId }
+                    where: { name: productDetail.name, categoryId: productDetail.categoryId, storeId }
                 });
 
                 let product;
@@ -32,14 +33,14 @@ export class ProductService {
                     });
                 } else {
                     product = await tsx.product.create({
-                        data: { name: productDetail.name, categoryId: productDetail.categoryId, userId }
+                        data: { name: productDetail.name, categoryId: productDetail.categoryId, storeId }
                     });
                 }
 
                 let totalPurchaseAmount = Prisma.Decimal(0);
                 const variantCreationPromises = productDetail.variants.map(async (v, index) => {
                     const sku = await this.generateSku(category.name, product.name, index, tsx);
-                    const barcode = await this.generateUniqueBarcode(tsx);
+                    const barcode = await this.generateUniqueBarcode(storeId, tsx);
 
                     const cost = Prisma.Decimal(v.costPrice);
                     totalPurchaseAmount = totalPurchaseAmount.add(cost.mul(v.stock));
@@ -47,6 +48,7 @@ export class ProductService {
                     return tsx.productVariant.create({
                         data: {
                             productId: product.id,
+                            storeId,
                             sku,
                             barcode,
                             costPrice: v.costPrice,
@@ -68,6 +70,7 @@ export class ProductService {
                 if (productDetail.keepPurchaseRecord && totalPurchaseAmount.gt(0)) {
                     const purchase = await tsx.purchase.create({
                         data: {
+                            storeId,
                             userId,
                             supplierName: productDetail.supplierName || "Initial Stock",
                             total: totalPurchaseAmount,
@@ -85,18 +88,18 @@ export class ProductService {
                     });
 
                     const today = new Date();
-                    today.setHours(0, 0, 0, 0);
+                    const todayStr = today.toISOString().split("T")[0];
 
                     const dailyBalance = await tsx.dailyBalance.upsert({
-                        where: { userId_date: { userId, date: today } },
+                        where: { storeId_date: { storeId, date: todayStr } },
                         update: {
                             closingCash: { decrement: totalPurchaseAmount },
                             totalCashOut: { increment: totalPurchaseAmount },
                             totalExpense: { increment: totalPurchaseAmount }
                         },
                         create: {
-                            userId,
-                            date: today,
+                            storeId,
+                            date: todayStr,
                             openingCash: 0,
                             closingCash: totalPurchaseAmount.negated(),
                             totalCashOut: totalPurchaseAmount,
@@ -106,7 +109,7 @@ export class ProductService {
 
                     await tsx.accountTransaction.create({
                         data: {
-                            userId,
+                            storeId,
                             type: "PURCHASE",
                             amount: totalPurchaseAmount,
                             note: `Initial stock for ${product.name}`,
@@ -129,7 +132,7 @@ export class ProductService {
                 return {
                     success: true,
                     message: existingProduct ? "Product Reactivated!" : "Product Created!",
-                    data: [this.formatProduct(finalData)]
+                    data: [this.formatProduct(finalData!)]
                 };
             });
         } catch (error) {
@@ -138,13 +141,13 @@ export class ProductService {
             throw new InternalServerErrorException("Failed to process product creation");
         }
     }
-    async deleteProduct(productId: string, userId: string): Promise<ProductResponse> {
+    async deleteProduct(productId: string, storeId: string): Promise<ProductResponse> {
         try {
             await this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
                 const product = await tsx.product.findUnique({
                     where: {
                         id: productId,
-                        userId: userId
+                        storeId: storeId
                     }
                 });
 
@@ -191,11 +194,11 @@ export class ProductService {
         }
     }
 
-    async updateProduct(productId: string, userId: string, updateData: UpdateProductInput): Promise<ProductResponse> {
+    async updateProduct(productId: string, storeId: string, updateData: UpdateProductInput): Promise<ProductResponse> {
         try {
             return await this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
                 const existingProduct = await tsx.product.findUnique({
-                    where: { id: productId, userId },
+                    where: { id: productId, storeId },
                     include: { variants: { where: { deletedAt: null } } }
                 });
 
@@ -203,7 +206,7 @@ export class ProductService {
 
                 const categoryId = updateData.categoryId || existingProduct.categoryId;
                 const category = await tsx.category.findUnique({
-                    where: { id: categoryId, userId }
+                    where: { id: categoryId, storeId }
                 });
                 if (!category) throw new NotFoundException("Category not found");
 
@@ -212,7 +215,7 @@ export class ProductService {
                         where: {
                             name: updateData.name,
                             categoryId,
-                            userId,
+                            storeId,
                             NOT: { id: productId },
                             deletedAt: null
                         }
@@ -259,11 +262,12 @@ export class ProductService {
                             });
                         } else {
                             const sku = await this.generateSku(category.name, updateData.name || existingProduct.name, newVariantSequence++, tsx);
-                            const barcode = await this.generateUniqueBarcode(tsx);
+                            const barcode = await this.generateUniqueBarcode(storeId, tsx);
 
                             await tsx.productVariant.create({
                                 data: {
                                     productId,
+                                    storeId,
                                     sku,
                                     barcode,
                                     costPrice: v.costPrice,
@@ -309,13 +313,13 @@ export class ProductService {
         }
     }
 
-    async addVariant(variantDetail: any, productId: string, userId: string): Promise<ProductResponse> {
+    async addVariant(variantDetail: VariantInput, productId: string, storeId: string): Promise<ProductResponse> {
         try {
             return await this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
                 const product = await tsx.product.findUnique({
                     where: {
                         id: productId,
-                        userId: userId
+                        storeId: storeId
                     },
                     include: {
                         category: true
@@ -337,10 +341,11 @@ export class ProductService {
                     tsx
                 );
 
-                const barcode = await this.generateUniqueBarcode(tsx);
+                const barcode = await this.generateUniqueBarcode(storeId, tsx);
 
                 const productVariant = await tsx.productVariant.create({
                     data: {
+                        storeId,
                         productId: product.id,
                         sku: sku,
                         barcode: barcode,
@@ -351,9 +356,9 @@ export class ProductService {
                     }
                 });
 
-                if (variantDetail.attributes?.length > 0) {
+                if (variantDetail.attributes && variantDetail.attributes.length > 0) {
                     const attributePromises = variantDetail.attributes.map(
-                        (attribute: any) =>
+                        (attribute: VariantAttribute) =>
                             tsx.variantAttribute.create({
                                 data: {
                                     variantId: productVariant.id,
@@ -392,11 +397,11 @@ export class ProductService {
         }
     }
 
-    async listProductsWithVariant(userId: string): Promise<ProductResponse> {
+    async listProductsWithVariant(storeId: string): Promise<ProductResponse> {
         try {
             const products = await this.database.prisma.product.findMany({
                 where: {
-                    userId: userId,
+                    storeId: storeId,
                     deletedAt: null
                 },
                 include: {
@@ -436,7 +441,7 @@ export class ProductService {
     }
     async updateProductVariant(
         updateProductVariantDto: UpdateProductVariantInput,
-        userId: string,
+        storeId: string,
         productVariantId: string
     ): Promise<ProductResponse> {
         try {
@@ -446,7 +451,7 @@ export class ProductService {
                         id: productVariantId,
                         product: {
                             id: updateProductVariantDto.productId,
-                            userId: userId
+                            storeId: storeId
                         }
                     }
                 });
@@ -463,10 +468,10 @@ export class ProductService {
                         stock: updateProductVariantDto.stock,
                         status: updateProductVariantDto.status as ProductStatus || ProductStatus.ACTIVE,
                         attributes: updateProductVariantDto.attributes ? {
-                            deleteMany: {}, 
+                            deleteMany: {},
                             create: updateProductVariantDto.attributes
-                                .filter((attr: any) => attr.name && attr.value)
-                                .map((attr: any) => ({
+                                .filter((attr) => attr.name && attr.value)
+                                .map((attr) => ({
                                     name: attr.name,
                                     value: attr.value
                                 }))
@@ -499,13 +504,13 @@ export class ProductService {
     }
 
 
-    async deleteProductVariant(productId: string, userId: string, productVariantId: string): Promise<ProductResponse> {
+    async deleteProductVariant(productId: string, storeId: string, productVariantId: string): Promise<ProductResponse> {
         try {
             return await this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
                 const product = await tsx.product.findUnique({
                     where: {
                         id: productId,
-                        userId: userId
+                        storeId: storeId
                     }
                 });
 
@@ -550,7 +555,7 @@ export class ProductService {
         }
     }
 
-    async listProductsWithFilters(userId: string, filterDto: ProductFilterInput): Promise<ProductResponse> {
+    async listProductsWithFilters(storeId: string, filterDto: ProductFilterInput): Promise<ProductResponse> {
         const {
             page = 1,
             limit = 10,
@@ -568,7 +573,7 @@ export class ProductService {
         const skip = (page - 1) * limit;
 
         const where: any = {
-            userId,
+            storeId,
         };
 
         if (!includeDeleted) {
@@ -694,7 +699,7 @@ export class ProductService {
         return `${catCode}-${prodCode}-${uniqueId}`;
     }
 
-    private async generateUniqueBarcode(tsx?: Prisma.TransactionClient): Promise<string> {
+    private async generateUniqueBarcode(storeId: string, tsx?: Prisma.TransactionClient): Promise<string> {
         const client = tsx || this.database.prisma;
         let barcode: string;
         let isUnique = false;
@@ -705,7 +710,7 @@ export class ProductService {
             barcode = this.generateCandidateBarcode();
 
             const exists = await client.productVariant.findUnique({
-                where: { barcode }
+                where: { storeId_barcode: { storeId, barcode } }
             });
 
             if (!exists) {
@@ -734,7 +739,7 @@ export class ProductService {
         let status = 'active';
         if (totalStock === 0) {
             status = 'out-of-stock';
-        } else if (product.variants.every((v: any) => v.status === 'IN_ACTIVE')) {
+        } else if (product.variants.every((v: ProductVariant) => v.status === 'IN_ACTIVE')) {
             status = 'inactive';
         }
         return {
@@ -751,7 +756,7 @@ export class ProductService {
                 id: v.id,
                 sku: v.sku,
                 barcode: v.barcode,
-                attributes: v.attributes.map((attr: any) => ({
+                attributes: v.attributes.map((attr: VariantAttribute) => ({
                     name: attr.name,
                     value: attr.value
                 })),

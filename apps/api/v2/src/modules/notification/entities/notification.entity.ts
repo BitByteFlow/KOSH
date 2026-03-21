@@ -10,8 +10,8 @@ export class Notification {
 	@Field(() => ID)
 	id: string;
 
-	@Field(() => ID)
-	userId: string;
+	@Field(() => ID, { nullable: true })
+	userId: string | null;
 
 	@Field(() => NotificationType)
 	type: NotificationType;

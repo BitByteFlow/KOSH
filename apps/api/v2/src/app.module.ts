@@ -18,6 +18,8 @@ import { SaleModule } from './modules/sale/sale.module';
 import { UserModule } from './modules/user/user.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { StoreModule } from './modules/store/store.module';
+import { StoreMemberModule } from './modules/store-member/storeMember.module';
 
 @Module({
   imports: [
@@ -49,7 +51,9 @@ import { NotificationModule } from './modules/notification/notification.module';
     SaleModule,
     UserModule,
     SettingsModule,
-    NotificationModule
+    NotificationModule,
+    StoreModule,
+    StoreMemberModule
   ],
   controllers: [AppController],
   providers: [

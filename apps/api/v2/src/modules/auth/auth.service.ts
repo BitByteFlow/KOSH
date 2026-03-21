@@ -2,13 +2,14 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { DatabaseService } from "src/database/database.service";
 import { AuthResponseDto } from "./dto/AuthResponseDto";
+import { Prisma, User } from "@kosh/db";
 
 @Injectable()
 export class AuthService {
 	constructor(
 		private readonly database: DatabaseService,
 		private readonly jwtService: JwtService,
-	) {}
+	) { }
 
 	async createUser(
 		email: string,
@@ -22,7 +23,6 @@ export class AuthService {
 					{ email: email },
 					{
 						googleId: {
-							not: null,
 							equals: googleId,
 						},
 					},
@@ -35,30 +35,48 @@ export class AuthService {
 				"User already exists with this email and user Id",
 			);
 		}
+		return await this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient): Promise<AuthResponseDto> => {
+			const user = await tsx.user.create({
+				data: {
+					googleId: googleId,
+					email: email,
+					image: image,
+					username: username,
+				},
+			});
+			const store = await tsx.store.create({
+				data: {
+					name: `store-${username}`,
+					creatorId: user.id,
+					members: {
+						create: {
+							userId: user.id,
+							role: "ADMIN",
+						}
+					}
+				}
+			})
 
-		const user = await this.database.user.create({
-			data: {
-				googleId: googleId,
-				email: email,
-				image: image,
-				username: username,
-			},
-		});
-
-		const token = this.jwtService.sign({
-			sub: user.id,
-			email: user.email,
-			username: user.username,
-		});
-
-		return {
-			token: token,
-			user: {
-				id: user.id,
+			const token = this.jwtService.sign({
+				sub: user.id,
 				email: user.email,
 				username: user.username,
-			},
-		};
+			});
+
+			return {
+				token: token,
+				user: {
+					id: user.id,
+					email: user.email,
+					username: user.username,
+				},
+				store: {
+					storeId: store.id,
+					storeName: store.name,
+				}
+			};
+		})
+
 	}
 
 	async signin(email: string, googleId: string): Promise<AuthResponseDto> {
@@ -68,12 +86,20 @@ export class AuthService {
 					{ email: email },
 					{
 						googleId: {
-							not: null,
 							equals: googleId,
 						},
 					},
 				],
 			},
+			include: {
+				createdStores: {
+					take: 1,
+					select: {
+						id: true,
+						name: true,
+					}
+				}
+			}
 		});
 
 		if (!existinguser) {
@@ -95,6 +121,10 @@ export class AuthService {
 				email: existinguser.email,
 				username: existinguser.username,
 			},
+			store: {
+				storeId: existinguser.createdStores[0].id,
+				storeName: existinguser.createdStores[0].name,
+			}
 		};
 	}
 }

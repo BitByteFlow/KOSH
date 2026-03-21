@@ -13,6 +13,7 @@ export class AccountsService {
   async createTransaction(
     createTransactionDto: CreateTransactionInput,
     userId: string,
+    storeId: string,
   ): Promise<AccountResponse> {
     const { type, amount: rawAmount, note } = createTransactionDto;
 
@@ -27,11 +28,13 @@ export class AccountsService {
     const tomorrow = new Date(today);
     tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
-    return this.database.prisma.$transaction(async (tsx) => {
+    const todayStr = today.toISOString().split("T")[0];
+
+    return this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
       const hasAnyBalanceToday = await tsx.dailyBalance.count({
         where: {
-          userId,
-          date: { gte: today, lt: tomorrow },
+          storeId,
+          date: todayStr,
         },
       });
 
@@ -45,8 +48,8 @@ export class AccountsService {
 
       let dailyBalance = await tsx.dailyBalance.findFirst({
         where: {
-          userId,
-          date: { gte: today, lt: tomorrow },
+          storeId,
+          date: todayStr,
         },
       });
 
@@ -69,8 +72,8 @@ export class AccountsService {
 
         dailyBalance = await tsx.dailyBalance.create({
           data: {
-            userId,
-            date: today,
+            storeId,
+            date: todayStr,
             openingCash,
             closingCash: openingCash,
             totalCashIn: new Prisma.Decimal(0),
@@ -134,7 +137,7 @@ export class AccountsService {
 
       const transaction = await tsx.accountTransaction.create({
         data: {
-          userId,
+          storeId,
           type,
           amount,
           note,
@@ -167,24 +170,16 @@ export class AccountsService {
    * @returns BalanceDto containing opening/closing cash, total cash in/out, sales, and expenses
    * @throws InternalServerErrorException - If database operation fails
    */
-  async getCurrentCashBalance(userId: string): Promise<BalanceResponse> {
+  async getCurrentCashBalance(userId: string, storeId: string): Promise<BalanceResponse> {
     try {
       const now = new Date();
-      const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
-
-      const yesterday = new Date(today);
-      yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-      const tomorrow = new Date(today);
-      tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+      const todayStr = now.toISOString().split("T")[0];
 
       return await this.database.prisma.$transaction(async (tsx) => {
         const lastRecord = await tsx.dailyBalance.findFirst({
           where: {
-            userId: userId,
-            date: {
-              gte: today,
-              lt: tomorrow,
-            },
+            storeId,
+            date: todayStr,
           },
         });
 
@@ -230,6 +225,7 @@ export class AccountsService {
 
   async getAccountTransactions(
     userId: string,
+    storeId: string,
     page: number = 1,
     limit: number = 10,
     sortBy: "createdAt" | "amount" | "type" = "createdAt",
@@ -245,7 +241,7 @@ export class AccountsService {
       const [transactions, total] = await Promise.all([
         this.database.prisma.accountTransaction.findMany({
           where: {
-            userId: userId,
+            storeId,
             createdAt: {
               gte: today,
               lt: tomorrow,
@@ -267,7 +263,7 @@ export class AccountsService {
         }),
         this.database.prisma.accountTransaction.count({
           where: {
-            userId: userId,
+            storeId,
             createdAt: {
               gte: today,
               lt: tomorrow,
@@ -307,11 +303,13 @@ export class AccountsService {
     transactionId: string,
     updateTransactionDto: UpdateTransactionInput,
     userId: string,
+    storeId: string,
   ): Promise<UpdateAccountTransactionResponse> {
     try {
       const transaction = await this.database.prisma.accountTransaction.findUnique({
         where: {
           id: transactionId,
+          storeId
         },
       });
 
@@ -319,9 +317,12 @@ export class AccountsService {
         throw new NotFoundException("Transaction not found");
       }
 
+      // Removed userId check as AccountTransaction is now store-scoped
+      /*
       if (transaction.userId !== userId) {
         throw new ForbiddenException("You are not authorized to update this transaction");
       }
+      */
 
       const updatedTransaction = await this.database.prisma.accountTransaction.update({
         where: {

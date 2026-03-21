@@ -6,11 +6,13 @@ import { CreateCategoryInput } from './dto/createCategory.input';
 import { UpdateCategoryInput } from './dto/updateCategory.input';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/utils/jwt.guard';
+import { StoreGuard } from 'src/utils/store.guard';
 import { CurrentUser } from 'src/utils/currentUser.decorator';
+import { CurrentStore } from 'src/utils/currentStore.decorator';
 import type { AuthenticatedUser } from 'src/types/jwt.types';
 
 @Resolver(() => Category)
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, StoreGuard)
 export class CategoriesResolver {
   constructor(private readonly categoriesService: CategoriesService) { }
 
@@ -18,21 +20,26 @@ export class CategoriesResolver {
   async createCategory(
     @Args('createCategoryInput') createCategoryInput: CreateCategoryInput,
     @CurrentUser() user: AuthenticatedUser,
+    @CurrentStore() storeId: string,
   ): Promise<CategoryResponse> {
-    const userId = user.id;
-    return this.categoriesService.createCategory(createCategoryInput, userId);
+    return this.categoriesService.createCategory(createCategoryInput, storeId);
   }
 
   @Query(() => CategoryResponse)
-  async getCategories(@CurrentUser() user: AuthenticatedUser): Promise<CategoryResponse> {
-    const userId = user.id;
-    return this.categoriesService.getCategories(userId);
+  async getCategories(
+    @CurrentUser() user: AuthenticatedUser,
+    @CurrentStore() storeId: string,
+  ): Promise<CategoryResponse> {
+    return this.categoriesService.getCategories(storeId);
   }
 
   @Mutation(() => CategoryResponse)
-  async deleteCategory(@Args('id', { type: () => ID }) id: string, @CurrentUser() user: AuthenticatedUser) {
-    const userId = user.id;
-    return this.categoriesService.deleteCategory(id, userId);
+  async deleteCategory(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @CurrentStore() storeId: string,
+  ) {
+    return this.categoriesService.deleteCategory(id, storeId);
   }
 
   @Mutation(() => CategoryResponse)
@@ -40,8 +47,8 @@ export class CategoriesResolver {
     @Args('id', { type: () => ID }) id: string,
     @Args('updateCategoryInput') updateCategoryInput: UpdateCategoryInput,
     @CurrentUser() user: AuthenticatedUser,
+    @CurrentStore() storeId: string,
   ) {
-    const userId = user.id;
-    return this.categoriesService.updateCategory(id, userId, updateCategoryInput);
+    return this.categoriesService.updateCategory(id, storeId, updateCategoryInput);
   }
 }

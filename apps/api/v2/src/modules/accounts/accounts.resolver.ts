@@ -6,13 +6,15 @@ import { BalanceResponse } from './entities/balance.entity';
 import { PaginatedTransactionsResponse } from './entities/paginatedTransactions.entity';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/utils/jwt.guard';
+import { StoreGuard } from 'src/utils/store.guard';
 import { CurrentUser } from 'src/utils/currentUser.decorator';
+import { CurrentStore } from 'src/utils/currentStore.decorator';
 import type { AuthenticatedUser } from 'src/types/jwt.types';
 import { AccountResponse, UpdateAccountTransactionResponse } from './entities/account.entity';
 import { UpdateTransactionInput } from './dto/updateTransaction.dto';
 
 @Resolver(() => AccountTransaction)
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, StoreGuard)
 export class AccountsResolver {
   constructor(private readonly accountsService: AccountsService) { }
 
@@ -20,30 +22,36 @@ export class AccountsResolver {
   async createTransaction(
     @Args('createTransactionInput') createTransactionDto: CreateTransactionInput,
     @CurrentUser() user: AuthenticatedUser,
+    @CurrentStore() storeId: string,
   ): Promise<AccountResponse> {
     const userId = user.id;
-    return this.accountsService.createTransaction(createTransactionDto, userId);
+    return this.accountsService.createTransaction(createTransactionDto, userId, storeId);
   }
 
   @Query(() => BalanceResponse)
-  async getCurrentCashBalance(@CurrentUser() user: AuthenticatedUser): Promise<BalanceResponse> {
+  async getCurrentCashBalance(
+    @CurrentUser() user: AuthenticatedUser,
+    @CurrentStore() storeId: string,
+  ): Promise<BalanceResponse> {
     const userId = user.id;
-    return this.accountsService.getCurrentCashBalance(userId);
+    return this.accountsService.getCurrentCashBalance(userId, storeId);
   }
 
   @Mutation(() => UpdateAccountTransactionResponse)
   async updateAccountTransactions(
     @CurrentUser() user: AuthenticatedUser,
+    @CurrentStore() storeId: string,
     @Args('transactionId', { type: () => String }) transactionId: string,
     @Args('updateTransactionInput', { type: () => UpdateTransactionInput }) updateTransactionDto: UpdateTransactionInput,
   ): Promise<UpdateAccountTransactionResponse> {
     const userId = user.id;
-    return this.accountsService.updateAccountTransaction(transactionId, updateTransactionDto, userId);
+    return this.accountsService.updateAccountTransaction(transactionId, updateTransactionDto, userId, storeId);
   }
 
   @Query(() => PaginatedTransactionsResponse)
   async getAccountTransactions(
     @CurrentUser() user: AuthenticatedUser,
+    @CurrentStore() storeId: string,
     @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
     @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
     @Args('sortBy', { nullable: true, defaultValue: 'createdAt' }) sortBy: string,
@@ -52,6 +60,7 @@ export class AccountsResolver {
     const userId = user.id;
     return this.accountsService.getAccountTransactions(
       userId,
+      storeId,
       page,
       limit,
       sortBy as "createdAt" | "amount" | "type",
