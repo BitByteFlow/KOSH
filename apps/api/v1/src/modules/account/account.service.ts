@@ -13,7 +13,7 @@ import { Prisma } from "@kosh/db";
 
 @Injectable()
 export class AccountService {
-	constructor(private readonly database: DatabaseService) {}
+	constructor(private readonly database: DatabaseService) { }
 
 	/**
 	 * Creates a transaction and updates the daily balance accordingly.
@@ -26,151 +26,150 @@ export class AccountService {
 	 * @throws BadRequestException - If amount is invalid or transaction type is unknown
 	 * @throws ConflictException - If business rules are violated (e.g., insufficient funds, duplicate INITIAL_CAPITAL)
 	 */
-async createTransaction(
-  createTransactionDto: CreateTransactionDto,
-  userId: string,
-): Promise<CategoryResponseDto> {
-  const { type, amount: rawAmount, note } = createTransactionDto;
+	async createTransaction(
+		createTransactionDto: CreateTransactionDto,
+		userId: string,
+	): Promise<CategoryResponseDto> {
+		const { type, amount: rawAmount, note } = createTransactionDto;
 
-  const amount = new Prisma.Decimal(rawAmount);
+		const amount = new Prisma.Decimal(rawAmount);
 
-  if (amount.lte(0)) {
-    throw new BadRequestException("Amount must be positive");
-  }
+		if (amount.lte(0)) {
+			throw new BadRequestException("Amount must be positive");
+		}
 
-const now = new Date();
-const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
-const tomorrow = new Date(today);
-tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+		const now = new Date();
+		const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+		const tomorrow = new Date(today);
+		tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
-  return this.database.prisma.$transaction(async (tsx) => {
-    const hasAnyBalanceToday = await tsx.dailyBalance.count({
-      where: {
-        userId,
-        date: { gte: today, lt: tomorrow },
-      },
-    });
+		return this.database.prisma.$transaction(async (tsx) => {
+			const hasAnyBalanceToday = await tsx.dailyBalance.count({
+				where: {
+					userId,
+					date: { gte: today, lt: tomorrow },
+				},
+			});
 
-    if (hasAnyBalanceToday === 0 && type !== "INITIAL_CAPITAL") {
-      throw new ConflictException("First transaction of the day must be INITIAL_CAPITAL");
-    }
+			if (hasAnyBalanceToday === 0 && type !== "INITIAL_CAPITAL") {
+				throw new ConflictException("First transaction of the day must be INITIAL_CAPITAL");
+			}
 
-    if (hasAnyBalanceToday > 0 && type === "INITIAL_CAPITAL") {
-      throw new ConflictException("INITIAL_CAPITAL can only be recorded once per day");
-    }
+			if (hasAnyBalanceToday > 0 && type === "INITIAL_CAPITAL") {
+				throw new ConflictException("INITIAL_CAPITAL can only be recorded once per day");
+			}
 
-    let dailyBalance = await tsx.dailyBalance.findFirst({
-      where: {
-        userId,
-        date: { gte: today, lt: tomorrow },
-      },
-    });
+			let dailyBalance = await tsx.dailyBalance.findFirst({
+				where: {
+					userId,
+					date: { gte: today, lt: tomorrow },
+				},
+			});
 
-    let isFirstTransactionOfDay = !dailyBalance;
+			let isFirstTransactionOfDay = !dailyBalance;
 
-    if (!dailyBalance) {
-      let openingCash = new Prisma.Decimal(0);
+			if (!dailyBalance) {
+				let openingCash = new Prisma.Decimal(0);
 
-      if (type === "INITIAL_CAPITAL") {
-        openingCash = amount;
-      }
-      if (
-        ["WITHDRAWAL", "PURCHASE", "EXPENSES", "DEBT_PAID"].includes(type) &&
-        amount.gt(openingCash)
-      ) {
-        throw new ConflictException(
-          `Insufficient funds for ${type.toLowerCase()}. Available: ${openingCash}, Required: ${amount}`,
-        );
-      }
+				if (type === "INITIAL_CAPITAL") {
+					openingCash = amount;
+				}
+				if (
+					["WITHDRAWAL", "PURCHASE", "EXPENSES", "DEBT_PAID"].includes(type) &&
+					amount.gt(openingCash)
+				) {
+					throw new ConflictException(
+						`Insufficient funds for ${type.toLowerCase()}. Available: ${openingCash}, Required: ${amount}`,
+					);
+				}
 
-			console.log('Creating new daily balance for user:', openingCash);
-      dailyBalance = await tsx.dailyBalance.create({
-        data: {
-          userId,
-          date: today,
-          openingCash,
-          closingCash: openingCash,
-          totalCashIn: new Prisma.Decimal(0),
-          totalCashOut: new Prisma.Decimal(0),
-          totalSales: new Prisma.Decimal(0),
-          totalExpense: new Prisma.Decimal(0),
-        },
-      });
-			console.log('Created new daily balance for user:', dailyBalance);
-    } else {
-      const currentBalance = new Prisma.Decimal(dailyBalance.closingCash);
-      if (
-        ["WITHDRAWAL", "PURCHASE", "EXPENSES", "DEBT_PAID"].includes(type) &&
-        amount.gt(currentBalance)
-      ) {
-        throw new ConflictException(
-          `Insufficient funds for ${type.toLowerCase()}. Available: ${currentBalance}, Required: ${amount}`,
-        );
-      }
-    }
+				console.log('Creating new daily balance for user:', openingCash);
+				dailyBalance = await tsx.dailyBalance.create({
+					data: {
+						userId,
+						date: today,
+						openingCash,
+						closingCash: openingCash,
+						totalCashIn: new Prisma.Decimal(0),
+						totalCashOut: new Prisma.Decimal(0),
+						totalSales: new Prisma.Decimal(0),
+						totalExpense: new Prisma.Decimal(0),
+					},
+				});
+				console.log('Created new daily balance for user:', dailyBalance);
+			} else {
+				const currentBalance = new Prisma.Decimal(dailyBalance.closingCash);
+				if (
+					["WITHDRAWAL", "PURCHASE", "EXPENSES", "DEBT_PAID"].includes(type) &&
+					amount.gt(currentBalance)
+				) {
+					throw new ConflictException(
+						`Insufficient funds for ${type.toLowerCase()}. Available: ${currentBalance}, Required: ${amount}`,
+					);
+				}
+			}
 
-    // Now apply the transaction effect (unless it's INITIAL_CAPITAL on first tx — already set)
-    const updateData: Prisma.DailyBalanceUpdateInput = {};
+			const updateData: Prisma.DailyBalanceUpdateInput = {};
 
-    const isInitialCapitalFirstTx = isFirstTransactionOfDay && type === "INITIAL_CAPITAL";
+			const isInitialCapitalFirstTx = isFirstTransactionOfDay && type === "INITIAL_CAPITAL";
 
-    if (!isInitialCapitalFirstTx) {
-      switch (type) {
-        case "INITIAL_CAPITAL":
-        case "ADDITIONAL_CAPITAL":
-        case "SALE_INCOME":
-        case "CREDIT_RECEIVED":
-          updateData.closingCash = { increment: amount };
-          updateData.totalCashIn = { increment: amount };
-          if (type === "SALE_INCOME" || type === "CREDIT_RECEIVED") {
-            updateData.totalSales = { increment: amount };
-          }
-          break;
+			if (!isInitialCapitalFirstTx) {
+				switch (type) {
+					case "INITIAL_CAPITAL":
+					case "ADDITIONAL_CAPITAL":
+					case "SALE_INCOME":
+					case "CREDIT_RECEIVED":
+						updateData.closingCash = { increment: amount };
+						updateData.totalCashIn = { increment: amount };
+						if (type === "SALE_INCOME" || type === "CREDIT_RECEIVED") {
+							updateData.totalSales = { increment: amount };
+						}
+						break;
 
-        case "WITHDRAWAL":
-        case "PURCHASE":
-        case "EXPENSES":
-        case "DEBT_PAID":
-          updateData.closingCash = { decrement: amount };
-          updateData.totalCashOut = { increment: amount };
-          if (["PURCHASE", "EXPENSES", "DEBT_PAID"].includes(type)) {
-            updateData.totalExpense = { increment: amount };
-          }
-          break;
+					case "WITHDRAWAL":
+					case "PURCHASE":
+					case "EXPENSES":
+					case "DEBT_PAID":
+						updateData.closingCash = { decrement: amount };
+						updateData.totalCashOut = { increment: amount };
+						if (["PURCHASE", "EXPENSES", "DEBT_PAID"].includes(type)) {
+							updateData.totalExpense = { increment: amount };
+						}
+						break;
 
-        default:
-          throw new BadRequestException(`Invalid transaction type: ${type}`);
-      }
-    }
+					default:
+						throw new BadRequestException(`Invalid transaction type: ${type}`);
+				}
+			}
 
-    if (Object.keys(updateData).length > 0) {
-      await tsx.dailyBalance.update({
-        where: { id: dailyBalance.id },
-        data: updateData,
-      });
-    }
+			if (Object.keys(updateData).length > 0) {
+				await tsx.dailyBalance.update({
+					where: { id: dailyBalance.id },
+					data: updateData,
+				});
+			}
 
-    await tsx.accountTransaction.create({
-      data: {
-        userId,
-        type,
-        amount,
-        note,
-        dailyBalanceId: dailyBalance.id,
-      },
-    });
+			await tsx.accountTransaction.create({
+				data: {
+					userId,
+					type,
+					amount,
+					note,
+					dailyBalanceId: dailyBalance.id,
+				},
+			});
 
-    return {
-      status: "success",
-      message: "Transaction created successfully",
-    };
-  }).catch((error) => {
-    if (error.code === "P2002") {
-      throw new ConflictException("Concurrent transaction detected. Please try again.");
-    }
-    throw error;
-  });
-}
+			return {
+				status: "success",
+				message: "Transaction created successfully",
+			};
+		}).catch((error) => {
+			if (error.code === "P2002") {
+				throw new ConflictException("Concurrent transaction detected. Please try again.");
+			}
+			throw error;
+		});
+	}
 
 	/**
 	 * Retrieves the current day's cash balance for a user.
@@ -181,16 +180,15 @@ tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 	 * @throws InternalServerErrorException - If database operation fails
 	 */
 	async getCurrentCashBalance(userId: string): Promise<BalanceDto> {
+		console.log("in get current cash balance")
 		try {
-
-
-const now = new Date();
-const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+			const now = new Date();
+			const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
 
 			const yesterday = new Date(today);
 			yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-const tomorrow = new Date(today);
-tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+			const tomorrow = new Date(today);
+			tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
 			return await this.database.prisma.$transaction(async (tsx) => {
 				const lastRecord = await tsx.dailyBalance.findFirst({
@@ -247,13 +245,22 @@ tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 		sortBy: "createdAt" | "amount" | "type" = "createdAt",
 		sortOrder: "asc" | "desc" = "desc",
 	) {
+		console.log("is not here")
 		try {
 			const skip = (page - 1) * limit;
+			const now = new Date()
+			const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0))
+			const tomorrow = new Date(today)
+			tomorrow.setUTCDate(tomorrow.getUTCDate() + 1)
 
 			const [transactions, total] = await Promise.all([
 				this.database.prisma.accountTransaction.findMany({
 					where: {
 						userId: userId,
+						createdAt: {
+							gte: today,
+							lt: tomorrow,
+						},
 					},
 					orderBy: {
 						[sortBy]: sortOrder,
@@ -272,12 +279,16 @@ tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 				this.database.prisma.accountTransaction.count({
 					where: {
 						userId: userId,
+						createdAt: {
+							gte: today,
+							lt: tomorrow,
+						},
 					},
 				}),
 			]);
 
 			const totalPages = Math.ceil(total / limit);
-
+			console.log(transactions)
 			return {
 				data: transactions.map((t) => ({
 					id: t.id,
