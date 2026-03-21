@@ -10,7 +10,6 @@ import {
 	ShoppingCart,
 	BookOpen,
 	HelpCircle,
-	Bolt,
 	ChevronDown,
 	LogOut,
 } from "lucide-react";
@@ -28,7 +27,6 @@ import {
 	SidebarGroupContent,
 	useSidebar,
 } from "@kosh/ui/components/sidebar";
-import Image from "next/image";
 import {
 	Avatar,
 	AvatarFallback,
@@ -43,6 +41,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
+import Logo from "public/logo.svg";
 
 const menuItems = [
 	{ title: "Dashboard", icon: LayoutGrid, url: "/dashboard" },
@@ -93,10 +92,7 @@ const DashboardSidebar = () => {
 	}, [setOpen]);
 
 	const handleLogout = async () => {
-		await signOut({
-			redirect: true,
-			redirectTo: "/auth/get-started",
-		});
+		await signOut({ redirect: true, redirectTo: "/auth/get-started" });
 	};
 	return (
 		<Sidebar
@@ -104,21 +100,16 @@ const DashboardSidebar = () => {
 			collapsible="icon"
 			side="left"
 		>
-			<SidebarHeader>
-				<div className="flex items-center gap-2 px-2 py-4 transition-all duration-300 ease-in-out group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:gap-0 group-data-[state=collapsed]:px-0">
-					<Image
-						src="/logo.ico"
-						alt="Logo"
-						width={52}
-						height={62}
-						// className="object-contain"
-					/>
+			<SidebarHeader className="gap-4">
+				<div className="flex items-center transition-all duration-300 ease-in-out group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:gap-0 group-data-[state=collapsed]:px-0">
+					<Logo className="h-8 w-8"/>
 					<div className="overflow-hidden transition-all duration-300 ease-in-out max-w-50 opacity-100 group-data-[state=collapsed]:max-w-0 group-data-[state=collapsed]:opacity-0">
-						<span className="text-xl font-semibold tracking-tight text-foreground whitespace-nowrap ml-1">
-							KOSH
+						<span className="text-xl italic font-semibold tracking-tight text-foreground whitespace-nowrap ml-1">
+							Kosh
 						</span>
 					</div>
 				</div>
+
 			</SidebarHeader>
 
 			<SidebarContent className="custom-scrollbar">
@@ -139,20 +130,18 @@ const DashboardSidebar = () => {
 											tooltip={item.title}
 										>
 											<item.icon
-												className={`h-5 w-5 transition-all duration-300 ease-in-out ${
-													isActive
+												className={`h-5 w-5 transition-all duration-300 ease-in-out ${isActive
 														? "text-primary scale-110"
 														: "text-muted-foreground hover:scale-110"
-												}`}
+													}`}
 											/>
 											<div
-												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-all duration-300 ease-in-out opacity-100 max-w-[200px] group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0 ${
-													isActive
+												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-all duration-300 ease-in-out opacity-100 max-w-50 group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0 ${isActive
 														? "bg-accent text-accent-foreground font-semibold"
 														: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-												}`}
+													}`}
 											>
-												<span className="text-base whitespace-nowrap">
+												<span className={`${isActive ? "text-primary text-base" : "text-base"} whitespace-nowrap`}>
 													{item.title}
 												</span>
 											</div>
@@ -181,18 +170,16 @@ const DashboardSidebar = () => {
 											tooltip={item.title}
 										>
 											<item.icon
-												className={`h-5 w-5 transition-all duration-300 ease-in-out ${
-													isActive
+												className={`h-5 w-5 transition-all duration-300 ease-in-out ${isActive
 														? "text-primary scale-110"
 														: "text-muted-foreground hover:scale-110"
-												}`}
+													}`}
 											/>
 											<div
-												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-all duration-300 ease-in-out opacity-100 max-w-[200px] group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0 ${
-													isActive
+												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-all duration-300 ease-in-out opacity-100 max-w-50 group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0 ${isActive
 														? "bg-accent text-accent-foreground font-semibold"
 														: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-												}`}
+													}`}
 											>
 												<span className="text-base whitespace-nowrap">
 													{item.title}

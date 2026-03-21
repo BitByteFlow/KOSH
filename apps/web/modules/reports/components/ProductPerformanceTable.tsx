@@ -1,5 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, SlidersHorizontal, Upload, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+	Search,
+	SlidersHorizontal,
+	Upload,
+	ChevronLeft,
+	ChevronRight,
+} from "lucide-react";
 import { useQuery } from "@apollo/client/react";
 import { getDateRange } from "@/lib/date-utils";
 import {
@@ -32,11 +38,9 @@ import {
 } from "@kosh/ui/components/dialog";
 import { cn } from "@/lib/utils";
 
+// interface ProductPerformanceTableProps { }
 
-interface ProductPerformanceTableProps { }
-
-
-export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
+export function ProductPerformanceTable() {
 	const [dateRange, setDateRange] = useState("This Month");
 	const [tempDateRange, setTempDateRange] = useState("This Month");
 	const [searchQuery, setSearchQuery] = useState("");
@@ -67,27 +71,43 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 		return () => clearTimeout(handler);
 	}, [searchQuery]);
 
-	const { startDate, endDate } = useMemo(() => getDateRange(dateRange), [dateRange]);
+	const { startDate, endDate } = useMemo(
+		() => getDateRange(dateRange),
+		[dateRange],
+	);
 
-	const { data: rawData, loading } = useQuery<GetProductPerformanceQuery, GetProductPerformanceQueryVariables>(GET_PRODUCT_PERFORMANCE, {
+	const { data: rawData, loading } = useQuery<
+		GetProductPerformanceQuery,
+		GetProductPerformanceQueryVariables
+	>(GET_PRODUCT_PERFORMANCE, {
 		variables: {
 			filters: {
 				startDate,
 				endDate,
-				categories: appliedFilters.categories.length > 0 ? appliedFilters.categories : undefined,
-				statuses: appliedFilters.statuses.length > 0 ? appliedFilters.statuses : undefined,
-				minSold: appliedFilters.minSold ? parseInt(appliedFilters.minSold) : undefined,
-				maxSold: appliedFilters.maxSold ? parseInt(appliedFilters.maxSold) : undefined,
+				categories:
+					appliedFilters.categories.length > 0
+						? appliedFilters.categories
+						: undefined,
+				statuses:
+					appliedFilters.statuses.length > 0
+						? appliedFilters.statuses
+						: undefined,
+				minSold: appliedFilters.minSold
+					? parseInt(appliedFilters.minSold)
+					: undefined,
+				maxSold: appliedFilters.maxSold
+					? parseInt(appliedFilters.maxSold)
+					: undefined,
 				searchQuery: debouncedSearch || undefined,
 				skip: (currentPage - 1) * pageSize,
 				take: pageSize,
-			}
-		}
+			},
+		},
 	});
 
-	const products = useMemo(() =>
-		rawData?.getProductPerformance?.items || [],
-		[rawData]
+	const products = useMemo(
+		() => rawData?.getProductPerformance?.items || [],
+		[rawData],
 	);
 	const totalCount = rawData?.getProductPerformance?.totalCount || 0;
 	const totalPages = Math.ceil(totalCount / pageSize);
@@ -155,29 +175,47 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 						<SlidersHorizontal className="h-4 w-4" />
 						Filter
 					</Button>
-					<Button variant="outline" className="flex items-center gap-2 h-10">
+					<Button
+						variant="outline"
+						className="flex items-center gap-2 h-10"
+					>
 						<Upload className="h-4 w-4" />
 						Export
 					</Button>
 				</div>
 			</div>
 
-			<div className="rounded-lg border border-border bg-white overflow-hidden shadow-sm">
+			<div className="bg-gray-50 rounded-lg border border-border overflow-hidden shadow-sm">
 				<Table>
 					<TableHeader className="bg-gray-50/50">
 						<TableRow className="border-border hover:bg-transparent">
-							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">Product Name</TableHead>
-							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">SKU</TableHead>
-							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">Units Sold</TableHead>
-							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">Revenue</TableHead>
-							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">Margin</TableHead>
-							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">Status</TableHead>
+							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">
+								Product Name
+							</TableHead>
+							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">
+								SKU
+							</TableHead>
+							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">
+								Units Sold
+							</TableHead>
+							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">
+								Revenue
+							</TableHead>
+							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">
+								Margin
+							</TableHead>
+							<TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground/80 h-12">
+								Status
+							</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{loading ? (
 							<TableRow>
-								<TableCell colSpan={6} className="h-24 text-center">
+								<TableCell
+									colSpan={6}
+									className="h-24 text-center"
+								>
 									<div className="flex items-center justify-center gap-2 text-muted-foreground">
 										<div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
 										Loading performance data...
@@ -186,24 +224,44 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 							</TableRow>
 						) : products.length === 0 ? (
 							<TableRow>
-								<TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+								<TableCell
+									colSpan={6}
+									className="h-24 text-center text-muted-foreground"
+								>
 									No products found matching your criteria.
 								</TableCell>
 							</TableRow>
 						) : (
 							products.map((product: ProductPerformance) => (
-								<TableRow key={product.id} className="hover:bg-muted/30 border-border [&_td]:py-4 transition-colors">
-									<TableCell className="font-medium text-foreground">{product.name}</TableCell>
-									<TableCell className="text-muted-foreground text-sm font-mono">{product.sku}</TableCell>
-									<TableCell className="text-sm font-medium">{product.sold}</TableCell>
-									<TableCell className="font-medium">Rs {product.revenue.toLocaleString()}</TableCell>
-									<TableCell className="text-sm text-green-600 font-semibold">{product.margin}%</TableCell>
+								<TableRow
+									key={product.id}
+									className="hover:bg-muted/30 border-border [&_td]:py-4 transition-colors"
+								>
+									<TableCell className="font-medium text-foreground">
+										{product.name}
+									</TableCell>
+									<TableCell className="text-muted-foreground text-sm font-mono">
+										{product.sku}
+									</TableCell>
+									<TableCell className="text-sm font-medium">
+										{product.sold}
+									</TableCell>
+									<TableCell className="font-medium">
+										Rs {product.revenue.toLocaleString()}
+									</TableCell>
+									<TableCell className="text-sm text-green-600 font-semibold">
+										{product.margin}%
+									</TableCell>
 									<TableCell>
 										<Badge
-											variant={product.status === 'Active' ? 'default' : 'secondary'}
+											variant={
+												product.status === "Active" ? "default" : "secondary"
+											}
 											className={cn(
 												"border-0",
-												product.status === 'Active' ? "bg-green-100 text-green-700 hover:bg-green-100" : "bg-red-100 text-red-700 hover:bg-red-100"
+												product.status === "Active"
+													? "bg-green-100 text-green-700 hover:bg-green-100"
+													: "bg-red-100 text-red-700 hover:bg-red-100",
 											)}
 										>
 											{product.status}
@@ -219,16 +277,22 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 			{totalPages > 1 && (
 				<div className="flex items-center justify-between px-2">
 					<p className="text-sm text-muted-foreground">
-						Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{" "}
-						<span className="font-medium">{Math.min(currentPage * pageSize, totalCount)}</span> of{" "}
-						<span className="font-medium">{totalCount}</span> results
+						Showing{" "}
+						<span className="font-medium">
+							{(currentPage - 1) * pageSize + 1}
+						</span>{" "}
+						to{" "}
+						<span className="font-medium">
+							{Math.min(currentPage * pageSize, totalCount)}
+						</span>{" "}
+						of <span className="font-medium">{totalCount}</span> results
 					</p>
 					<div className="flex items-center gap-2">
 						<Button
 							variant="outline"
 							size="icon"
 							className="h-8 w-8"
-							onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+							onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
 							disabled={currentPage === 1}
 						>
 							<ChevronLeft className="h-4 w-4" />
@@ -240,7 +304,7 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 							variant="outline"
 							size="icon"
 							className="h-8 w-8"
-							onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+							onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
 							disabled={currentPage === totalPages}
 						>
 							<ChevronRight className="h-4 w-4" />
@@ -249,7 +313,10 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 				</div>
 			)}
 
-			<Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+			<Dialog
+				open={isFilterOpen}
+				onOpenChange={setIsFilterOpen}
+			>
 				<DialogContent className="sm:max-w-[600px]">
 					<DialogHeader>
 						<DialogTitle>Filter Product Performance</DialogTitle>
@@ -260,40 +327,61 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 
 					<div className="grid gap-6 py-4">
 						<div className="space-y-3">
-							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date Range</Label>
-							<DateRangeSelector onRangeChange={setTempDateRange} initialRange={tempDateRange} />
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+								Date Range
+							</Label>
+							<DateRangeSelector
+								onRangeChange={setTempDateRange}
+								initialRange={tempDateRange}
+							/>
 						</div>
 
 						<div className="space-y-3">
-							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Category</Label>
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+								Category
+							</Label>
 							<div className="flex flex-wrap gap-4">
-								{["Clothing", "Accessories", "Electronics", "Footwear"].map((cat) => (
-									<div key={cat} className="flex items-center space-x-2">
-										<Checkbox
-											id={`cat-${cat}`}
-											checked={tempFilters.categories.includes(cat)}
-											onCheckedChange={(checked) => handleCategoryChange(cat, checked as boolean)}
-										/>
-										<label
-											htmlFor={`cat-${cat}`}
-											className="text-sm font-medium leading-none"
+								{["Clothing", "Accessories", "Electronics", "Footwear"].map(
+									(cat) => (
+										<div
+											key={cat}
+											className="flex items-center space-x-2"
 										>
-											{cat}
-										</label>
-									</div>
-								))}
+											<Checkbox
+												id={`cat-${cat}`}
+												checked={tempFilters.categories.includes(cat)}
+												onCheckedChange={(checked) =>
+													handleCategoryChange(cat, checked as boolean)
+												}
+											/>
+											<label
+												htmlFor={`cat-${cat}`}
+												className="text-sm font-medium leading-none"
+											>
+												{cat}
+											</label>
+										</div>
+									),
+								)}
 							</div>
 						</div>
 
 						<div className="space-y-3">
-							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</Label>
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+								Status
+							</Label>
 							<div className="flex flex-wrap gap-4">
 								{["Active", "Out of Stock"].map((status) => (
-									<div key={status} className="flex items-center space-x-2">
+									<div
+										key={status}
+										className="flex items-center space-x-2"
+									>
 										<Checkbox
 											id={`status-${status}`}
 											checked={tempFilters.statuses.includes(status)}
-											onCheckedChange={(checked) => handleStatusChange(status, checked as boolean)}
+											onCheckedChange={(checked) =>
+												handleStatusChange(status, checked as boolean)
+											}
 										/>
 										<label
 											htmlFor={`status-${status}`}
@@ -307,28 +395,50 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 						</div>
 
 						<div className="space-y-3">
-							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Units Sold Range</Label>
+							<Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+								Units Sold Range
+							</Label>
 							<div className="grid grid-cols-2 gap-4">
 								<div className="space-y-1.5">
-									<Label htmlFor="minSold" className="text-xs">Min Units</Label>
+									<Label
+										htmlFor="minSold"
+										className="text-xs"
+									>
+										Min Units
+									</Label>
 									<Input
 										id="minSold"
 										type="number"
 										placeholder="0"
 										className="h-9"
 										value={tempFilters.minSold}
-										onChange={(e) => setTempFilters(prev => ({ ...prev, minSold: e.target.value }))}
+										onChange={(e) =>
+											setTempFilters((prev) => ({
+												...prev,
+												minSold: e.target.value,
+											}))
+										}
 									/>
 								</div>
 								<div className="space-y-1.5">
-									<Label htmlFor="maxSold" className="text-xs">Max Units</Label>
+									<Label
+										htmlFor="maxSold"
+										className="text-xs"
+									>
+										Max Units
+									</Label>
 									<Input
 										id="maxSold"
 										type="number"
 										placeholder="Any"
 										className="h-9"
 										value={tempFilters.maxSold}
-										onChange={(e) => setTempFilters(prev => ({ ...prev, maxSold: e.target.value }))}
+										onChange={(e) =>
+											setTempFilters((prev) => ({
+												...prev,
+												maxSold: e.target.value,
+											}))
+										}
 									/>
 								</div>
 							</div>
@@ -336,7 +446,10 @@ export function ProductPerformanceTable({ }: ProductPerformanceTableProps) {
 					</div>
 
 					<DialogFooter>
-						<Button variant="outline" onClick={handleResetFilters}>
+						<Button
+							variant="outline"
+							onClick={handleResetFilters}
+						>
 							Reset
 						</Button>
 						<Button onClick={handleApplyFilters}>Apply Filters</Button>

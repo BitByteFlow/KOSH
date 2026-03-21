@@ -12,7 +12,7 @@ export function AnalyticsOverview() {
 	return (
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
-				<h3 className="text-lg font-medium text-foreground">Analytics Overview</h3>
+				<h3 className="text-lg font-semibold text-foreground tracking-tighter">Analytics Overview</h3>
 				<DateRangeSelector onRangeChange={setDateRange} />
 			</div>
 

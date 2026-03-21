@@ -21,6 +21,7 @@ export async function coreRequest<T>(
 	endpoint: string,
 	options: RequestOptions = {},
 	token?: string,
+	storeId?: string,
 ): Promise<T> {
 	const { timeout = API_CONFIG.timeout, params, ...fetchOptions } = options;
 	
@@ -40,6 +41,10 @@ export async function coreRequest<T>(
 	
 	if (token) {
 		headers.Authorization = `Bearer ${token}`;
+	}
+	
+	if (storeId) {
+		headers["x-store-id"] = storeId;
 	}
 	
 	logRequest(method, url, fetchOptions);

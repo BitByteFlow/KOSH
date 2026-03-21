@@ -1,18 +1,10 @@
-"use client";
-
-import { usePathname } from "next/navigation";
 import React from "react";
-import { cn, capitalizeWords } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import NotificationDropdown from "@/modules/notifications/components/NotificationDropdown";
 import { SidebarTrigger } from "@kosh/ui/components/sidebar";
+import { StoreSwitcher } from "./StoreSwitcher";
 
 const SharedHeader = () => {
-	const pathname = usePathname();
-
-	const pathSegments = pathname.substring(1, pathname.length);
-	const displayTitle =
-		pathSegments.length > 0 ? capitalizeWords(pathSegments) : "Dashboard";
-
 	return (
 		<header
 			className={cn(
@@ -21,15 +13,15 @@ const SharedHeader = () => {
 				"py-3 px-4 md:px-6 border-b border-border",
 			)}
 		>
-			<div className="flex items-center gap-3">
+			<div className="flex items-center gap-3 flex-1">
 				<SidebarTrigger className="-ml-1" />
-				<h2 className="text-lg font-semibold">{displayTitle}</h2>
+				<p className="hidden md:block text-sm text-secondary-foreground font-medium opacity-70 border-l pl-3 border-border">
+					{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+				</p>
 			</div>
 			<div className="flex items-center gap-2">
 				<NotificationDropdown />
-				{/* <button className="p-2 rounded-full hover:bg-muted transition-colors">
-					<Ellipsis className="w-5 h-5 text-muted-foreground" />
-				</button> */}
+				<StoreSwitcher />
 			</div>
 		</header>
 	);

@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { CategoryResponse } from './entities/categoryResponse.entity';
-import { Category } from './entities/category.entity';
 import { CreateCategoryInput } from './dto/createCategory.input';
 import { UpdateCategoryInput } from './dto/updateCategory.input';
 
@@ -15,14 +14,14 @@ export class CategoriesService {
 
   async createCategory(
     input: CreateCategoryInput,
-    userId: string,
+    storeId: string,
   ): Promise<CategoryResponse> {
     try {
       const { name } = input;
       const exists = await this.database.prisma.category.findFirst({
         where: {
           name,
-          userId,
+          storeId,
         },
       });
 
@@ -35,7 +34,7 @@ export class CategoriesService {
       await this.database.category.create({
         data: {
           name,
-          userId,
+          storeId,
         },
       });
 
@@ -51,11 +50,11 @@ export class CategoriesService {
     }
   }
 
-  async getCategories(userId: string): Promise<CategoryResponse> {
+  async getCategories(storeId: string): Promise<CategoryResponse> {
     try {
       const categories = await this.database.category.findMany({
         where: {
-          userId,
+          storeId,
         },
         select: {
           id: true,
@@ -67,7 +66,11 @@ export class CategoriesService {
 
       return {
         success: true,
-        data: categories,
+        data: categories.map(c => ({
+          ...c,
+          createdAt: c.createdAt.toISOString(),
+          updatedAt: c.updatedAt.toISOString(),
+        })),
         message: "Categories fetched successfully"
       };
     } catch (error) {
@@ -77,7 +80,7 @@ export class CategoriesService {
 
   async deleteCategory(
     id: string,
-    userId: string,
+    storeId: string,
   ): Promise<CategoryResponse> {
     try {
       const exists = await this.database.category.findUnique({
@@ -93,7 +96,7 @@ export class CategoriesService {
       await this.database.category.delete({
         where: {
           id,
-          userId,
+          storeId,
         },
       });
 
@@ -111,14 +114,14 @@ export class CategoriesService {
 
   async updateCategory(
     id: string,
-    userId: string,
+    storeId: string,
     input: UpdateCategoryInput,
   ): Promise<CategoryResponse> {
     try {
       const { name } = input;
-      const exist = await this.database.category.findUnique({
+      const exist = await this.database.category.findFirst({
         where: {
-          userId,
+          storeId,
           id,
         },
       });

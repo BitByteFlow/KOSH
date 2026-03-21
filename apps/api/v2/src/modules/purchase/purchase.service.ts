@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { PaymentStatus, Prisma } from '@kosh/db';
+import { PaymentStatus, Prisma, ProductVariant } from '@kosh/db';
 import { DatabaseService } from 'src/database/database.service';
 import { CreatePurchaseInput } from './dto/CreatePurchaseDto.dto';
 import { UpdatePurchaseInput } from './dto/UpdatePurchaseDto.dto';
@@ -11,16 +11,15 @@ import { PurchaseResponse } from './entities/purchaseResponse.entity';
 export class PurchasesService {
     constructor(private readonly database: DatabaseService) { }
 
-    async createPurchase(createPurchaseDto: CreatePurchaseInput, userId: string): Promise<PurchaseResponse> {
+    async createPurchase(createPurchaseDto: CreatePurchaseInput, userId: string, storeId: string): Promise<PurchaseResponse> {
         return this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
-            const variantDetails: Array<{ variant: any; quantity: number; price: number }> = [];
+            const variantDetails: Array<{ variant: ProductVariant; quantity: number; price: number }> = [];
 
             for (const item of createPurchaseDto.variants) {
                 const variant = await tsx.productVariant.findUnique({
                     where: { id: item.variantId },
                     include: {
                         product: true,
-                        attributes: true
                     }
                 });
 
@@ -28,8 +27,8 @@ export class PurchasesService {
                     throw new NotFoundException(`Product variant ${item.variantId} not found`);
                 }
 
-                if (variant.product.userId !== userId) {
-                    throw new NotFoundException(`You don't own product ${variant.product.name}`);
+                if (variant.storeId !== storeId) {
+                    throw new NotFoundException(`Product ${variant.product.name} does not belong to this store`);
                 }
 
                 variantDetails.push({
@@ -67,6 +66,7 @@ export class PurchasesService {
 
             const purchase = await tsx.purchase.create({
                 data: {
+                    storeId,
                     userId,
                     supplierName: createPurchaseDto.supplierName,
                     email: createPurchaseDto.email,
@@ -85,16 +85,7 @@ export class PurchasesService {
                     },
                 },
                 include: {
-                    items: {
-                        include: {
-                            variant: {
-                                include: {
-                                    product: true,
-                                    attributes: true
-                                }
-                            }
-                        }
-                    }
+                    items: true
                 }
             });
 
@@ -109,41 +100,35 @@ export class PurchasesService {
             }
 
             if (amountPaid > 0) {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
+                const todayStr = new Date().toISOString().split('T')[0];
 
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-
-                let dailyBalance = await tsx.dailyBalance.findFirst({
+                let dailyBalance = await tsx.dailyBalance.findUnique({
                     where: {
-                        userId,
-                        date: {
-                            gte: today,
-                            lt: tomorrow,
+                        storeId_date: {
+                            storeId,
+                            date: todayStr,
                         },
                     },
                 });
 
                 if (!dailyBalance) {
-                    const yesterday = new Date(today);
+                    const yesterday = new Date();
                     yesterday.setDate(yesterday.getDate() - 1);
+                    const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-                    const yesterdayBalance = await tsx.dailyBalance.findFirst({
+                    const yesterdayBalance = await tsx.dailyBalance.findUnique({
                         where: {
-                            userId,
-                            date: {
-                                gte: yesterday,
-                                lt: today,
+                            storeId_date: {
+                                storeId,
+                                date: yesterdayStr,
                             },
                         },
-                        orderBy: { date: 'desc' },
                     });
 
                     dailyBalance = await tsx.dailyBalance.create({
                         data: {
-                            userId,
-                            date: today,
+                            storeId,
+                            date: todayStr,
                             openingCash: yesterdayBalance?.closingCash || 0,
                             closingCash: yesterdayBalance?.closingCash || 0,
                             totalCashIn: 0,
@@ -165,7 +150,8 @@ export class PurchasesService {
 
                 await tsx.accountTransaction.create({
                     data: {
-                        userId,
+                        storeId,
+                        // userId,
                         type: 'PURCHASE',
                         amount: amountPaid,
                         note: `Purchase #${purchase.id} from ${createPurchaseDto.supplierName}`,
@@ -182,29 +168,21 @@ export class PurchasesService {
 
         }).catch((error: any) => {
             console.error('Purchase creation error:', error);
-
-            if (error.code === 'P2025') {
-                throw new NotFoundException('Record not found during purchase creation');
-            }
-            if (error.code === 'P2002') {
-                throw new BadRequestException('Duplicate purchase detected');
-            }
             if (error instanceof NotFoundException || error instanceof BadRequestException) {
                 throw error;
             }
-
-            throw new InternalServerErrorException('Failed to create purchase. Please try again.');
+            throw new InternalServerErrorException('Failed to create purchase');
         });
     }
 
 
-    async updatePurchase(updatePurchaseDto: UpdatePurchaseInput, purchaseID: string, userId: string): Promise<any> {
+    async updatePurchase(updatePurchaseDto: UpdatePurchaseInput, purchaseID: string, userId: string, storeId: string): Promise<PurchaseResponse> {
         return this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
 
             const purchase = await tsx.purchase.findUnique({
                 where: {
                     id: purchaseID,
-                    userId: userId
+                    storeId: storeId
                 }
             });
 
@@ -258,48 +236,41 @@ export class PurchasesService {
             await tsx.purchase.update({
                 where: {
                     id: purchaseID,
-                    userId: userId
+                    storeId: storeId
                 },
                 data: updateData
             });
 
             if (additionalPayment > 0) {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
+                const todayStr = new Date().toISOString().split('T')[0];
 
-                let dailyBalance = await tsx.dailyBalance.findFirst({
+                let dailyBalance = await tsx.dailyBalance.findUnique({
                     where: {
-                        userId: userId,
-                        date: {
-                            gte: today,
-                            lt: tomorrow
-                        }
-                    }
+                        storeId_date: {
+                            storeId,
+                            date: todayStr,
+                        },
+                    },
                 });
 
                 if (!dailyBalance) {
-                    const yesterday = new Date(today);
+                    const yesterday = new Date();
                     yesterday.setDate(yesterday.getDate() - 1);
+                    const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-                    const yesterdayBalance = await tsx.dailyBalance.findFirst({
+                    const yesterdayBalance = await tsx.dailyBalance.findUnique({
                         where: {
-                            userId: userId,
-                            date: {
-                                gte: yesterday,
-                                lt: today
+                            storeId_date: {
+                                storeId,
+                                date: yesterdayStr
                             }
-                        },
-                        orderBy: {
-                            date: 'desc'
                         }
                     });
 
                     dailyBalance = await tsx.dailyBalance.create({
                         data: {
-                            userId: userId,
-                            date: today,
+                            storeId,
+                            date: todayStr,
                             openingCash: yesterdayBalance?.closingCash || 0,
                             closingCash: yesterdayBalance?.closingCash || 0,
                             totalCashIn: 0,
@@ -321,7 +292,8 @@ export class PurchasesService {
 
                 await tsx.accountTransaction.create({
                     data: {
-                        userId: userId,
+                        storeId,
+                        // userId: userId,
                         type: 'DEBT_PAID',
                         amount: additionalPayment,
                         note: `Additional payment for purchase #${purchaseID} to ${purchase.supplierName}`,
@@ -331,26 +303,23 @@ export class PurchasesService {
             }
 
             return {
-                status: "success",
+                success: true,
                 message: "Purchase updated successfully",
             };
         });
     }
 
-    async getPurchasesByDateRange(userId: string, from?: string, to?: string): Promise<Purchase[]> {
+    async getPurchasesByDateRange(userId: string, storeId: string, from?: string, to?: string): Promise<Purchase[]> {
         try {
-
-            const where: any = { userId };
+            const where: any = { storeId };
 
             if (from || to) {
                 where.createdAt = {};
-
                 if (from) {
                     const fromDate = new Date(from);
                     fromDate.setHours(0, 0, 0, 0);
                     where.createdAt.gte = fromDate;
                 }
-
                 if (to) {
                     const toDate = new Date(to);
                     toDate.setHours(23, 59, 59, 999);
@@ -358,7 +327,7 @@ export class PurchasesService {
                 }
             }
 
-            const purchases = await this.database.purchase.findMany({
+            const purchases = await this.database.prisma.purchase.findMany({
                 where,
                 include: {
                     items: {
@@ -376,12 +345,10 @@ export class PurchasesService {
                 }
             });
 
-            return purchases;
-
+            return purchases as any;
         } catch (error) {
             console.error('Get purchases error:', error);
             throw new InternalServerErrorException('Failed to fetch purchases');
         }
     }
-
 }

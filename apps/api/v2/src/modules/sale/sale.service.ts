@@ -22,6 +22,7 @@ export class SalesService {
 	async createSale(
 		createSaleDto: CreateSaleInput,
 		userId: string,
+		storeId: string,
 	): Promise<SaleResponse> {
 		const { discount, paymentType, creditId, items, transactionNote } =
 			createSaleDto;
@@ -74,8 +75,10 @@ export class SalesService {
 
 				const sale = await tsx.sale.create({
 					data: {
+						storeId: storeId,
 						userId: userId,
 						total: total,
+						subtotal: subtotal,
 						discount: discount,
 						profit: totalProfit,
 						paymentType: paymentType,
@@ -109,7 +112,7 @@ export class SalesService {
 
 					// Low stock check
 					const settings = await tsx.settings.findUnique({
-						where: { userId }
+						where: { storeId }
 					});
 
 					const threshold = settings?.lowStockThreshold ?? 10;
@@ -125,35 +128,28 @@ export class SalesService {
 				}
 
 				if (paymentType === "CASH" || paymentType === "ONLINE") {
-					const today = new Date();
-					today.setHours(0, 0, 0, 0);
-					const tomorrow = new Date(today);
-					tomorrow.setDate(tomorrow.getDate() + 1);
+					const todayStr = new Date().toISOString().split("T")[0];
 
-					let dailyBalance = await tsx.dailyBalance.findFirst({
+					let dailyBalance = await tsx.dailyBalance.findUnique({
 						where: {
-							userId: userId,
-							date: {
-								gte: today,
-								lt: tomorrow,
+							storeId_date: {
+								storeId: storeId,
+								date: todayStr,
 							},
 						},
 					});
 
 					if (!dailyBalance) {
-						const yesterday = new Date(today);
+						const yesterday = new Date();
 						yesterday.setDate(yesterday.getDate() - 1);
+						const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-						const yesterdayBalance = await tsx.dailyBalance.findFirst({
+						const yesterdayBalance = await tsx.dailyBalance.findUnique({
 							where: {
-								userId: userId,
-								date: {
-									gte: yesterday,
-									lt: today,
+								storeId_date: {
+									storeId: storeId,
+									date: yesterdayStr,
 								},
-							},
-							orderBy: {
-								date: "desc",
 							},
 						});
 
@@ -161,8 +157,8 @@ export class SalesService {
 
 						dailyBalance = await tsx.dailyBalance.create({
 							data: {
-								userId: userId,
-								date: today,
+								storeId: storeId,
+								date: todayStr,
 								openingCash: openingCash,
 								closingCash: openingCash,
 								totalCashIn: 0,
@@ -184,7 +180,8 @@ export class SalesService {
 
 					await tsx.accountTransaction.create({
 						data: {
-							userId: userId,
+							storeId: storeId,
+							// userId: userId,
 							type: TransactionType.SALE_INCOME,
 							amount: total,
 							note: transactionNote || `Sale #${sale.id.slice(0, 8)}`,
@@ -199,7 +196,7 @@ export class SalesService {
 						// Create a new credit account if details provided
 						const creditAccount = await tsx.creditAccount.create({
 							data: {
-								userId: userId,
+								storeId: storeId,
 								customerName: createSaleDto.customerName,
 								email: createSaleDto.customerEmail,
 								contactNumber: createSaleDto.customerContact,
@@ -226,7 +223,8 @@ export class SalesService {
 					// Record the DEBT transaction for history
 					await tsx.accountTransaction.create({
 						data: {
-							userId: userId,
+							storeId: storeId,
+							// userId: userId,
 							type: TransactionType.DEBT,
 							amount: total,
 							note: transactionNote || `Credit Sale #${sale.id.slice(0, 8)}`,
@@ -272,14 +270,14 @@ export class SalesService {
 		}
 	}
 
-	async getMetrices(userId: string): Promise<SalesMetricsResponse> {
+	async getMetrices(userId: string, storeId: string): Promise<SalesMetricsResponse> {
 		try {
 			const today = new Date();
 			today.setHours(0, 0, 0, 0);
 
 			const sales = await this.database.prisma.sale.findMany({
 				where: {
-					userId,
+					storeId,
 					createdAt: {
 						gte: today,
 					},
@@ -315,14 +313,14 @@ export class SalesService {
 		}
 	}
 
-	async getSales(userId: string): Promise<SaleResponse> {
+	async getSales(userId: string, storeId: string): Promise<SaleResponse> {
 		try {
 			const now = new Date();
 			const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
 			const tomorrow = new Date(today);
 			tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 			const sales = await this.database.prisma.sale.findMany({
-				where: { userId, deletedAt: null, createdAt: { gte: today, lt: tomorrow } },
+				where: { storeId, deletedAt: null, createdAt: { gte: today, lt: tomorrow } },
 				include: {
 					items: true,
 				},

@@ -44,7 +44,7 @@ const NotificationDropdown = () => {
 	return (
 		<DropdownMenu open={isOpen} onOpenChange={handleOpenChange} modal={false}>
 			<DropdownMenuTrigger asChild>
-				<button className="relative p-2 rounded-full hover:bg-muted transition-colors outline-none">
+				<button className="relative p-2 rounded-full hover:bg-muted transition-colors outline-none hover:cursor-pointer">
 					<Bell className="w-5 h-5 text-muted-foreground" />
 					{unreadCount > 0 && (
 						<Badge
@@ -58,9 +58,9 @@ const NotificationDropdown = () => {
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-[380px] p-0 overflow-hidden border-border">
 				<div className="flex items-center justify-between px-4 py-3 border-b bg-muted/50">
-					<h3 className="font-semibold text-sm">Notifications</h3>
+					<h3 className="font-semibold text-base tracking-tightu">Notifications</h3>
 					{unreadCount > 0 && (
-						<span className="text-[11px] font-medium text-muted-foreground">
+						<span className="text-sm font-medium text-muted-foreground">
 							{unreadCount} unread
 						</span>
 					)}
@@ -96,7 +96,7 @@ const NotificationDropdown = () => {
 											)}>
 												{notification.message}
 											</p>
-											<span className="text-[11px] text-muted-foreground">
+											<span className="text-sm text-muted-foreground">
 												{formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
 											</span>
 										</div>
@@ -110,7 +110,7 @@ const NotificationDropdown = () => {
 					)}
 				</ScrollArea>
 				<div className="p-2 border-t bg-muted/30 text-center">
-					<button className="text-[11px] font-medium text-primary hover:underline">
+					<button className="text-sm tracking-tight font-medium text-primary hover:underline">
 						View all notifications
 					</button>
 				</div>

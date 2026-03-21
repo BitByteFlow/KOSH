@@ -7,6 +7,7 @@ import { MetricCardSkeleton } from "@/components/MetricCardSkeletion";
 import { gql } from "@/gql";
 import { useQuery } from "@apollo/client/react";
 import { parseGraphQLResponse } from "@/lib/graphql/utils";
+import { formatCurrency } from "@/lib/utils";
 
 
 const GET_SALES_METRICS = gql(`
@@ -55,10 +56,11 @@ const SalesMetrics = () => {
 	const salesMetrics = [
 		{
 			label: "Total Sales",
-			value: `Rs ${metrics.totalSales.toLocaleString()}`,
+			value: formatCurrency(metrics.totalSales),
 			change: { value: 0, label: "Today", positive: true },
 			icon: DollarSign,
 			iconColor: "text-success",
+			gradient: "gradient-blue",
 		},
 		{
 			label: "Transactions",
@@ -66,20 +68,23 @@ const SalesMetrics = () => {
 			sublabel: "Today's sales count",
 			icon: Files,
 			iconColor: "text-info",
+			gradient: "gradient-pink",
 		},
 		{
 			label: "Avg. Sale Value",
-			value: `Rs ${Math.round(metrics.avgSaleValue).toLocaleString()}`,
+			value: formatCurrency(metrics.avgSaleValue),
 			change: { value: 0, label: "Today", positive: true },
 			icon: TrendingUp,
 			iconColor: "text-success",
+			gradient: "gradient-orange",
 		},
 		{
 			label: "Total Profit",
-			value: `Rs ${metrics.totalProfit.toLocaleString()}`,
+			value: formatCurrency(metrics.totalProfit),
 			sublabel: "Today's net profit",
 			icon: Wallet,
 			iconColor: "text-success",
+			gradient: "gradient-redish",
 		},
 	];
 
@@ -93,7 +98,7 @@ const SalesMetrics = () => {
 					change={metric.change}
 					icon={metric.icon}
 					sublabel={metric.sublabel}
-					iconColor={metric.iconColor}
+					gradient={metric.gradient}
 				/>
 			))}
 		</div>

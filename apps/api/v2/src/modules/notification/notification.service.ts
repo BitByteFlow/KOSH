@@ -58,7 +58,6 @@ export class NotificationService {
 			}
 		});
 
-		// Publish notification to subscribers
 		this.pubSub.publish('notificationAdded', { notificationAdded: notification });
 
 		return notification;

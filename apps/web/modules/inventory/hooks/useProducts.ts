@@ -30,7 +30,6 @@ import {
 	UpdateCategoryInput
 } from "@/gql/graphql";
 
-// Keep React Query keys for invalidation compatibility
 export const productKeys = {
 	all: ["products"] as const,
 	list: (params: any) => [...productKeys.all, "list", params] as const,

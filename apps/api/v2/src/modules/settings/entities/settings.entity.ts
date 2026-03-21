@@ -6,7 +6,7 @@ export class Settings {
 	id: string;
 
 	@Field(() => ID)
-	userId: string;
+	storeId: string;
 
 	@Field(() => Int)
 	lowStockThreshold: number;

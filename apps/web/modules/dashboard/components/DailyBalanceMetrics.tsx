@@ -67,7 +67,6 @@ const DailyBalanceMetrics = () => {
 	}
 
 	if (error) {
-		console.log("this is daily balance error ", error)
 		return (
 			<div className="p-4 border border-red-500 rounded bg-red-50">
 				<p className="text-red-700">
@@ -87,56 +86,65 @@ const DailyBalanceMetrics = () => {
 		{
 			label: "Opening Cash",
 			value: formatCurrency(metrics.openingCash),
-			// icon: Wallet,
+			gradient: "gradient-blue",
+			icon: Wallet,
 			sublabel: "Start of day",
 			// iconColor: "text-info",
 		},
 		{
 			label: "Sales Today",
 			value: formatCurrency(metrics.totalSales),
-			// icon: DollarSign,
+			gradient: "gradient-pink",
+			icon: DollarSign,
 			// iconColor: "text-success",
+			sublabel: "Total sales",
 		},
 		{
 			label: "Cash In",
 			value: formatCurrency(metrics.totalCashIn),
-			// icon: TrendingUp,
+			gradient: "gradient-redish",
+			icon: TrendingUp,
 			sublabel: "Total inflows",
 			// iconColor: "text-success",
 		},
 		{
 			label: "Total Expenses",
 			value: formatCurrency(metrics.totalExpense),
-			// icon: ShoppingCart,
+			gradient: "gradient-orange",
+			icon: ShoppingCart,
 			// iconColor: "text-destructive",
+			sublabel: "Total expenses",
 		},
-		{
-			label: "Cash Out",
-			value: formatCurrency(metrics.totalCashOut),
-			// icon: TrendingDown,
-			sublabel: "Total outflows",
-			// iconColor: "text-destructive",
-		},
-		{
-			label: "Closing Cash",
-			value: formatCurrency(metrics.closingCash),
-			// icon: Wallet,
-			sublabel: "Cash in hand",
-			// iconColor: "text-info",
-		},
+		// {
+		// 	label: "Cash Out",
+		// 	value: formatCurrency(metrics.totalCashOut),
+		// 	gradient: "gradient-orange",
+		// 	icon: TrendingDown,
+		// 	sublabel: "Total outflows",
+		// 	// iconColor: "text-destructive",
+		// },
+		// {
+		// 	label: "Closing Cash",
+		// 	value: formatCurrency(metrics.closingCash),
+		// 	gradient: "gradient-pink",
+		// 	icon: Wallet,
+		// 	sublabel: "Cash in hand",
+		// 	// iconColor: "text-info",
+		// },
 	];
 
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+		<div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
 			{metricCardValues.map((item) => (
 				<MetricCard
 					label={item.label}
 					value={item.value}
 					change={item.change}
-					// icon={item.icon}
+					icon={item.icon}
 					key={item.label}
 					sublabel={item.sublabel}
 					// iconColor={item.iconColor}
+					gradient={item.gradient}
 				/>
 			))}
 		</div>

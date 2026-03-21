@@ -12,15 +12,15 @@ import { AnalyticsTransactionFilter, AnalyticsTransactionResult, AnalyticsTransa
 export class ReportService {
 	constructor(private readonly database: DatabaseService) { }
 
-	async getAnalyticsMetrics(userId: string, startDate: Date, endDate: Date): Promise<AnalyticsMetricsResponse> {
+	async getAnalyticsMetrics(storeId: string, startDate: Date, endDate: Date): Promise<AnalyticsMetricsResponse> {
 		try {
-			const currentMetrics = await this.calculateMetrics(userId, startDate, endDate);
+			const currentMetrics = await this.calculateMetrics(storeId, startDate, endDate);
 
 			const duration = endDate.getTime() - startDate.getTime();
 			const prevEndDate = new Date(startDate);
 			const prevStartDate = new Date(startDate.getTime() - duration);
 
-			const prevMetrics = await this.calculateMetrics(userId, prevStartDate, prevEndDate);
+			const prevMetrics = await this.calculateMetrics(storeId, prevStartDate, prevEndDate);
 
 			return {
 				success: true,
@@ -61,10 +61,10 @@ export class ReportService {
 		}
 	}
 
-	private async calculateMetrics(userId: string, start: Date, end: Date) {
+	private async calculateMetrics(storeId: string, start: Date, end: Date) {
 		const sales = await this.database.prisma.sale.findMany({
 			where: {
-				userId,
+				storeId,
 				createdAt: {
 					gte: start,
 					lte: end,
@@ -86,11 +86,11 @@ export class ReportService {
 		};
 	}
 
-	async getSalesTrend(userId: string, startDate: Date, endDate: Date): Promise<AnalyticsTrendResponse> {
+	async getSalesTrend(storeId: string, startDate: Date, endDate: Date): Promise<AnalyticsTrendResponse> {
 		try {
 			const sales = await this.database.prisma.sale.findMany({
 				where: {
-					userId,
+					storeId,
 					createdAt: {
 						gte: startDate,
 						lte: endDate,
@@ -136,12 +136,12 @@ export class ReportService {
 		}
 	}
 
-	async getTopProducts(userId: string, startDate: Date, endDate: Date): Promise<TopProductResponse> {
+	async getTopProducts(storeId: string, startDate: Date, endDate: Date): Promise<TopProductResponse> {
 		try {
 			const saleItems = await this.database.prisma.saleItem.findMany({
 				where: {
 					sale: {
-						userId,
+						storeId,
 						createdAt: {
 							gte: startDate,
 							lte: endDate,
@@ -172,7 +172,7 @@ export class ReportService {
 					revenue: `Rs. ${value.toLocaleString()}`,
 				}))
 				.sort((a, b) => b.value - a.value)
-				.slice(0, 5); // Return top 5
+				.slice(0, 5);
 
 			return {
 				success: true,
@@ -185,12 +185,12 @@ export class ReportService {
 		}
 	}
 
-	async getSalesReport(userId: string, filters: SaleReportFilter): Promise<SaleReportResponse> {
+	async getSalesReport(storeId: string, filters: SaleReportFilter): Promise<SaleReportResponse> {
 		try {
 			const { startDate, endDate, paymentMethods, statuses, searchQuery } = filters;
 
 			const where: any = {
-				userId,
+				storeId,
 				deletedAt: null,
 			};
 
@@ -285,7 +285,7 @@ export class ReportService {
 		}
 	}
 
-	async getProductPerformance(userId: string, filters: ProductPerformanceFilter): Promise<ProductPerformanceResult> {
+	async getProductPerformance(storeId: string, filters: ProductPerformanceFilter): Promise<ProductPerformanceResult> {
 		try {
 			const {
 				startDate,
@@ -300,7 +300,7 @@ export class ReportService {
 			} = filters;
 
 			const where: any = {
-				userId,
+				storeId,
 				deletedAt: null,
 			};
 
@@ -403,7 +403,7 @@ export class ReportService {
 		}
 	}
 
-	async getInventoryReport(userId: string, filters: InventoryReportFilter): Promise<InventoryReportResult> {
+	async getInventoryReport(storeId: string, filters: InventoryReportFilter): Promise<InventoryReportResult> {
 		try {
 			const {
 				categories,
@@ -416,7 +416,7 @@ export class ReportService {
 			} = filters;
 
 			const where: any = {
-				userId,
+				storeId,
 				deletedAt: null,
 			};
 
@@ -500,7 +500,7 @@ export class ReportService {
 		}
 	}
 
-	async getAnalyticsTransactions(userId: string, filters: AnalyticsTransactionFilter): Promise<AnalyticsTransactionResult> {
+	async getAnalyticsTransactions(storeId: string, filters: AnalyticsTransactionFilter): Promise<AnalyticsTransactionResult> {
 		try {
 			const {
 				startDate,
@@ -515,7 +515,7 @@ export class ReportService {
 			} = filters;
 
 			const where: any = {
-				userId,
+				storeId,
 				deletedAt: null,
 			};
 

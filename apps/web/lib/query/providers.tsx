@@ -8,6 +8,7 @@ import { queryClient } from "./client";
 import { Toaster } from "sonner";
 import { ApolloWrapper } from "../graphql/apolloWrapper";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { StoreProvider } from "@/context/StoreContext";
 
 interface ProvidersProps {
 	children: ReactNode;
@@ -18,14 +19,15 @@ export function Providers({ children }: ProvidersProps) {
 		<SessionProvider>
 			<ProtectedRoute>
 				<ApolloWrapper>
-					<QueryClientProvider client={queryClient}>
-						{children}
-						<Toaster position="top-right" richColors closeButton />
-						{process.env.NODE_ENV === "development" && (
-							<ReactQueryDevtools initialIsOpen={false} />
-						)}
-					</QueryClientProvider>
-
+					<StoreProvider>
+						<QueryClientProvider client={queryClient}>
+							{children}
+							<Toaster position="top-right" richColors closeButton />
+							{process.env.NODE_ENV === "development" && (
+								<ReactQueryDevtools initialIsOpen={false} />
+							)}
+						</QueryClientProvider>
+					</StoreProvider>
 				</ApolloWrapper>
 			</ProtectedRoute>
 		</SessionProvider>

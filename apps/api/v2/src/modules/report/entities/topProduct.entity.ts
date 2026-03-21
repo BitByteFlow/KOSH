@@ -7,9 +7,6 @@ export class TopProduct {
 
 	@Field(() => String)
 	revenue: string;
-
-	@Field(() => Float)
-	value: number;
 }
 
 

@@ -184,7 +184,7 @@ export function TransactionTable() {
 	};
 
 	return (
-		<Card className="border border-border gap-2 p-6 overflow-hidden rounded-lg shadow-md">
+		<Card className="bg-gray-100/60 border border-border gap-2 p-6 overflow-hidden rounded-lg shadow-md">
 			<div className="flex items-center justify-between py-2 ">
 				<h2 className="text-lg font-bold">Recent Transactions</h2>
 				<div className="flex items-center gap-2">
@@ -214,22 +214,25 @@ export function TransactionTable() {
 						<Table>
 							<TableHeader className="bg-muted/50">
 								<TableRow className="border-b border-border transition-colors">
-									<TableHead className="text-left font-semibold text-foreground">
+									<TableHead className="text-left text-base font-semibold text-foreground">
 										Transaction Date
 									</TableHead>
-									<TableHead className="text-left font-semibold text-foreground">
+									<TableHead className="text-left text-base font-semibold text-foreground">
 										Transaction Type
 									</TableHead>
-									<TableHead className="text-right font-semibold text-foreground">
+									<TableHead className="text-right text-base font-semibold text-foreground">
 										Amount
 									</TableHead>
-									<TableHead className="text-left font-semibold text-foreground">
+									<TableHead className="text-left text-base font-semibold text-foreground">
 										Note
 									</TableHead>
-									<TableHead className="text-left font-semibold text-foreground">
+									<TableHead className="text-left text-base font-semibold text-foreground">
+										Created At
+									</TableHead>
+									<TableHead className="text-left text-base font-semibold text-foreground">
 										Updated At
 									</TableHead>
-									<TableHead className="text-center font-semibold text-foreground">
+									<TableHead className="text-center text-base font-semibold text-foreground">
 										Actions
 									</TableHead>
 								</TableRow>
@@ -246,16 +249,16 @@ export function TransactionTable() {
 									return (
 										<TableRow
 											key={transaction.id}
-											className="border-b border-border/50 hover:bg-muted/30 transition-colors"
+											className="border-b border-border/50 hover:bg-muted/30 transition-colors hover:bg-blue-100 rounded-lg"
 										>
-											<TableCell className="text-sm">
+											<TableCell>
 												{format(
 													new Date(transaction.createdAt),
 													"MMM dd, yyyy HH:mm",
 												)}
 											</TableCell>
 											<TableCell>
-												<Badge variant={typeConfig.variant}>
+												<Badge variant={typeConfig.variant} className="px-4 py-2 text-md">
 													{typeConfig.label}
 												</Badge>
 											</TableCell>
@@ -264,6 +267,13 @@ export function TransactionTable() {
 											</TableCell>
 											<TableCell className="text-sm text-muted-foreground max-w-xs truncate">
 												{transaction.note || "-"}
+											</TableCell>
+
+											<TableCell className="text-sm text-muted-foreground">
+												{format(
+													new Date(transaction.createdAt),
+													"MMM dd, yyyy HH:mm",
+												)}
 											</TableCell>
 											<TableCell className="text-sm text-muted-foreground">
 												{format(

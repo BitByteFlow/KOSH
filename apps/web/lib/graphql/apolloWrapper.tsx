@@ -7,14 +7,15 @@ import { createClient } from "graphql-ws";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { useSession } from "next-auth/react"
 
-const makeClient = (accessToken?: string) => {
-	const graphqlUrl = process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:4000/graphql";
+const makeClient = (accessToken?: string, storeId?: string) => {
+	const graphqlUrl = process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:5000/graphql";
 	const wsUrl = graphqlUrl.replace(/^http/, "ws");
 
 	const httpLink = new HttpLink({
 		uri: graphqlUrl,
 		headers: {
-			"Authorization": accessToken ? `Bearer ${accessToken}` : ""
+			"Authorization": accessToken ? `Bearer ${accessToken}` : "",
+			"x-store-id": storeId || ""
 		}
 	})
 
@@ -24,6 +25,7 @@ const makeClient = (accessToken?: string) => {
 				url: wsUrl,
 				connectionParams: () => ({
 					Authorization: accessToken ? `Bearer ${accessToken}` : "",
+					"x-store-id": storeId || ""
 				}),
 			})
 		)
@@ -56,7 +58,7 @@ export function ApolloWrapper({ children }: { children: React.ReactNode }) {
 	const session = useSession()
 
 	return (
-		<ApolloNextAppProvider makeClient={() => makeClient(session?.data?.user?.token)}>
+		<ApolloNextAppProvider makeClient={() => makeClient(session?.data?.user?.token, session?.data?.user?.storeId)}>
 			{children}
 		</ApolloNextAppProvider>
 	)

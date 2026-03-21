@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { UpdateSettingsInput } from './dto/update-settings.input';
 import { SettingsResponse } from './entities/settings-response.entity';
@@ -7,17 +7,17 @@ import { SettingsResponse } from './entities/settings-response.entity';
 export class SettingsService {
 	constructor(private readonly database: DatabaseService) { }
 
-	async getSettings(userId: string): Promise<SettingsResponse> {
+	async getSettings(storeId: string): Promise<SettingsResponse> {
 		try {
 			let settings = await this.database.prisma.settings.findUnique({
-				where: { userId },
+				where: { storeId },
 			});
 
 			// Auto-create settings if they don't exist
 			if (!settings) {
 				settings = await this.database.prisma.settings.create({
 					data: {
-						userId,
+						storeId,
 						lowStockThreshold: 10,
 						autoArchive: false,
 						emailReports: true,
@@ -40,17 +40,17 @@ export class SettingsService {
 	}
 
 	async updateSettings(
-		userId: string,
+		storeId: string,
 		input: UpdateSettingsInput,
 	): Promise<SettingsResponse> {
 		try {
 			const settings = await this.database.prisma.settings.upsert({
-				where: { userId },
+				where: { storeId },
 				update: {
 					...input,
 				},
 				create: {
-					userId,
+					storeId,
 					lowStockThreshold: input.lowStockThreshold ?? 10,
 					autoArchive: input.autoArchive ?? false,
 					emailReports: input.emailReports ?? true,

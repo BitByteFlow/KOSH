@@ -1,4 +1,4 @@
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 import { Card } from "@kosh/ui/components/card";
 import type { MetricCardProps } from "@/types/dashboard";
@@ -8,50 +8,100 @@ export function MetricCard({
 	label,
 	value,
 	change,
-	// icon: Icon,
+	icon: Icon,
 	sublabel,
-	// iconColor,
+	iconColor,
+	gradient,
 }: MetricCardProps) {
+	const hasGradient = !!gradient;
+
+	let primaryTextColor = "text-foreground";
+	let secondaryTextColor = "text-muted-foreground";
+	let iconWrapperClassName = "bg-muted text-foreground";
+	let positiveTrendColor = "text-success bg-success/10 border-success/20";
+	let negativeTrendColor = "text-destructive bg-destructive/10 border-destructive/20";
+
+	if (gradient === "gradient-blue") {
+		primaryTextColor = "text-white";
+		secondaryTextColor = "text-blue-100";
+		iconWrapperClassName = "bg-white/20 text-white backdrop-blur-md shadow-inner ring-1 ring-white/20";
+		positiveTrendColor = "text-emerald-100 bg-white/20 ring-1 ring-white/20";
+		negativeTrendColor = "text-rose-100 bg-white/20 ring-1 ring-white/20";
+	} else if (gradient === "gradient-redish") {
+		primaryTextColor = "text-black";
+		secondaryTextColor = "text-black";
+		iconWrapperClassName = "";
+		positiveTrendColor = "text-emerald-800 bg-white/60 ring-1 ring-black/5";
+		negativeTrendColor = "text-rose-800 bg-white/60 ring-1 ring-black/5";
+	} else if (gradient === "gradient-pink") {
+		primaryTextColor = "text-black";
+		secondaryTextColor = "text-black";
+		iconWrapperClassName = "";
+		positiveTrendColor = "text-emerald-800 bg-white/60 ring-1 ring-black/5";
+		negativeTrendColor = "text-rose-800 bg-white/60 ring-1 ring-black/5";
+	} else if (gradient === "gradient-orange") {
+		primaryTextColor = "text-black";
+		secondaryTextColor = "text-black";
+		iconWrapperClassName = "";
+		positiveTrendColor = "text-emerald-800 bg-white/60 ring-1 ring-black/5";
+		negativeTrendColor = "text-rose-800 bg-white/60 ring-1 ring-black/5";
+	}
+
+	const cardClassName = cn(
+		"relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl",
+		!hasGradient ? "bg-card border border-border shadow-sm" : "border-0 shadow-md",
+		gradient,
+		hasGradient && "before:absolute before:inset-0 before:bg-white/10 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:pointer-events-none"
+	);
+
+	const TrendIcon = change?.positive ? TrendingUp : TrendingDown;
+
 	return (
-		<Card className="p-5 border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow">
-			<div className="flex items-start justify-between">
-				<div className="space-y-1">
-					<p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
-					<p className="text-xl font-bold text-foreground tabular-nums">{value}</p>
-					{sublabel && (
-						<p className="text-xs text-muted-foreground font-medium">{sublabel}</p>
-					)}
-					{change && (
-						<div className="flex items-center gap-1.5 mt-2 text-sm">
-							<TrendingUp
-								className={cn(
-									"h-4 w-4",
-									change.positive ? "text-success" : "text-destructive",
-								)}
-							/>
-							<span
-								className={cn(
-									"font-semibold",
-									change.positive ? "text-success" : "text-destructive",
-								)}
-							>
-								{change.positive ? "+" : "-"}
-								{change.value}%
-							</span>
-							<span className="text-muted-foreground">{change.label}</span>
-						</div>
-					)}
+		<Card className={cardClassName}>
+			{hasGradient && (
+				<div className="absolute inset-0 z-0 rounded-2xl border border-white/20 pointer-events-none mix-blend-overlay" />
+			)}
+
+			<div className="relative z-10 flex flex-col gap-y-4">
+				<div className="flex items-start justify-between">
+					<p className={cn("text-xl font-medium tracking-tighter mt-1", secondaryTextColor)}>
+						{label}
+					</p>
+					<div className="transition-transform hover:scale-110">
+						{Icon && (
+							<div className={cn("flex h-12 w-12 items-center justify-center rounded-full", iconWrapperClassName)}>
+								<Icon className={cn("h-6 w-6", iconColor)} />
+							</div>
+						)}
+					</div>
 				</div>
-				{/* <div className={cn(
-					"p-3 rounded-xl transition-colors ring-1 ring-border/50 shadow-inner",
-					// iconColor === "text-success" ? "bg-success/10" :
-						// iconColor === "text-destructive" ? "bg-destructive/10" :
-							// iconColor === "text-warning" ? "bg-warning/10" :
-								// iconColor === "text-info" ? "bg-info/10" :
-									// "bg-muted/50"
-				)}>
-					<Icon className={cn("w-4 h-4 transition-transform hover:scale-110", iconColor || "text-primary")} />
-				</div> */}
+
+				<div>
+					<h3 className={cn("text-2xl lg:text-3xl font-bold tracking-tighter tabular-nums", primaryTextColor)}>
+						{value}
+					</h3>
+				</div>
+
+				{(sublabel || change) && (
+					<div className="mt-1 flex flex-col gap-2">
+						{change && (
+							<div className="flex items-center gap-2">
+								<div className={cn("flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-md", change.positive ? positiveTrendColor : negativeTrendColor)}>
+									<TrendIcon className="h-5 w-5" strokeWidth={2.5} />
+									<span>{change.value}%</span>
+								</div>
+								<span className={cn("text-xs font-medium", secondaryTextColor)}>
+									{change.label}
+								</span>
+							</div>
+						)}
+						{sublabel && (
+							<span className={cn("text-lg font-medium", secondaryTextColor)}>
+								{sublabel}
+							</span>
+						)}
+					</div>
+				)}
 			</div>
 		</Card>
 	);

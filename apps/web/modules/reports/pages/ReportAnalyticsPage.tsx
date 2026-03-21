@@ -7,7 +7,7 @@ const ReportAnalyticsPage = () => {
 	return (
 		<main className="flex-1 space-y-8 p-4 md:p-8">
 			<div className="flex items-center justify-between">
-				<h2 className="text-2xl font-bold text-foreground">
+				<h2 className="text-3xl tracking-tighter font-semibold text-foreground">
 					Reports & Analytics
 				</h2>
 			</div>

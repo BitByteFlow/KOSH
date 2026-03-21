@@ -1,5 +1,10 @@
 import { z } from "zod";
-import {PaymentStatus} from "@kosh/db"
+export const PaymentStatus = {
+  PENDING: "PENDING",
+  PARTIAL: "PARTIAL",
+  PAID: "PAID",
+  OVERDUE: "OVERDUE",
+} as const
 
 export const purchaseVariantItemSchema = z.object({
   variantId: z.string().uuid("Variant ID is required"),
