@@ -64,3 +64,48 @@ export const GET_SALES_HISTORY = gql`
     }
   }
 `;
+export const GET_ACCOUNT_TRANSACTIONS = gql`
+  query GetAccountTransactions {
+    getAccountTransactions {
+      success
+      message
+      data {
+        id
+        type
+        amount
+        note
+        createdAt
+      }
+    }
+  }
+`;
+
+export const CREATE_ACCOUNT_TRANSACTION = gql`
+  mutation CreateAccountTransaction($input: CreateAccountTransactionInput!) {
+    createAccountTransaction(input: $input) {
+      success
+      message
+      data {
+        id
+        type
+        amount
+        note
+        createdAt
+      }
+    }
+  }
+`;
+
+export const GET_STORE_DETAILS = gql`
+  query GetStoreDetails($storeId: ID!) {
+    getStoreDetails(storeId: $storeId) {
+      success
+      message
+      data {
+        id
+        name
+        address
+      }
+    }
+  }
+`;
