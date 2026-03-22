@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
 export interface AuthUser {
   id: string;
   email: string;
@@ -37,19 +35,13 @@ interface AuthContextValue extends AuthState {
   logout: () => void;
 }
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-
 const TOKEN_KEY = 'kosh_pos_token';
 const USER_KEY = 'kosh_pos_user';
 const STORE_KEY = 'kosh_pos_store';
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:4000';
-
-// ─── Context ──────────────────────────────────────────────────────────────────
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-
-// ─── Provider ─────────────────────────────────────────────────────────────────
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -105,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: profile.email, googleId: profile.googleId }),
+        body: JSON.stringify({ email: profile.email, googleId: profile.googleId, isCashier: true }),
       });
 
       // If user not found, register them
@@ -118,6 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             googleId: profile.googleId,
             username: profile.username,
             image: profile.image,
+            isCashier: true,
           }),
         });
       }
@@ -187,8 +180,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </AuthContext.Provider>
   );
 };
-
-// ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export const useAuth = (): AuthContextValue => {
   const ctx = useContext(AuthContext);

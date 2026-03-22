@@ -9,24 +9,16 @@ import { toast } from 'sonner';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:4000';
 
-// Validate that a Store ID exists in the system
 const validateStoreId = async (storeId: string, token: string): Promise<{ valid: boolean; storeName?: string; error?: string }> => {
   try {
-    // We call the GraphQL API to check if the storeId exists
-    const response = await fetch(`${API_BASE}/graphql`, {
+    const response = await fetch(`${API_BASE}/storeMember/onboarding`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
-        query: `query {
-          getStoreDetails(storeId: "${storeId}") {
-            success
-            message
-            data { id name }
-          }
-        }`,
+        storeId,
       }),
     });
 

@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@apollo/client": "^4.1.6",
     "@kosh/ui": "*",
     "@tailwindcss/vite": "^4.2.2",
     "@zxing/browser": "^0.1.5",

@@ -4,6 +4,11 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  server: {
+    allowedHosts: [
+      'fb84-103-225-244-66.ngrok-free.app'
+    ]
+  },
   plugins: [
     react(),
     tailwindcss(),
