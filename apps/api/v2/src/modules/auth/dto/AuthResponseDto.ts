@@ -5,8 +5,9 @@ export class AuthResponseDto {
         email: string;
         username: string;
     };
-    store: {
+    store?: {
         storeId: string
         storeName: string
     }
+    isStoreCashier?: boolean
 }
