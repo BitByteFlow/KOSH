@@ -18,7 +18,6 @@ export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  // Whether the user is authenticated but not yet enrolled in any store
   needsOnboarding: boolean;
 }
 
@@ -31,7 +30,7 @@ interface GoogleProfile {
 
 interface AuthContextValue extends AuthState {
   loginWithGoogle: (profile: GoogleProfile) => Promise<void>;
-  enrollInStore: (storeId: string) => void;
+  enrollInStore: (storeId: string, storeName: string) => void;
   logout: () => void;
 }
 
@@ -48,8 +47,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<AuthUser | null>(null);
   const [store, setStore] = useState<AuthStore | null>(null);
   const [token, setToken] = useState<string | null>(null);
-
-  // Hydrate from localStorage on mount
   useEffect(() => {
     try {
       const savedToken = localStorage.getItem(TOKEN_KEY);
@@ -64,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     } catch (e) {
-      console.error('Failed to hydrate auth state', e);
+      toast.error('Failed to load session. Please log in again.');
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem(STORE_KEY);
@@ -93,14 +90,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithGoogle = useCallback(async (profile: GoogleProfile) => {
     setIsLoading(true);
     try {
-      // First try to sign in (existing user)
       let response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: profile.email, googleId: profile.googleId, isCashier: true }),
       });
 
-      // If user not found, register them
       if (response.status === 401) {
         response = await fetch(`${API_BASE}/auth/register`, {
           method: 'POST',
@@ -124,8 +119,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const newUser: AuthUser = data.user;
       const newToken: string = data.token;
 
-      // The backend returns store info for store creators. Cashiers won't have it.
-      // We treat "no store" as needing onboarding.
       const newStore: AuthStore | null = data.store?.storeId
         ? { storeId: data.store.storeId, storeName: data.store.storeName }
         : null;
@@ -139,16 +132,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [persistSession]);
 
-  const enrollInStore = useCallback((storeId: string) => {
-    // Store enrollment is managed at the API level by an admin adding you.
-    // On the POS side, we just save the storeId the cashier connects to.
+  const enrollInStore = useCallback((storeId: string, storeName: string) => {
     const newStore: AuthStore = {
       storeId,
-      storeName: `Store ${storeId.slice(0, 6)}`,
+      storeName,
     };
     setStore(newStore);
     localStorage.setItem(STORE_KEY, JSON.stringify(newStore));
-    toast.success('Successfully connected to store!');
+    // toast.success('Successfully connected to store!');
   }, []);
 
   const logout = useCallback(() => {

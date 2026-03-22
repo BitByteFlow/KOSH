@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, type AuthStore } from '../context/AuthContext';
 import { Button } from "@kosh/ui/components/button";
 import { Input } from "@kosh/ui/components/input";
 import { CheckCircle, AlertCircle, Loader2, Store, ArrowRight, LogOut } from 'lucide-react';
@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:4000';
 
-const validateStoreId = async (storeId: string, token: string): Promise<{ valid: boolean; storeName?: string; error?: string }> => {
+const validateStoreId = async (storeId: string, token: string): Promise<{ valid: boolean; store?: AuthStore; error?: string }> => {
   try {
     const response = await fetch(`${API_BASE}/storeMember/onboarding`, {
       method: 'POST',
@@ -23,10 +23,8 @@ const validateStoreId = async (storeId: string, token: string): Promise<{ valid:
     });
 
     const json = await response.json();
-    const result = json?.data?.getStoreDetails;
-
-    if (result?.success && result?.data?.id) {
-      return { valid: true, storeName: result.data.name };
+    if (json?.success && json?.store) {
+      return { valid: true, store: json.store as AuthStore };
     }
 
     return { valid: false, error: 'Store not found. Please check the ID and try again.' };
@@ -43,7 +41,7 @@ const OnboardingPage: React.FC = () => {
   const [storeId, setStoreId] = useState('');
   const [step, setStep] = useState<Step>('input');
   const [errorMsg, setErrorMsg] = useState('');
-  const [validatedStore, setValidatedStore] = useState<{ id: string; name: string } | null>(null);
+  const [validatedStore, setValidatedStore] = useState<AuthStore | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,13 +69,13 @@ const OnboardingPage: React.FC = () => {
       return;
     }
 
-    setValidatedStore({ id: trimmedId, name: result.storeName ?? trimmedId });
+    setValidatedStore(result.store!);
     setStep('success');
   };
 
   const handleConfirmEnrollment = () => {
     if (!validatedStore) return;
-    enrollInStore(validatedStore.id);
+    enrollInStore(validatedStore.storeId, validatedStore.storeName);
     navigate('/', { replace: true });
   };
 
@@ -90,7 +88,6 @@ const OnboardingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Decorative background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-32 -right-32 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] bg-blue-100/80 rounded-full blur-3xl" />
@@ -106,7 +103,6 @@ const OnboardingPage: React.FC = () => {
           <div className="h-2 bg-gradient-to-r from-primary via-blue-500 to-violet-500" />
 
           <div className="p-10">
-            {/* Header */}
             <div className="flex items-start justify-between mb-8">
               <div>
                 <div className="flex items-center gap-2 mb-2">
@@ -125,7 +121,6 @@ const OnboardingPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Step: Input */}
             {step === 'input' && (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
@@ -150,7 +145,6 @@ const OnboardingPage: React.FC = () => {
               </form>
             )}
 
-            {/* Step: Validating */}
             {step === 'validating' && (
               <div className="flex flex-col items-center py-8 gap-4">
                 <Loader2 className="animate-spin text-primary" size={40} />
@@ -161,7 +155,6 @@ const OnboardingPage: React.FC = () => {
               </div>
             )}
 
-            {/* Step: Error */}
             {step === 'error' && (
               <div className="space-y-4">
                 <div className="flex flex-col items-center py-6 gap-3">
@@ -179,7 +172,6 @@ const OnboardingPage: React.FC = () => {
               </div>
             )}
 
-            {/* Step: Success */}
             {step === 'success' && validatedStore && (
               <div className="space-y-6">
                 <div className="flex flex-col items-center py-4 gap-3">
@@ -203,8 +195,8 @@ const OnboardingPage: React.FC = () => {
                       <Store size={18} className="text-primary" />
                     </div>
                     <div>
-                      <p className="font-black text-slate-900">{validatedStore.name}</p>
-                      <p className="text-xs text-slate-400 font-mono">ID: {validatedStore.id.slice(0, 20)}...</p>
+                      <p className="font-black text-slate-900">{validatedStore.storeName}</p>
+                      <p className="text-xs text-slate-400 font-mono">ID: {validatedStore.storeId}</p>
                     </div>
                   </div>
                 </div>
@@ -213,9 +205,11 @@ const OnboardingPage: React.FC = () => {
                   <Button onClick={handleConfirmEnrollment} className="w-full h-12 rounded-xl font-bold gap-2" size="lg">
                     Connect & Start Working <ArrowRight size={16} />
                   </Button>
-                  <Button onClick={handleRetry} variant="ghost" className="w-full h-10 rounded-xl text-slate-500 font-bold text-sm">
-                    Use a different Store ID
-                  </Button>
+                  {!validateStoreId || errorMsg && (
+                    <Button onClick={handleRetry} variant="ghost" className="w-full h-10 rounded-xl text-slate-500 font-bold text-sm">
+                      Use a different Store ID
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
