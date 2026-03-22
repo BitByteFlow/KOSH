@@ -6,6 +6,6 @@ import { StoreMemberController } from "./storeMember.controller";
 @Module({
   providers: [StoreMemberService, StoreMemberResolver],
   controllers: [StoreMemberController],
-  exports: [StoreMemberService, StoreMemberController],
+  exports: [StoreMemberService],
 })
 export class StoreMemberModule { }

@@ -15,8 +15,12 @@ export class StoreMemberService {
       throw new NotFoundException(`Store with ID ${storeId} not found`);
     }
 
-    const storeJoinRequest = await this.database.prisma.storeJoinRequest.create({
-      data: {
+    const storeJoinRequest = await this.database.prisma.storeJoinRequest.upsert({
+      where: { storeId_userId: { storeId, userId } },
+      update: {
+        status: "PENDING",
+      },
+      create: {
         storeId: store.id,
         userId,
       }
@@ -27,6 +31,10 @@ export class StoreMemberService {
     return {
       success: true,
       message: "Onboarding successful, you're request has been sent to the store admin for approval.",
+      store: {
+        storeId: store.id,
+        storeName: store.name
+      }
     };
   }
 

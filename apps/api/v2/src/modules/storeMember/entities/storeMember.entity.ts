@@ -33,6 +33,15 @@ export class StoreMember {
 }
 
 @ObjectType()
+export class StoreInfo {
+  @Field(() => ID)
+  storeId: string;
+
+  @Field(() => String)
+  storeName: string;
+}
+
+@ObjectType()
 export class StoreMemberResponse {
   @Field()
   success: boolean;
@@ -42,6 +51,9 @@ export class StoreMemberResponse {
 
   @Field(() => StoreMember, { nullable: true })
   data?: StoreMember;
+
+  @Field(() => StoreInfo, { nullable: true })
+  store?: StoreInfo;
 }
 
 @ObjectType()
