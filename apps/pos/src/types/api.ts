@@ -1,24 +1,16 @@
 import type { Product, ProductVariant, CreateSaleInput } from "./index";
 
-// ============================================================================
-// Common Response Types
-// ============================================================================
-
 export interface ApiListResponse<T> {
 	data: T[];
-	meta: {
-		total: number;
-		hasNext: number;
-		hasPrev: number;
-		page: number;
-		limit: number;
-		totalPages: number;
-	};
+	// meta: {
+	// 	total: number;
+	// 	hasNext: number;
+	// 	hasPrev: number;
+	// 	page: number;
+	// 	limit: number;
+	// 	totalPages: number;
+	// };
 }
-
-// ============================================================================
-// Product Types
-// ============================================================================
 
 export interface ProductFilterParams {
 	search?: string;
@@ -33,10 +25,6 @@ export interface ProductFilterParams {
 export interface ProductListResponse extends ApiListResponse<Product> {}
 
 export interface ProductVariantResponse extends ProductVariant {}
-
-// ============================================================================
-// Sale Types
-// ============================================================================
 
 export interface SaleItem {
 	id: string;
@@ -75,10 +63,6 @@ export interface SaleFilters {
 	limit?: number;
 }
 
-// ============================================================================
-// Account Transaction Types
-// ============================================================================
-
 export type TransactionType =
 	| "DEPOSIT"
 	| "WITHDRAWAL"
@@ -114,10 +98,6 @@ export interface TransactionFilters {
 	limit?: number;
 }
 
-// ============================================================================
-// Store Types
-// ============================================================================
-
 export interface Store {
 	id: string;
 	name: string;
@@ -129,10 +109,6 @@ export interface Store {
 }
 
 export interface StoreResponse extends Store {}
-
-// ============================================================================
-// Dashboard/Stats Types
-// ============================================================================
 
 export interface DashboardStats {
 	totalSales: number;

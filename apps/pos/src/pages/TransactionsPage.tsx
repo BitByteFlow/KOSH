@@ -6,7 +6,6 @@ import {
 	CreditCard,
 	Banknote,
 	History,
-	ExternalLink,
 	ChevronRight,
 	Search,
 	Filter,
@@ -52,14 +51,18 @@ const TransactionsPage: React.FC = () => {
 						<h3 className="text-xl font-bold">Error loading history</h3>
 						<p>{(error as Error).message}</p>
 					</div>
-					<Button variant="outline" onClick={() => refetch()} className="mt-2">
+					<Button
+						variant="outline"
+						onClick={() => refetch()}
+						className="mt-2"
+					>
 						Try Again
 					</Button>
 				</div>
 			</div>
 		);
 
-	const transactions = data?.data || [];
+	const transactions = data || [];
 	const filteredTransactions = transactions.filter((tx: any) => {
 		if (!searchTerm) return true;
 		const search = searchTerm.toLowerCase();
@@ -73,30 +76,12 @@ const TransactionsPage: React.FC = () => {
 		<div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
 			<div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
 				<div>
-					<h1 className="text-3xl font-black text-slate-900 tracking-tight">
-						TRANSACTION LOG
+					<h1 className="text-2xl font-black text-slate-900 tracking-tight">
+						Your today's sales
 					</h1>
-					<p className="text-slate-500 font-medium mt-1">
+					<p className="text-slate-500 font-medium mt-1 text-sm">
 						Manage and audit your store sales.
 					</p>
-				</div>
-
-				<div className="flex gap-2">
-					<Button
-						variant="outline"
-						className="h-10 bg-white border-slate-200 shadow-sm gap-2"
-					>
-						<Calendar size={16} />
-						<span>Last 7 Days</span>
-					</Button>
-					<Button
-						variant="outline"
-						size="icon"
-						className="h-10 w-10 bg-white border-slate-200"
-						onClick={() => refetch()}
-					>
-						<Filter size={16} />
-					</Button>
 				</div>
 			</div>
 
@@ -206,8 +191,8 @@ const TransactionsPage: React.FC = () => {
 									</TableCell>
 									<TableCell className="text-right pr-6">
 										<div className="flex items-center justify-end gap-3">
-											<span className="text-base font-black text-slate-900">
-												${transaction.total.toFixed(2)}
+											<span className="text-base font-bold text-slate-900">
+												Rs. {transaction.total.toFixed(2)}
 											</span>
 											<div className="p-1 rounded-md opacity-0 group-hover:opacity-100 bg-white border border-slate-200 transition-all shadow-sm">
 												<ChevronRight
@@ -244,19 +229,6 @@ const TransactionsPage: React.FC = () => {
 					</Table>
 				</CardContent>
 			</Card>
-
-			<div className="flex items-center justify-center pt-4">
-				<Button
-					variant="outline"
-					className="bg-white text-slate-400 font-bold text-xs uppercase tracking-widest border-slate-200 h-11 px-8 rounded-xl shadow-sm hover:text-primary transition-all"
-				>
-					View Detailed Analytics{" "}
-					<ExternalLink
-						size={14}
-						className="ml-2"
-					/>
-				</Button>
-			</div>
 		</div>
 	);
 };

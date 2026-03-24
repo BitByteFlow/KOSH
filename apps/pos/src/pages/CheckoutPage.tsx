@@ -12,8 +12,10 @@ import { useCart } from "../store/useCart";
 import { Button } from "@kosh/ui/components/button";
 import { Card } from "@kosh/ui/components/card";
 import { Badge } from "@kosh/ui/components/badge";
+import { useAuth } from "../context/AuthContext";
 
 const CheckoutPage: React.FC = () => {
+	const { store } = useAuth();
 	const [isScanning, setIsScanning] = useState(false);
 	const [isSearching, setIsSearching] = useState(false);
 	const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
@@ -52,6 +54,7 @@ const CheckoutPage: React.FC = () => {
 
 		try {
 			const saleInput = {
+				storeId: store?.storeId,
 				total,
 				discount: 0,
 				profit: 0,

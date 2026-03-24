@@ -17,8 +17,8 @@ export const salesApi = {
 		return response.data;
 	},
 
-	getAll: async (filters?: SaleFilters): Promise<SaleListResponse> => {
-		const response = await apiClient.get<SaleListResponse>("/sales", {
+	getAll: async (filters?: SaleFilters): Promise<Sale[]> => {
+		const response = await apiClient.get<Sale[]>("/sales", {
 			params: filters as unknown as
 				| Record<string, string | number | boolean | undefined>
 				| undefined,
