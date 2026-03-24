@@ -192,7 +192,7 @@ const CheckoutPage: React.FC = () => {
 							<div className="p-3 bg-green-100/50 rounded-xl text-green-600 group-hover:scale-110 transition-transform">
 								<Banknote size={24} />
 							</div>
-							<span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-green-700">
+							<span className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-green-700">
 								Cash Payment
 							</span>
 						</Button>
@@ -207,7 +207,7 @@ const CheckoutPage: React.FC = () => {
 							<div className="p-3 bg-blue-100/50 rounded-xl text-blue-600 group-hover:scale-110 transition-transform">
 								<CreditCard size={24} />
 							</div>
-							<span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-blue-700">
+							<span className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-blue-700">
 								Online/Card
 							</span>
 						</Button>

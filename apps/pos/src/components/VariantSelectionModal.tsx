@@ -126,12 +126,12 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 														!isOutOfStock && setSelectedVariant(variant)
 													}
 													disabled={isOutOfStock}
-													className={`w-full p-4 rounded-2xl border-2 text-left transition-all duration-200 group ${
+													className={`w-full p-10 bg-slate-50 hover:bg-slate-50 rounded-2xl border-2 text-left transition-all duration-200 group ${
 														isSelected
-															? "p-10 border-primary bg-primary/5 shadow-md shadow-primary/10"
+															? "border-primary shadow-md shadow-primary/10"
 															: isOutOfStock
 																? "border-slate-100 bg-slate-50 opacity-50 cursor-not-allowed"
-																: "border-slate-200 hover:border-primary hover:bg-slate-50"
+																: "border-slate-200 hover:border-primary "
 													}`}
 												>
 													<div className="w-full flex gap-4">
@@ -185,7 +185,7 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 
 														<div className="text-right shrink-0">
 															<p
-																className={`text-xl font-black ${
+																className={`text-lg font-black ${
 																	isOutOfStock
 																		? "text-slate-300"
 																		: isSelected
@@ -193,7 +193,7 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 																			: "text-slate-900"
 																}`}
 															>
-																${variant.sellingPrice.toFixed(2)}
+																Rs. {variant.sellingPrice.toFixed(2)}
 															</p>
 															{isLowStock && !isOutOfStock && (
 																<p className="text-[9px] text-amber-600 font-bold mt-0.5">
@@ -218,9 +218,9 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 									>
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-3">
-												<div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center">
+												<div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center">
 													<Check
-														size={20}
+														size={14}
 														strokeWidth={2.5}
 													/>
 												</div>
@@ -238,8 +238,8 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 												<p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
 													Total
 												</p>
-												<p className="text-2xl font-black text-primary">
-													${selectedVariant.sellingPrice.toFixed(2)}
+												<p className="text-xl font-black text-primary">
+													Rs. {selectedVariant.sellingPrice.toFixed(2)}
 												</p>
 											</div>
 										</div>
@@ -249,7 +249,7 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 								<Button
 									onClick={handleAddToCart}
 									disabled={!selectedVariant}
-									className="w-full h-14 rounded-2xl font-bold text-base shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 bg-gradient-to-r from-primary to-primary/90"
+									className="w-full h-14 rounded-2xl font-bold text-base shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 bg-linear-to-r from-primary to-primary/90"
 									size="lg"
 								>
 									{selectedVariant ? (
@@ -260,7 +260,7 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 											/>
 											Add to Cart
 											<span className="ml-2 px-2 py-0.5 bg-white/20 rounded-lg text-sm">
-												${selectedVariant.sellingPrice.toFixed(2)}
+												Rs. {selectedVariant.sellingPrice.toFixed(2)}
 											</span>
 										</span>
 									) : (

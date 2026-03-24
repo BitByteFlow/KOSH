@@ -105,7 +105,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
 											{product.variantCount > 1 && (
 												<Badge
 													variant="secondary"
-													className="text-[10px] h-5 px-2 bg-slate-100 text-slate-500 border-none"
+													className="text-sm h-5 px-2 bg-slate-100 text-slate-500 border-none"
 												>
 													{product.variantCount} variants
 												</Badge>
@@ -114,7 +114,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
 										<h4 className="font-bold text-slate-800 line-clamp-2 leading-tight">
 											{product.productName}
 										</h4>
-										<p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+										<p className="text-sm text-slate-400 font-bold uppercase tracking-wider mt-1">
 											{product.category?.name || "Uncategorized"}
 										</p>
 									</div>
@@ -122,22 +122,22 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
 									<div className="mt-3 pt-3 border-t border-slate-100">
 										<div className="flex items-center justify-between">
 											<div>
-												<p className="text-[9px] text-slate-400 font-medium">
+												<p className="text-xs text-slate-400 font-medium">
 													Price
 												</p>
 												<p className="text-base font-black text-slate-900">
-													$
+													Rs. 
 													{Math.min(
 														...product.variants.map((v: any) => v.sellingPrice),
 													).toFixed(2)}
 												</p>
 											</div>
 											<div className="text-right">
-												<p className="text-[9px] text-slate-400 font-medium">
+												<p className="text-xs text-slate-400 font-medium">
 													Stock
 												</p>
 												<p
-													className={`text-xs font-bold ${product.totalStock > 0 ? "text-green-600" : "text-red-500"}`}
+													className={`text-sm font-bold ${product.totalStock > 0 ? "text-green-600" : "text-red-500"}`}
 												>
 													{product.totalStock} units
 												</p>

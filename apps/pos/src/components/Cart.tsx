@@ -42,9 +42,8 @@ const Cart: React.FC = () => {
 				</h3>
 				<Button
 					variant="ghost"
-					size="sm"
 					onClick={clearCart}
-					className="text-red-500 hover:text-red-600 hover:bg-red-50 text-[10px] font-bold h-7 uppercase tracking-wider"
+					className="text-red-500 hover:text-red-600 hover:bg-red-50 text-xs font-bold h-7 uppercase tracking-wider"
 				>
 					Clear
 				</Button>
@@ -63,10 +62,10 @@ const Cart: React.FC = () => {
 							<div className="flex flex-col gap-2 p-3 rounded-xl border border-slate-100 hover:border-slate-200 transition-all bg-slate-50/50">
 								<div className="flex items-center gap-3">
 									<div className="flex-1">
-										<h4 className="font-bold text-sm text-slate-900 leading-tight">
+										<h4 className="font-bold text-normal text-slate-900 leading-tight">
 											{item.name}
 										</h4>
-										<p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+										<p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">
 											{item.sku}
 										</p>
 									</div>
@@ -109,11 +108,11 @@ const Cart: React.FC = () => {
 									</div>
 
 									<div className="text-right">
-										<p className="text-xs font-bold text-slate-500">
-											${item.price.toFixed(2)} each
+										<p className="font-semibold text-slate-500 text-sm">
+											Rs. {item.price.toFixed(2)} each
 										</p>
-										<p className="font-black text-slate-900 text-sm">
-											${(item.price * item.quantity).toFixed(2)}
+										<p className="font-black text-slate-900 mt-1">
+											Rs. {(item.price * item.quantity).toFixed(2)}
 										</p>
 									</div>
 								</div>
@@ -126,11 +125,11 @@ const Cart: React.FC = () => {
 			<div className="p-5 border-t border-slate-100 bg-slate-50/50">
 				<div className="flex justify-between items-end">
 					<div>
-						<p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">
+						<p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">
 							Total
 						</p>
-						<p className="text-3xl font-black text-slate-900 drop-shadow-sm">
-							${total.toFixed(2)}
+						<p className="text-2xl font-black text-slate-900 drop-shadow-sm">
+							Rs. {total.toFixed(2)}
 						</p>
 					</div>
 				</div>
