@@ -1,36 +1,46 @@
 export interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  variants: ProductVariant[];
+	id: string;
+	productName: string;
+	description?: string;
+	variants: ProductVariant[];
+	variantCount?: number;
+	totalStock?: number;
+	category?: {
+		id: string;
+		name: string;
+	};
 }
 
 export interface ProductVariant {
-  id: string;
-  sku: string;
-  barcode: string;
-  sellingPrice: number;
-  costPrice: number;
-  stock: number;
-  product: {
-    id: string;
-    name: string;
-  };
+	id: string;
+	sku: string;
+	barcode: string;
+	sellingPrice: number;
+	costPrice: number;
+	stock: number;
+	attributes?: Array<{
+		id: string;
+		name: string;
+		value: string;
+	}>;
 }
 
 export interface SaleItemInput {
-  variantId: string;
-  quantity: number;
-  sellPrice: number;
-  costPrice: number;
+	variantId: string;
+	quantity: number;
+	sellPrice: number;
+	costPrice: number;
 }
 
 export interface CreateSaleInput {
-  total: number;
-  discount: number;
-  profit: number;
-  paymentType: 'CASH' | 'ONLINE' | 'CREDIT';
-  userId: string;
-  storeId: string;
-  items: SaleItemInput[];
+	total: number;
+	discount: number;
+	profit: number;
+	paymentType: "CASH" | "ONLINE" | "CREDIT";
+	userId?: string;
+	storeId?: string;
+	items: SaleItemInput[];
 }
+
+// Re-export API types
+export * from "./api";

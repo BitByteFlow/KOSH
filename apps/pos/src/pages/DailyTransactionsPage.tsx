@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation } from '@apollo/client/react';
-import { gql } from '@apollo/client';
+import { useAllTransactions, useCreateTransaction } from '../hooks/useTransactions';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,40 +12,6 @@ import { Card, CardContent, CardHeader } from "@kosh/ui/components/card";
 import { Badge } from "@kosh/ui/components/badge";
 import { Input } from "@kosh/ui/components/input";
 import { toast } from 'sonner';
-
-// ─── GraphQL ──────────────────────────────────────────────────────────────────
-
-const GET_DAILY_TRANSACTIONS = gql`
-  query GetDailyTransactions {
-    getAccountTransactions {
-      success
-      message
-      data {
-        id
-        type
-        amount
-        note
-        createdAt
-      }
-    }
-  }
-`;
-
-const CREATE_TRANSACTION = gql`
-  mutation CreateAccountTransaction($input: CreateAccountTransactionInput!) {
-    createAccountTransaction(input: $input) {
-      success
-      message
-      data {
-        id
-        type
-        amount
-        note
-        createdAt
-      }
-    }
-  }
-`;
 
 // ─── Transaction config ───────────────────────────────────────────────────────
 
@@ -78,28 +43,27 @@ const AddEntryForm: React.FC<AddEntryFormProps> = ({ onSuccess, onCancel }) => {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
 
-  const [createTransaction, { loading }] = useMutation(CREATE_TRANSACTION, {
-    onCompleted: (data: any) => {
-      if (data?.createAccountTransaction?.success) {
-        toast.success('Transaction recorded successfully!');
-        onSuccess();
-      } else {
-        toast.error(data?.createAccountTransaction?.message ?? 'Failed to record.');
-      }
-    },
-    onError: (err) => toast.error(err.message),
-  });
+  const createTransaction = useCreateTransaction();
+  const isLoading = createTransaction.isPending;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsedAmount = parseFloat(amount);
     if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
       toast.error('Please enter a valid amount greater than 0.');
       return;
     }
-    createTransaction({
-      variables: { input: { type: selectedType, amount: parsedAmount, note: note.trim() || undefined } },
-    });
+    try {
+      await createTransaction.mutateAsync({
+        type: selectedType,
+        amount: parsedAmount,
+        note: note.trim() || undefined,
+        storeId: '', // Will be handled by backend from auth token
+      });
+      onSuccess();
+    } catch (err) {
+      // Error already handled by hook
+    }
   };
 
   return (
@@ -116,7 +80,7 @@ const AddEntryForm: React.FC<AddEntryFormProps> = ({ onSuccess, onCancel }) => {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Type selector */}
             <div>
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 block">Transaction Type</label>
+              <span className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 block">Transaction Type</span>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {TRANSACTION_TYPES.map(({ value, label, icon: Icon, color, bgColor }) => (
                   <button
@@ -140,7 +104,7 @@ const AddEntryForm: React.FC<AddEntryFormProps> = ({ onSuccess, onCancel }) => {
 
             {/* Amount */}
             <div>
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 block">Amount</label>
+              <span className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 block">Amount</span>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
                 <Input
@@ -156,9 +120,8 @@ const AddEntryForm: React.FC<AddEntryFormProps> = ({ onSuccess, onCancel }) => {
               </div>
             </div>
 
-            {/* Note */}
             <div>
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 block">Note (Optional)</label>
+              <span className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 block">Note (Optional)</span>
               <Input
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -169,9 +132,9 @@ const AddEntryForm: React.FC<AddEntryFormProps> = ({ onSuccess, onCancel }) => {
             </div>
 
             <div className="flex gap-3 pt-1">
-              <Button type="submit" disabled={loading} className="flex-1 h-12 rounded-xl font-bold gap-2">
-                {loading ? <RefreshCw size={16} className="animate-spin" /> : <Plus size={16} />}
-                {loading ? 'Saving...' : 'Record Transaction'}
+              <Button type="submit" disabled={isLoading} className="flex-1 h-12 rounded-xl font-bold gap-2">
+                {isLoading ? <RefreshCw size={16} className="animate-spin" /> : <Plus size={16} />}
+                {isLoading ? 'Saving...' : 'Record Transaction'}
               </Button>
               <Button type="button" variant="outline" onClick={onCancel} className="h-12 px-6 rounded-xl border-slate-200 font-bold text-slate-500">
                 Cancel
@@ -188,11 +151,9 @@ const AddEntryForm: React.FC<AddEntryFormProps> = ({ onSuccess, onCancel }) => {
 
 const DailyTransactionsPage: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
-  const { data, loading, error, refetch } = useQuery(GET_DAILY_TRANSACTIONS, {
-    fetchPolicy: 'cache-and-network',
-  });
+  const { data, isLoading: loading, error, refetch } = useAllTransactions();
 
-  const transactions: any[] = (data as any)?.getAccountTransactions?.data ?? [];
+  const transactions = data?.data ?? [];
   const today = format(new Date(), 'yyyy-MM-dd');
   const todayTransactions = transactions.filter(t =>
     format(new Date(t.createdAt), 'yyyy-MM-dd') === today
@@ -201,11 +162,11 @@ const DailyTransactionsPage: React.FC = () => {
   // Daily summary calculations
   const totalCashIn = todayTransactions
     .filter(t => !isDebit(t.type))
-    .reduce((acc, t) => acc + parseFloat(t.amount), 0);
+    .reduce((acc, t) => acc + parseFloat(t.amount.toString()), 0);
 
   const totalCashOut = todayTransactions
     .filter(t => isDebit(t.type))
-    .reduce((acc, t) => acc + parseFloat(t.amount), 0);
+    .reduce((acc, t) => acc + parseFloat(t.amount.toString()), 0);
 
   const netBalance = totalCashIn - totalCashOut;
 
@@ -219,7 +180,7 @@ const DailyTransactionsPage: React.FC = () => {
       <div className="flex flex-col items-center gap-3 text-center">
         <AlertCircle className="text-red-400" size={40} />
         <p className="font-bold text-slate-700">Failed to load transactions</p>
-        <p className="text-sm text-slate-400">{error.message}</p>
+        <p className="text-sm text-slate-400">{(error as Error).message}</p>
         <Button variant="outline" onClick={() => refetch()} className="mt-2">Try Again</Button>
       </div>
     </div>
@@ -246,7 +207,7 @@ const DailyTransactionsPage: React.FC = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-4">
-        <Card className="rounded-2xl border-0 bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/20">
+        <Card className="rounded-2xl border-0 bg-linear-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/20">
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 bg-white/20 rounded-xl"><TrendingUp size={18} className="text-white" /></div>
@@ -256,7 +217,7 @@ const DailyTransactionsPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-0 bg-gradient-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/20">
+        <Card className="rounded-2xl border-0 bg-linear-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/20">
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 bg-white/20 rounded-xl"><TrendingDown size={18} className="text-white" /></div>
@@ -266,7 +227,7 @@ const DailyTransactionsPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className={`rounded-2xl border-0 shadow-lg ${netBalance >= 0 ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/20' : 'bg-gradient-to-br from-slate-500 to-slate-700 shadow-slate-500/20'}`}>
+        <Card className={`rounded-2xl border-0 shadow-lg ${netBalance >= 0 ? 'bg-linear-to-br from-blue-500 to-indigo-600 shadow-blue-500/20' : 'bg-linear-to-br from-slate-500 to-slate-700 shadow-slate-500/20'}`}>
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 bg-white/20 rounded-xl"><Wallet size={18} className="text-white" /></div>
@@ -321,7 +282,7 @@ const DailyTransactionsPage: React.FC = () => {
                 transition={{ delay: index * 0.04 }}
                 className="flex items-center gap-4 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:shadow transition-all"
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${config.bgColor}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${config.bgColor}`}>
                   <Icon size={18} className={config.color} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -332,7 +293,7 @@ const DailyTransactionsPage: React.FC = () => {
                   </div>
                   {tx.note && <p className="text-sm text-slate-500 mt-0.5 truncate">{tx.note}</p>}
                 </div>
-                <div className="text-right flex-shrink-0">
+                <div className="text-right shrink-0">
                   <p className={`text-base font-black ${debit ? 'text-red-600' : 'text-green-600'}`}>
                     {debit ? '-' : '+'}${parseFloat(tx.amount).toFixed(2)}
                   </p>

@@ -12,11 +12,12 @@
   "dependencies": {
     "@kosh/ui": "*",
     "@tailwindcss/vite": "^4.2.2",
+    "@tanstack/react-query": "^5.80.0",
+    "@tanstack/react-query-devtools": "^5.80.0",
     "@zxing/browser": "^0.1.5",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.38.0",
-    "graphql": "^16.13.1",
     "lucide-react": "^0.577.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

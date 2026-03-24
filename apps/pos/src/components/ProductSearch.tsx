@@ -1,123 +1,167 @@
-import React, { useState, useEffect } from 'react';
-import { useLazyQuery } from '@apollo/client/react';
-import { LIST_PRODUCTS } from '../graphql/operations';
-import type { ProductVariant } from '../types';
-import { Search, Plus, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from "react";
+import { useProductSearch } from "../hooks/useProducts";
+import type { Product } from "../types";
+import { Search, Package, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@kosh/ui/components/input";
 import { Card, CardContent } from "@kosh/ui/components/card";
 import { Badge } from "@kosh/ui/components/badge";
-import { Button } from "@kosh/ui/components/button";
 
 interface ProductSearchProps {
-  onSelect: (variant: ProductVariant) => void;
-  externalSearch?: string;
+	onProductSelect: (product: Product) => void;
+	externalSearch?: string;
 }
 
-const ProductSearch: React.FC<ProductSearchProps> = ({ onSelect, externalSearch }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchProducts, { data, loading }] = useLazyQuery(LIST_PRODUCTS);
+const ProductSearch: React.FC<ProductSearchProps> = ({
+	onProductSelect,
+	externalSearch,
+}) => {
+	const [searchTerm, setSearchTerm] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  useEffect(() => {
-    if (externalSearch) {
-      setSearchTerm(externalSearch);
-      handleSearch(externalSearch);
-    }
-  }, [externalSearch]);
+	useEffect(() => {
+		if (externalSearch) {
+			setSearchTerm(externalSearch);
+			setDebouncedSearch(externalSearch);
+		}
+	}, [externalSearch]);
 
-  const handleSearch = (term: string) => {
-    if (term.length < 2) return;
-    searchProducts({
-      variables: {
-        filterInput: {
-          search: term,
-          page: 1,
-          limit: 10
-        }
-      }
-    });
-  };
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			if (searchTerm.length >= 2) {
+				setDebouncedSearch(searchTerm);
+			} else {
+				setDebouncedSearch("");
+			}
+		}, 500);
 
-  const results = (data as any)?.listProductsWithFilter?.data || [];
+		return () => clearTimeout(timer);
+	}, [searchTerm]);
 
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-        <Input
-          placeholder="Search products by name or SKU..."
-          className="pl-11 h-12 text-base rounded-xl border-slate-200"
-          value={searchTerm}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            setSearchTerm(e.target.value);
-            handleSearch(e.target.value);
-          }}
-        />
-        {loading && (
-          <div className="absolute right-4 top-1/2 -translate-y-1/2">
-            <Loader2 className="animate-spin text-primary" size={18} />
-          </div>
-        )}
-      </div>
+	const {
+		data,
+		isLoading: loading,
+		error,
+	} = useProductSearch(
+		{ search: debouncedSearch || undefined, page: 1, limit: 20 },
+		!!debouncedSearch,
+	);
 
-      <div className="grid grid-cols-1 gap-2">
-        <AnimatePresence mode="popLayout">
-          {results.map((product: any) => (
-            product.variants.map((variant: any) => (
-              <motion.div
-                key={variant.id}
-                layout
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-              >
-                <Card 
-                  className="hover:border-primary/50 transition-colors cursor-pointer group border-slate-200 bg-white"
-                  onClick={() => onSelect({ ...variant, product: { id: product.id, name: product.productName } })}
-                 >
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-slate-800">
-                          {product.productName}
-                        </h4>
-                        {variant.attributeValue && (
-                          <Badge variant="secondary" className="text-[10px] h-4 px-1 bg-slate-100 text-slate-500 border-none">
-                            {variant.attributeValue}
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
-                        {variant.sku}
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-lg font-black text-slate-900">${variant.sellingPrice.toFixed(2)}</p>
-                        <p className={`text-[9px] uppercase font-bold ${variant.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                          {variant.stock} in stock
-                        </p>
-                      </div>
-                      <Button size="icon" variant="ghost" className="rounded-full bg-slate-50 group-hover:bg-primary group-hover:text-white transition-all h-9 w-9">
-                        <Plus size={18} />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))
-          ))}
-        </AnimatePresence>
+	const results = data?.data || [];
 
-        {!loading && searchTerm.length >= 2 && results.length === 0 && (
-          <div className="text-center py-12 text-slate-400">
-            <p className="font-medium">No results found for "{searchTerm}"</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+	const handleSearch = useCallback((term: string) => {
+		setSearchTerm(term);
+	}, []);
+
+	return (
+		<div className="flex flex-col gap-6">
+			<div className="relative">
+				<Search
+					className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+					size={18}
+				/>
+				<Input
+					placeholder="Search products by name or SKU..."
+					className="pl-11 h-12 text-base rounded-xl border-slate-200"
+					value={searchTerm}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+						setSearchTerm(e.target.value);
+						handleSearch(e.target.value);
+					}}
+				/>
+				{loading && (
+					<div className="absolute right-4 top-1/2 -translate-y-1/2">
+						<Loader2
+							className="animate-spin text-primary"
+							size={18}
+						/>
+					</div>
+				)}
+			</div>
+
+			<div className="grid grid-cols-2 gap-3">
+				<AnimatePresence mode="popLayout">
+					{results.map((product: any) => (
+						<motion.div
+							key={product.id}
+							layout
+							initial={{ opacity: 0, scale: 0.95 }}
+							animate={{ opacity: 1, scale: 1 }}
+							exit={{ opacity: 0, scale: 0.95 }}
+						>
+							<Card
+								className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group border-slate-200 bg-white h-full"
+								onClick={() => onProductSelect(product)}
+							>
+								<CardContent className="p-4 flex flex-col h-full">
+									<div className="flex-1">
+										<div className="flex items-start justify-between gap-2 mb-2">
+											<div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+												<Package
+													size={18}
+													className="text-primary"
+												/>
+											</div>
+											{product.variantCount > 1 && (
+												<Badge
+													variant="secondary"
+													className="text-[10px] h-5 px-2 bg-slate-100 text-slate-500 border-none"
+												>
+													{product.variantCount} variants
+												</Badge>
+											)}
+										</div>
+										<h4 className="font-bold text-slate-800 line-clamp-2 leading-tight">
+											{product.productName}
+										</h4>
+										<p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+											{product.category?.name || "Uncategorized"}
+										</p>
+									</div>
+
+									<div className="mt-3 pt-3 border-t border-slate-100">
+										<div className="flex items-center justify-between">
+											<div>
+												<p className="text-[9px] text-slate-400 font-medium">
+													Price
+												</p>
+												<p className="text-base font-black text-slate-900">
+													$
+													{Math.min(
+														...product.variants.map((v: any) => v.sellingPrice),
+													).toFixed(2)}
+												</p>
+											</div>
+											<div className="text-right">
+												<p className="text-[9px] text-slate-400 font-medium">
+													Stock
+												</p>
+												<p
+													className={`text-xs font-bold ${product.totalStock > 0 ? "text-green-600" : "text-red-500"}`}
+												>
+													{product.totalStock} units
+												</p>
+											</div>
+										</div>
+									</div>
+								</CardContent>
+							</Card>
+						</motion.div>
+					))}
+				</AnimatePresence>
+
+				{!loading && searchTerm.length >= 2 && results.length === 0 && (
+					<div className="col-span-2 text-center py-12 text-slate-400">
+						<Package
+							size={48}
+							className="mx-auto mb-3 opacity-50"
+						/>
+						<p className="font-medium">No products found for "{searchTerm}"</p>
+					</div>
+				)}
+			</div>
+		</div>
+	);
 };
 
 export default ProductSearch;
