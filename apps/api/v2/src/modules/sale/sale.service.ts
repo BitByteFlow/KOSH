@@ -17,12 +17,11 @@ export class SalesService {
 	constructor(
 		private readonly database: DatabaseService,
 		private readonly notificationService: NotificationService,
-	) { }
+	) {}
 
 	async createSale(
 		createSaleDto: CreateSaleInput,
 		userId: string,
-		storeId: string,
 	): Promise<SaleResponse> {
 		const { discount, paymentType, creditId, items, transactionNote } =
 			createSaleDto;
@@ -75,7 +74,7 @@ export class SalesService {
 
 				const sale = await tsx.sale.create({
 					data: {
-						storeId: storeId,
+						storeId: createSaleDto.storeId,
 						userId: userId,
 						total: total,
 						subtotal: subtotal,
@@ -106,13 +105,12 @@ export class SalesService {
 							},
 						},
 						include: {
-							product: true
-						}
+							product: true,
+						},
 					});
 
-					// Low stock check
 					const settings = await tsx.settings.findUnique({
-						where: { storeId }
+						where: { storeId: createSaleDto.storeId },
 					});
 
 					const threshold = settings?.lowStockThreshold ?? 10;
@@ -122,7 +120,7 @@ export class SalesService {
 							userId,
 							NotificationType.LOW_STOCK,
 							`Product "${updatedVariant.product.name}" is low on stock (${updatedVariant.stock} remaining)`,
-							updatedVariant.id
+							updatedVariant.id,
 						);
 					}
 				}
@@ -133,7 +131,7 @@ export class SalesService {
 					let dailyBalance = await tsx.dailyBalance.findUnique({
 						where: {
 							storeId_date: {
-								storeId: storeId,
+								storeId: createSaleDto.storeId,
 								date: todayStr,
 							},
 						},
@@ -147,7 +145,7 @@ export class SalesService {
 						const yesterdayBalance = await tsx.dailyBalance.findUnique({
 							where: {
 								storeId_date: {
-									storeId: storeId,
+									storeId: createSaleDto.storeId,
 									date: yesterdayStr,
 								},
 							},
@@ -157,7 +155,7 @@ export class SalesService {
 
 						dailyBalance = await tsx.dailyBalance.create({
 							data: {
-								storeId: storeId,
+								storeId: createSaleDto.storeId,
 								date: todayStr,
 								openingCash: openingCash,
 								closingCash: openingCash,
@@ -180,7 +178,7 @@ export class SalesService {
 
 					await tsx.accountTransaction.create({
 						data: {
-							storeId: storeId,
+							storeId: createSaleDto.storeId,
 							// userId: userId,
 							type: TransactionType.SALE_INCOME,
 							amount: total,
@@ -193,10 +191,9 @@ export class SalesService {
 					let creditAccountId = creditId;
 
 					if (!creditAccountId && createSaleDto.customerName) {
-						// Create a new credit account if details provided
 						const creditAccount = await tsx.creditAccount.create({
 							data: {
-								storeId: storeId,
+								storeId: createSaleDto.storeId,
 								customerName: createSaleDto.customerName,
 								email: createSaleDto.customerEmail,
 								contactNumber: createSaleDto.customerContact,
@@ -205,13 +202,11 @@ export class SalesService {
 						});
 						creditAccountId = creditAccount.id;
 
-						// Update the sale with the newly created credit account ID
 						await tsx.sale.update({
 							where: { id: sale.id },
 							data: { creditId: creditAccountId },
 						});
 					} else if (creditAccountId) {
-						// Increment balance of existing credit account
 						await tsx.creditAccount.update({
 							where: { id: creditAccountId },
 							data: {
@@ -220,10 +215,9 @@ export class SalesService {
 						});
 					}
 
-					// Record the DEBT transaction for history
 					await tsx.accountTransaction.create({
 						data: {
-							storeId: storeId,
+							storeId: createSaleDto.storeId,
 							// userId: userId,
 							type: TransactionType.DEBT,
 							amount: total,
@@ -270,7 +264,10 @@ export class SalesService {
 		}
 	}
 
-	async getMetrices(userId: string, storeId: string): Promise<SalesMetricsResponse> {
+	async getMetrices(
+		userId: string,
+		storeId: string,
+	): Promise<SalesMetricsResponse> {
 		try {
 			const today = new Date();
 			today.setHours(0, 0, 0, 0);
@@ -305,7 +302,7 @@ export class SalesService {
 					totalTransactions,
 					avgSaleValue,
 					totalProfit,
-				}
+				},
 			};
 		} catch (error) {
 			console.error("Error fetching sales metrics:", error);
@@ -316,11 +313,25 @@ export class SalesService {
 	async getSales(userId: string, storeId: string): Promise<SaleResponse> {
 		try {
 			const now = new Date();
-			const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+			const today = new Date(
+				Date.UTC(
+					now.getUTCFullYear(),
+					now.getUTCMonth(),
+					now.getUTCDate(),
+					0,
+					0,
+					0,
+					0,
+				),
+			);
 			const tomorrow = new Date(today);
 			tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 			const sales = await this.database.prisma.sale.findMany({
-				where: { storeId, deletedAt: null, createdAt: { gte: today, lt: tomorrow } },
+				where: {
+					storeId,
+					deletedAt: null,
+					createdAt: { gte: today, lt: tomorrow },
+				},
 				include: {
 					items: true,
 				},
@@ -351,7 +362,7 @@ export class SalesService {
 				success: true,
 				message: "Sales fetched successfully",
 				data: salesData,
-			}
+			};
 		} catch (error) {
 			console.error("Error fetching sales:", error);
 			throw new InternalServerErrorException("Failed to fetch sales");

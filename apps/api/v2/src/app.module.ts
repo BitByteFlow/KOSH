@@ -20,6 +20,7 @@ import { SettingsModule } from './modules/settings/settings.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { StoreModule } from './modules/store/store.module';
 import { StoreMemberModule } from './modules/storeMember/storeMember.module';
+import { StoreJoinRequestModule } from './modules/storeJoinRequest/storeJoinRequest.module';
 
 @Module({
   imports: [
@@ -53,7 +54,8 @@ import { StoreMemberModule } from './modules/storeMember/storeMember.module';
     SettingsModule,
     NotificationModule,
     StoreModule,
-    StoreMemberModule
+    StoreMemberModule,
+    StoreJoinRequestModule,
   ],
   controllers: [AppController],
   providers: [

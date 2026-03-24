@@ -5,21 +5,20 @@ import {
 	ForbiddenException,
 	BadRequestException,
 } from "@nestjs/common";
-import { GqlExecutionContext } from "@nestjs/graphql";
 import { DatabaseService } from "../database/database.service";
 
+/**
+ * HTTP Guard to validate user's store membership
+ * Expects x-store-id header
+ */
 @Injectable()
-export class StoreGuard implements CanActivate {
+export class HttpStoreGuard implements CanActivate {
 	constructor(private prisma: DatabaseService) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
-		const ctx = GqlExecutionContext.create(context);
-		const req = ctx.getContext().req;
-
-		if (!req) return false;
-
-		const storeId = req.headers["x-store-id"];
-		const user = req.user;
+		const request = context.switchToHttp().getRequest();
+		const storeId = request.headers["x-store-id"] as string;
+		const user = request.user;
 
 		if (!user || !user.id) {
 			throw new ForbiddenException("User is not authenticated");
@@ -37,14 +36,16 @@ export class StoreGuard implements CanActivate {
 				},
 			},
 		});
+
 		if (!storeMember || !storeMember.isActive) {
 			throw new ForbiddenException(
 				"You do not have active access to this store",
 			);
 		}
 
-		req.storeMember = storeMember;
-		req.storeId = storeId;
+		// Attach store info to request for controller use
+		request.storeMember = storeMember;
+		request.storeId = storeId;
 		return true;
 	}
 }

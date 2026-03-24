@@ -1,16 +1,19 @@
 import { LoginRequestDto } from "./dto/LoginRequestDto";
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post, Req, Res } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { AuthResponseDto } from "./dto/AuthResponseDto";
 import { CreateUserDto } from "./dto/CreateUserDto";
+// import type { Request, Response } from "express";
 
 @Controller("auth")
 export class AuthController {
-	constructor(private authService: AuthService) { }
+	constructor(private authService: AuthService) {}
 
 	@Post("register")
-	async register(@Body() authPayLoad: CreateUserDto): Promise<AuthResponseDto> {
-		console.log("authPayLoad", authPayLoad)
+	async register(
+		@Body() authPayLoad: CreateUserDto,
+		// @Res() res: Response,
+	): Promise<AuthResponseDto> {
 		const response = await this.authService.createUser(
 			authPayLoad.email,
 			authPayLoad.googleId,
@@ -18,12 +21,17 @@ export class AuthController {
 			authPayLoad.username,
 			authPayLoad.isCashier,
 		);
+		// res.cookie("kosh_access_token", response.token, {
+		// 	maxAge: 33333333,
+		// 	httpOnly: true,
+		// 	secure: true,
+		// 	sameSite: "strict",
+		// });
 		return response;
 	}
 
 	@Post("login")
 	async login(@Body() authPayLoad: LoginRequestDto): Promise<AuthResponseDto> {
-		console.log("auth payload in login", authPayLoad)
 		const response = await this.authService.signin(
 			authPayLoad.email,
 			authPayLoad.googleId,
