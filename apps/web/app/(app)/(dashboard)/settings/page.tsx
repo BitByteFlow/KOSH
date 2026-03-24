@@ -2,6 +2,7 @@
 
 import { InventoryConfiguration } from "@/modules/settings/components/InventoryConfiguration";
 import { NotificationChannels } from "@/modules/settings/components/NotificationChannels";
+import { MemberRequests } from "@/modules/settings/components/MemberRequests";
 import { DangerZone } from "@/modules/settings/components/DangerZone";
 import { useSettings } from "@/modules/settings/hooks/useSettings";
 
@@ -12,7 +13,9 @@ export default function SettingsPage() {
 	if (loading && !settings) {
 		return (
 			<main className="flex-1 overflow-auto flex items-center justify-center">
-				<div className="text-muted-foreground animate-pulse">Loading settings...</div>
+				<div className="text-muted-foreground animate-pulse">
+					Loading settings...
+				</div>
 			</main>
 		);
 	}
@@ -29,18 +32,28 @@ export default function SettingsPage() {
 
 				<div className="mt-8">
 					<div className="space-y-8">
+						<MemberRequests />
 						<InventoryConfiguration
-							initialData={settings ? {
-								lowStockThreshold: settings.lowStockThreshold,
-								autoArchive: settings.autoArchive
-							} : undefined}
+							initialData={
+								settings
+									? {
+											lowStockThreshold: settings.lowStockThreshold,
+											autoArchive: settings.autoArchive,
+										}
+									: undefined
+							}
 						/>
 						<NotificationChannels
-							initialData={settings ? {
-								emailReports: settings.emailReports,
-								pushNotifications: settings.pushNotifications
-							} : undefined}
+							initialData={
+								settings
+									? {
+											emailReports: settings.emailReports,
+											pushNotifications: settings.pushNotifications,
+										}
+									: undefined
+							}
 						/>
+
 						<DangerZone />
 					</div>
 				</div>
