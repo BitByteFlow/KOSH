@@ -64,11 +64,11 @@ export interface SaleFilters {
 }
 
 export type TransactionType =
-	| "DEPOSIT"
 	| "WITHDRAWAL"
-	| "EXPENSE"
-	| "INCOME"
-	| "TRANSFER";
+	| "EXPENSES"
+	| "CREDIT"
+	| "PURCHASE"
+	| "ADJUSTMENT";
 
 export interface AccountTransaction {
 	id: string;
@@ -85,7 +85,6 @@ export interface CreateTransactionRequest {
 	type: TransactionType;
 	amount: number;
 	note?: string;
-	storeId: string;
 }
 
 export interface TransactionListResponse extends ApiListResponse<AccountTransaction> {}

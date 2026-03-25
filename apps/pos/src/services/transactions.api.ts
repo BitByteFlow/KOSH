@@ -11,7 +11,7 @@ export const transactionsApi = {
 		transactionData: CreateTransactionRequest,
 	): Promise<AccountTransaction> => {
 		const response = await apiClient.post<AccountTransaction>(
-			"/transactions",
+			"/accounts/transactions",
 			transactionData,
 		);
 		return response.data;
