@@ -1,14 +1,17 @@
 "use client";
 
+import { StoreConfiguration } from "@/modules/settings/components/StoreConfiguration";
 import { InventoryConfiguration } from "@/modules/settings/components/InventoryConfiguration";
 import { NotificationChannels } from "@/modules/settings/components/NotificationChannels";
 import { MemberRequests } from "@/modules/settings/components/MemberRequests";
 import { DangerZone } from "@/modules/settings/components/DangerZone";
 import { useSettings } from "@/modules/settings/hooks/useSettings";
+import { useStore } from "@/context/StoreContext";
 
 export default function SettingsPage() {
 	const { data: response, loading } = useSettings();
 	const settings = response?.settings?.data;
+	const { activeStoreId } = useStore();
 
 	if (loading && !settings) {
 		return (
@@ -32,6 +35,8 @@ export default function SettingsPage() {
 
 				<div className="mt-8">
 					<div className="space-y-8">
+						<StoreConfiguration />
+
 						<MemberRequests />
 						<InventoryConfiguration
 							initialData={
