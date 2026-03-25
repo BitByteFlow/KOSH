@@ -7,19 +7,25 @@ export interface CartItem {
 	price: number;
 	quantity: number;
 	variantId: string;
+	costPrice: number;
 }
 
 interface CartStore {
 	items: CartItem[];
+	discount: number;
 	addItem: (product: Omit<CartItem, "quantity">) => void;
 	removeItem: (variantId: string) => void;
 	updateQuantity: (variantId: string, quantity: number) => void;
 	clearCart: () => void;
 	getTotal: () => number;
+	getSubtotal: () => number;
+	setDiscount: (discount: number) => void;
+	getDiscountAmount: () => number;
 }
 
 export const useCart = create<CartStore>((set, get) => ({
 	items: [],
+	discount: 0,
 	addItem: (product) => {
 		const items = get().items;
 		const existingItem = items.find(
@@ -52,11 +58,27 @@ export const useCart = create<CartStore>((set, get) => ({
 			),
 		});
 	},
-	clearCart: () => set({ items: [] }),
-	getTotal: () => {
+	clearCart: () => set({ items: [], discount: 0 }),
+	getSubtotal: () => {
 		return get().items.reduce(
 			(acc, item) => acc + item.price * item.quantity,
 			0,
 		);
+	},
+	getTotal: () => {
+		const subtotal = get().getSubtotal();
+		const discountAmount = get().getDiscountAmount();
+		return Math.max(0, subtotal - discountAmount);
+	},
+	setDiscount: (discount) => {
+		if (discount < 0 || discount > 100) {
+			return;
+		}
+		set({ discount });
+	},
+	getDiscountAmount: () => {
+		const subtotal = get().getSubtotal();
+		const discount = get().discount;
+		return (subtotal * discount) / 100;
 	},
 }));

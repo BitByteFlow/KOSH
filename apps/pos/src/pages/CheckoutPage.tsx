@@ -1,7 +1,16 @@
 import React, { useState } from "react";
 import { useCreateSale } from "../hooks/useSales";
 import type { Product, ProductVariant } from "../types";
-import { Scan, Search, CreditCard, Banknote, History } from "lucide-react";
+import {
+	Scan,
+	Search,
+	CreditCard,
+	Banknote,
+	History,
+	User,
+	Mail,
+	Phone,
+} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import Scanner from "../components/Scanner";
@@ -13,6 +22,8 @@ import { Button } from "@kosh/ui/components/button";
 import { Card } from "@kosh/ui/components/card";
 import { Badge } from "@kosh/ui/components/badge";
 import { useAuth } from "../context/AuthContext";
+import { Input } from "@kosh/ui/components/input";
+import { Label } from "@kosh/ui/components/label";
 
 const CheckoutPage: React.FC = () => {
 	const { store } = useAuth();
@@ -21,8 +32,12 @@ const CheckoutPage: React.FC = () => {
 	const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
 	const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 	const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
+	const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
+	const [customerName, setCustomerName] = useState("");
+	const [customerEmail, setCustomerEmail] = useState("");
+	const [customerContact, setCustomerContact] = useState("");
 
-	const { items, addItem, clearCart, getTotal } = useCart();
+	const { items, addItem, clearCart, getTotal, getDiscountAmount } = useCart();
 	const total = getTotal();
 	const createSale = useCreateSale();
 
@@ -41,6 +56,7 @@ const CheckoutPage: React.FC = () => {
 			sku: variant.sku,
 			price: variant.sellingPrice,
 			variantId: variant.id,
+			costPrice: variant.costPrice,
 		});
 		setScannedBarcode(null);
 		toast.success(`${productName} added to cart`);
@@ -52,18 +68,23 @@ const CheckoutPage: React.FC = () => {
 			return;
 		}
 
+		if (paymentType === "CREDIT") {
+			setIsCreditModalOpen(true);
+			return;
+		}
+
 		try {
 			const saleInput = {
 				storeId: store?.storeId,
 				total,
-				discount: 0,
+				discount: getDiscountAmount(),
 				profit: 0,
 				paymentType,
 				items: items.map((item) => ({
 					variantId: item.variantId,
 					quantity: item.quantity,
 					sellPrice: item.price,
-					costPrice: 0,
+					costPrice: item.costPrice,
 				})),
 			};
 
@@ -73,23 +94,68 @@ const CheckoutPage: React.FC = () => {
 				clearCart();
 				toast.success(`Sale completed successfully!`);
 			}
-		} catch (err) {
-			console.error(err);
-			// Error is already handled by the hook's onError
+		} catch (_) {
+			//Already handled in onSuccess of react query
 		}
+	};
+
+	const handleCreditCheckout = async () => {
+		if (!customerName.trim() || !customerContact.trim()) {
+			toast.error("Customer name and contact are required for credit sales");
+			return;
+		}
+
+		try {
+			const saleInput = {
+				storeId: store?.storeId,
+				total,
+				discount: getDiscountAmount(),
+				profit: 0,
+				paymentType: "CREDIT" as const,
+				customerName: customerName.trim(),
+				customerEmail: customerEmail.trim() || undefined,
+				customerContact: customerContact.trim(),
+				items: items.map((item) => ({
+					variantId: item.variantId,
+					quantity: item.quantity,
+					sellPrice: item.price,
+					costPrice: item.costPrice,
+				})),
+			};
+
+			const result = await createSale.mutateAsync(saleInput);
+
+			if (result) {
+				clearCart();
+				setIsCreditModalOpen(false);
+				setCustomerName("");
+				setCustomerEmail("");
+				setCustomerContact("");
+				toast.success(`Credit sale completed successfully!`);
+			}
+		} catch (_) {
+			//Already handled in onSuccess of react query
+		}
+	};
+
+	const closeCreditModal = () => {
+		setIsCreditModalOpen(false);
+		setCustomerName("");
+		setCustomerEmail("");
+		setCustomerContact("");
 	};
 
 	return (
 		<div className="h-full flex flex-col md:flex-row bg-slate-50">
 			<div className="flex-1 p-6 flex flex-col min-h-0">
-				<div className="flex flex-col sm:flex-row gap-4 mb-8">
+				<div className="grid  grid-cols-2 gap-4 mb-8">
 					<Button
 						onClick={() => setIsScanning(true)}
 						size="lg"
 						className="flex-1 h-20 rounded-2xl flex items-center justify-center gap-4 text-white text-lg font-bold shadow-lg shadow-primary/20"
 					>
 						<Scan size={32} />
-						<div className="text-left leading-tight">
+						<div className="text-left">
 							<p>Barcode Scanner</p>
 							<p className="text-[10px] font-medium opacity-80 uppercase tracking-widest">
 								Front or Rear Camera
@@ -111,7 +177,7 @@ const CheckoutPage: React.FC = () => {
 							size={32}
 							className={isSearching ? "text-primary" : "text-slate-400"}
 						/>
-						<div className="text-left leading-tight">
+						<div className="text-left">
 							<p>Manual Search</p>
 							<p className="text-[10px] font-medium opacity-60 uppercase tracking-widest">
 								Search Inventory
@@ -211,7 +277,7 @@ const CheckoutPage: React.FC = () => {
 								<CreditCard size={24} />
 							</div>
 							<span className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-blue-700">
-								Online/Card
+								Online
 							</span>
 						</Button>
 					</div>
@@ -253,6 +319,129 @@ const CheckoutPage: React.FC = () => {
 				}}
 				onSelectVariant={handleVariantSelect}
 			/>
+
+			<AnimatePresence>
+				{isCreditModalOpen && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+						onClick={closeCreditModal}
+					>
+						<motion.div
+							initial={{ scale: 0.95, opacity: 0, y: 20 }}
+							animate={{ scale: 1, opacity: 1, y: 0 }}
+							exit={{ scale: 0.95, opacity: 0, y: 20 }}
+							transition={{ type: "spring", duration: 0.3 }}
+							className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+							onClick={(e) => e.stopPropagation()}
+						>
+							<div className="bg-gradient-to-r from-orange-500 to-amber-500 p-6">
+								<div className="flex items-center gap-3">
+									<div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+										<History
+											className="text-white"
+											size={28}
+										/>
+									</div>
+									<div>
+										<h2 className="text-xl font-bold text-white">
+											Credit Sale
+										</h2>
+										<p className="text-sm text-white/80">
+											Enter customer details
+										</p>
+									</div>
+								</div>
+							</div>
+
+							<div className="p-6 space-y-4">
+								<div className="space-y-2">
+									<Label
+										htmlFor="customerName"
+										className="text-sm font-semibold text-slate-700 flex items-center gap-2"
+									>
+										<User
+											size={16}
+											className="text-orange-500"
+										/>
+										Customer Name
+										<span className="text-red-500">*</span>
+									</Label>
+									<Input
+										id="customerName"
+										placeholder="Enter customer name"
+										value={customerName}
+										onChange={(e) => setCustomerName(e.target.value)}
+										className="h-12 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500"
+									/>
+								</div>
+
+								<div className="space-y-2">
+									<Label
+										htmlFor="customerEmail"
+										className="text-sm font-semibold text-slate-700 flex items-center gap-2"
+									>
+										<Mail
+											size={16}
+											className="text-orange-500"
+										/>
+										Customer Email
+									</Label>
+									<Input
+										id="customerEmail"
+										type="email"
+										placeholder="Enter email address"
+										value={customerEmail}
+										onChange={(e) => setCustomerEmail(e.target.value)}
+										className="h-12 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500"
+									/>
+								</div>
+
+								<div className="space-y-2">
+									<Label
+										htmlFor="customerContact"
+										className="text-sm font-semibold text-slate-700 flex items-center gap-2"
+									>
+										<Phone
+											size={16}
+											className="text-orange-500"
+										/>
+										Customer Contact
+										<span className="text-red-500">*</span>
+									</Label>
+									<Input
+										id="customerContact"
+										placeholder="Enter contact number"
+										value={customerContact}
+										onChange={(e) => setCustomerContact(e.target.value)}
+										className="h-12 rounded-xl border-slate-200 focus:border-orange-500 focus:ring-orange-500"
+									/>
+								</div>
+
+								<div className="pt-4 flex gap-3">
+									<Button
+										variant="outline"
+										onClick={closeCreditModal}
+										disabled={createSale.isPending}
+										className="flex-1 h-12 rounded-xl font-semibold border-slate-200 hover:bg-slate-50"
+									>
+										Cancel
+									</Button>
+									<Button
+										onClick={handleCreditCheckout}
+										disabled={createSale.isPending}
+										className="flex-1 h-12 rounded-xl font-semibold bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-500/25"
+									>
+										{createSale.isPending ? "Processing..." : "Complete Sale"}
+									</Button>
+								</div>
+							</div>
+						</motion.div>
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</div>
 	);
 };

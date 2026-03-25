@@ -1,7 +1,3 @@
-/**
- * React Query Hooks for Account Transactions
- * Provides type-safe data fetching, caching, and state management
- */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { transactionsApi } from '../services/transactions.api';
@@ -19,9 +15,6 @@ const TRANSACTION_KEYS = {
   byType: (type: string) => [...TRANSACTION_KEYS.all, 'type', type] as const,
 };
 
-/**
- * Hook to get transaction by ID
- */
 export const useTransactionById = (id: string, enabled = true) => {
   return useQuery({
     queryKey: TRANSACTION_KEYS.detail(id),
@@ -31,9 +24,6 @@ export const useTransactionById = (id: string, enabled = true) => {
   });
 };
 
-/**
- * Hook to get all transactions with filters
- */
 export const useAllTransactions = (filters?: TransactionFilters) => {
   return useQuery({
     queryKey: TRANSACTION_KEYS.list(filters),
@@ -42,9 +32,6 @@ export const useAllTransactions = (filters?: TransactionFilters) => {
   });
 };
 
-/**
- * Hook to get today's transactions
- */
 export const useTodayTransactions = () => {
   return useQuery({
     queryKey: TRANSACTION_KEYS.today(),
@@ -53,9 +40,6 @@ export const useTodayTransactions = () => {
   });
 };
 
-/**
- * Hook to get transactions by store
- */
 export const useTransactionsByStore = (storeId: string, filters?: TransactionFilters) => {
   return useQuery({
     queryKey: TRANSACTION_KEYS.store(storeId),
@@ -65,9 +49,6 @@ export const useTransactionsByStore = (storeId: string, filters?: TransactionFil
   });
 };
 
-/**
- * Hook to get transactions by type
- */
 export const useTransactionsByType = (type: string, filters?: TransactionFilters) => {
   return useQuery({
     queryKey: TRANSACTION_KEYS.byType(type),
@@ -77,9 +58,6 @@ export const useTransactionsByType = (type: string, filters?: TransactionFilters
   });
 };
 
-/**
- * Hook to create a new transaction
- */
 export const useCreateTransaction = () => {
   const queryClient = useQueryClient();
 
@@ -99,9 +77,6 @@ export const useCreateTransaction = () => {
   });
 };
 
-/**
- * Hook to invalidate transactions cache
- */
 export const useTransactionInvalidate = () => {
   const queryClient = useQueryClient();
 

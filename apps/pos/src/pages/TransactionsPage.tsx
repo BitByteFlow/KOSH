@@ -2,13 +2,11 @@ import React, { useState } from "react";
 import { format } from "date-fns";
 import {
 	ShoppingBag,
-	Calendar,
 	CreditCard,
 	Banknote,
 	History,
 	ChevronRight,
 	Search,
-	Filter,
 	RefreshCw,
 	AlertCircle,
 } from "lucide-react";

@@ -26,7 +26,7 @@ export const useAllSales = (filters?: SaleFilters) => {
 	return useQuery({
 		queryKey: SALE_KEYS.list(filters),
 		queryFn: () => salesApi.getAll(filters),
-		staleTime: 1000 * 30, 
+		staleTime: 1000 * 30,
 	});
 };
 
@@ -55,8 +55,6 @@ export const useCreateSale = () => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: SALE_KEYS.lists() });
 			queryClient.invalidateQueries({ queryKey: SALE_KEYS.today() });
-
-			toast.success(`Sale completed successfully!`);
 		},
 		onError: (error: any) => {
 			const message =

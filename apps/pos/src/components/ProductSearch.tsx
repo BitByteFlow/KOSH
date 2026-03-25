@@ -33,7 +33,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
 			} else {
 				setDebouncedSearch("");
 			}
-		}, 500);
+		}, 700);
 
 		return () => clearTimeout(timer);
 	}, [searchTerm]);
@@ -41,7 +41,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
 	const {
 		data,
 		isLoading: loading,
-		error,
+		// error,
 	} = useProductSearch(
 		{ search: debouncedSearch || undefined, page: 1, limit: 20 },
 		!!debouncedSearch,

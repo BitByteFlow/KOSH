@@ -1,13 +1,36 @@
 import React from "react";
 import { useCart } from "../store/useCart";
-import { ShoppingBag, Plus, Minus, Trash2 } from "lucide-react";
+import { ShoppingBag, Plus, Minus, Trash2, Percent } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@kosh/ui/components/button";
 import { Badge } from "@kosh/ui/components/badge";
+import { Input } from "@kosh/ui/components/input";
+import { Label } from "@kosh/ui/components/label";
 
 const Cart: React.FC = () => {
-	const { items, updateQuantity, removeItem, clearCart, getTotal } = useCart();
+	const {
+		items,
+		updateQuantity,
+		removeItem,
+		clearCart,
+		getTotal,
+		getSubtotal,
+		discount,
+		setDiscount,
+		getDiscountAmount,
+	} = useCart();
 	const total = getTotal();
+	const subtotal = getSubtotal();
+	const discountAmount = getDiscountAmount();
+
+	const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const value = parseFloat(e.target.value);
+		if (!isNaN(value) && value >= 0 && value <= 100) {
+			setDiscount(value);
+		} else if (e.target.value === "") {
+			setDiscount(0);
+		}
+	};
 
 	if (items.length === 0) {
 		return (
@@ -122,15 +145,74 @@ const Cart: React.FC = () => {
 				</AnimatePresence>
 			</div>
 
-			<div className="p-5 border-t border-slate-100 bg-slate-50/50">
-				<div className="flex justify-between items-end">
-					<div>
-						<p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">
-							Total
+			<div className="p-5 border-t border-slate-100 bg-slate-50/50 space-y-3">
+				<div className="space-y-2">
+					<div className="flex justify-between items-center">
+						<p className="text-sm font-bold text-slate-500 uppercase tracking-widest">
+							Subtotal
 						</p>
-						<p className="text-2xl font-black text-slate-900 drop-shadow-sm">
-							Rs. {total.toFixed(2)}
+						<p className="font-semibold text-slate-700">
+							Rs. {subtotal.toFixed(2)}
 						</p>
+					</div>
+
+					<div className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white">
+						<div className="flex items-center gap-2 flex-1">
+							<Percent
+								size={16}
+								className="text-orange-500"
+							/>
+							<Label
+								htmlFor="discount"
+								className="text-sm font-semibold text-slate-700 cursor-pointer"
+							>
+								Discount
+							</Label>
+						</div>
+						<div className="flex items-center gap-2">
+							<Input
+								id="discount"
+								type="number"
+								min="0"
+								max="100"
+								value={discount}
+								onChange={handleDiscountChange}
+								className="w-20 h-9 text-right font-bold border-slate-200 focus:border-orange-500 focus:ring-orange-500"
+							/>
+							<span className="text-sm font-bold text-slate-500">%</span>
+						</div>
+					</div>
+
+					{discountAmount > 0 && (
+						<div className="flex justify-between items-center text-green-600">
+							<p className="text-sm font-semibold text-green-600">
+								Discount Amount
+							</p>
+							<p className="font-semibold text-green-600">
+								- Rs. {discountAmount.toFixed(2)}
+							</p>
+						</div>
+					)}
+				</div>
+
+				<div className="pt-3 border-t border-slate-200">
+					<div className="flex justify-between items-end">
+						<div>
+							<p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">
+								Total
+							</p>
+							<p className="text-2xl font-black text-slate-900 drop-shadow-sm">
+								Rs. {total.toFixed(2)}
+							</p>
+						</div>
+						{discountAmount > 0 && (
+							<Badge
+								variant="outline"
+								className="bg-green-50 text-green-700 border-green-200 font-bold text-xs"
+							>
+								Saving Rs. {discountAmount.toFixed(2)}
+							</Badge>
+						)}
 					</div>
 				</div>
 			</div>
