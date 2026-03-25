@@ -16,7 +16,6 @@ import {
 	RefreshCw,
 	Clock,
 	ChevronUp,
-	ArrowDownLeft,
 	ArrowUpRight,
 	AlertCircle,
 } from "lucide-react";
