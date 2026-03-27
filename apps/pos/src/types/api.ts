@@ -48,10 +48,12 @@ export interface Sale {
 	updatedAt: string;
 }
 
-export interface CreateSaleRequest extends Omit<
-	CreateSaleInput,
-	"userId" | "storeId"
-> {}
+export interface CreateSaleRequest extends Omit<CreateSaleInput, "userId"> {
+	storeId: string;
+	customerName?: string;
+	customerEmail?: string;
+	customerContact?: string;
+}
 
 export interface SaleListResponse extends ApiListResponse<Sale> {}
 

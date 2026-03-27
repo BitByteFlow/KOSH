@@ -42,5 +42,4 @@ export interface CreateSaleInput {
 	items: SaleItemInput[];
 }
 
-// Re-export API types
 export * from "./api";

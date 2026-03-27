@@ -245,7 +245,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
 }) => {
 	return (
 		<Card
-			className={`rounded-2xl border-0 bg-gradient-to-br ${gradient} shadow-lg ${shadowColor}/20`}
+			className={`rounded-2xl border-0 bg-linear-to-br ${gradient} shadow-lg ${shadowColor}/20`}
 		>
 			<CardContent className="p-5">
 				<div className="flex items-center justify-between mb-3">
@@ -270,7 +270,6 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
 const DailyTransactionsPage: React.FC = () => {
 	const [showAddForm, setShowAddForm] = useState(false);
 	const { data, isLoading: loading, error, refetch } = useAllTransactions();
-	console.log("thi sis dat in trasnaction", data);
 
 	const transactions = (data as AccountTransaction[]) ?? [];
 	const today = format(new Date(), "yyyy-MM-dd");
