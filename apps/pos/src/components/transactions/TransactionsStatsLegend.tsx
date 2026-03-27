@@ -39,6 +39,7 @@ export const TransactionsStatsLegend: React.FC<TransactionsStatsLegendProps> =
 			revenue?: number;
 		}) => (
 			<Button
+				variant={"ghost"}
 				onClick={() => onPaymentTypeChange(type)}
 				className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${
 					selectedPaymentType === type
@@ -98,8 +99,8 @@ export const TransactionsStatsLegend: React.FC<TransactionsStatsLegendProps> =
 				<StatItem
 					type="ALL"
 					label="All"
-					color="text-slate-600"
-					bgColor="bg-slate-400"
+					color="text-white"
+					bgColor="bg-primary"
 				/>
 			</fieldset>
 		);

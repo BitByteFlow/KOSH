@@ -44,16 +44,15 @@ const TransactionsPage: React.FC = () => {
 
 	const stats = useTransactionStats(filteredTransactions);
 
-	const handleTransactionClick = useCallback(
-		(transaction: Transaction) => {
-			// TODO: Implement transaction detail view
-			console.log("Transaction clicked:", transaction);
-		},
-		[],
-	);
+	const handleTransactionClick = useCallback((transaction: Transaction) => {
+		// TODO: Implement transaction detail view
+		console.log("Transaction clicked:", transaction);
+	}, []);
 
 	const handleClearSearch = useCallback(() => {
-		handleSearchChange({ target: { value: "" } } as React.ChangeEvent<HTMLInputElement>);
+		handleSearchChange({
+			target: { value: "" },
+		} as React.ChangeEvent<HTMLInputElement>);
 	}, [handleSearchChange]);
 
 	if (isLoading) {
@@ -71,17 +70,15 @@ const TransactionsPage: React.FC = () => {
 	}
 
 	const hasResults = filteredTransactions.length > 0;
-	const hasActiveSearch = searchTerm.length > 0 || selectedPaymentType !== "ALL";
+	const hasActiveSearch =
+		searchTerm.length > 0 || selectedPaymentType !== "ALL";
 
 	return (
 		<main
 			className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500"
 			aria-label="Transactions history"
 		>
-			<TransactionsHeader
-				totalRevenue={stats.totalRevenue}
-				totalTransactions={stats.totalTransactions}
-			/>
+			<TransactionsHeader />
 
 			<Card className="border-slate-200 bg-white shadow-sm overflow-hidden rounded-2xl">
 				<CardHeader className="border-b border-slate-50 bg-slate-50/30">
