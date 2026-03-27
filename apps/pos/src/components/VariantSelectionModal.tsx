@@ -140,7 +140,7 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 																{variant.attributes?.map((attr: any) => (
 																	<Badge
 																		key={attr.id}
-																		className={`text-[11px] h-6 px-2.5 font-bold border-0 ${
+																		className={`text-sm h-6 px-2.5 font-bold border-0 ${
 																			isSelected
 																				? "bg-primary text-white"
 																				: "bg-slate-100 text-slate-700"

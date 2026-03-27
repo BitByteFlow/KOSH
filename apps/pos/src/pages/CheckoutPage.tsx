@@ -89,7 +89,6 @@ const CheckoutPage: React.FC = () => {
 			className="h-full flex flex-col bg-slate-50 overflow-hidden"
 			aria-label="Point of Sale Checkout"
 		>
-			{/* Desktop Layout - Hidden on mobile */}
 			<div className="hidden md:flex flex-1 flex-row h-full overflow-hidden">
 				<div className="flex-1 p-6 flex flex-col min-h-0 overflow-hidden">
 					<CheckoutActions
@@ -109,23 +108,10 @@ const CheckoutPage: React.FC = () => {
 									className="animate-fade-in"
 								>
 									<ProductCatalogHeader />
-									<Suspense
-										fallback={
-											<div className="grid grid-cols-2 gap-3">
-												{Array.from({ length: 4 }).map((val) => (
-													<div
-														key={`productcatalogHeader-${val}`}
-														className="h-40 bg-slate-200 rounded-xl animate-pulse"
-													/>
-												))}
-											</div>
-										}
-									>
-										<ProductSearch
-											onProductSelect={handleProductSelected}
-											externalSearch={scannedBarcode || undefined}
-										/>
-									</Suspense>
+									<ProductSearch
+										onProductSelect={handleProductSelected}
+										externalSearch={scannedBarcode || undefined}
+									/>
 								</div>
 							) : (
 								<EmptyState onScanClick={() => setIsScanning(true)} />
@@ -144,9 +130,7 @@ const CheckoutPage: React.FC = () => {
 				/>
 			</div>
 
-			{/* Mobile Layout - Stacked with toggleable cart */}
 			<div className="md:hidden flex flex-col h-full overflow-hidden">
-				{/* Mobile Header */}
 				<header className="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0">
 					<h1 className="text-lg font-bold text-slate-800">Checkout</h1>
 					<Button
@@ -166,7 +150,6 @@ const CheckoutPage: React.FC = () => {
 					</Button>
 				</header>
 
-				{/* Main Content Area */}
 				<div className="flex-1 p-4 flex flex-col min-h-0 overflow-hidden">
 					<CheckoutActions
 						isSearching={isSearching}
@@ -185,23 +168,11 @@ const CheckoutPage: React.FC = () => {
 									className="animate-fade-in"
 								>
 									<ProductCatalogHeader />
-									<Suspense
-										fallback={
-											<div className="grid grid-cols-2 gap-3">
-												{Array.from({ length: 4 }).map((val) => (
-													<div
-														key={`productcatalogHeader-${val}`}
-														className="h-32 bg-slate-200 rounded-xl animate-pulse"
-													/>
-												))}
-											</div>
-										}
-									>
-										<ProductSearch
-											onProductSelect={handleProductSelected}
-											externalSearch={scannedBarcode || undefined}
-										/>
-									</Suspense>
+
+									<ProductSearch
+										onProductSelect={handleProductSelected}
+										externalSearch={scannedBarcode || undefined}
+									/>
 								</div>
 							) : (
 								<EmptyState onScanClick={() => setIsScanning(true)} />
@@ -210,24 +181,20 @@ const CheckoutPage: React.FC = () => {
 					</section>
 				</div>
 
-				{/* Mobile Cart Drawer */}
 				<AnimatePresence>
 					{isCartOpen && (
 						<>
-							{/* Backdrop */}
 							<div
 								className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
 								onClick={() => setIsCartOpen(false)}
 								aria-hidden="true"
 							/>
 
-							{/* Cart Panel */}
 							<div
 								className="fixed inset-x-0 bottom-0 bg-white rounded-t-3xl shadow-2xl z-50 md:hidden max-h-[85vh] flex flex-col animate-in slide-in-from-bottom"
 								role="dialog"
 								aria-label="Shopping cart"
 							>
-								{/* Handle Bar */}
 								<div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
 									<div className="flex items-center gap-2">
 										<div className="w-10 h-1 bg-slate-300 rounded-full" />
@@ -244,7 +211,6 @@ const CheckoutPage: React.FC = () => {
 									</Button>
 								</div>
 
-								{/* Cart Content */}
 								<div className="flex-1 overflow-y-auto">
 									<CartLayout
 										onCreditCheckoutRequest={() => {
@@ -265,7 +231,6 @@ const CheckoutPage: React.FC = () => {
 				</AnimatePresence>
 			</div>
 
-			{/* Modals - Shared for both layouts */}
 			<AnimatePresence>
 				{isScanning && (
 					<Suspense fallback={<Loading variant="modal" />}>
