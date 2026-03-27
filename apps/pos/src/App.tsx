@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider } from "./context/AuthContext";
@@ -7,11 +8,15 @@ import {
 	OnboardingRoute,
 } from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
-import LoginPage from "./pages/LoginPage";
-import OnboardingPage from "./pages/OnboardingPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import TransactionsPage from "./pages/TransactionsPage";
-import DailyTransactionsPage from "./pages/DailyTransactionsPage";
+import Loading from "./components/Loading";
+
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
+const TransactionsPage = lazy(() => import("./pages/TransactionsPage"));
+const DailyTransactionsPage = lazy(
+	() => import("./pages/DailyTransactionsPage"),
+);
 
 function App() {
 	return (
@@ -27,14 +32,22 @@ function App() {
 					<Route element={<PublicRoute />}>
 						<Route
 							path="/login"
-							element={<LoginPage />}
+							element={
+								<Suspense fallback={<Loading />}>
+									<LoginPage />
+								</Suspense>
+							}
 						/>
 					</Route>
 
 					<Route element={<OnboardingRoute />}>
 						<Route
 							path="/get-started"
-							element={<OnboardingPage />}
+							element={
+								<Suspense fallback={<Loading />}>
+									<OnboardingPage />
+								</Suspense>
+							}
 						/>
 					</Route>
 
@@ -45,7 +58,11 @@ function App() {
 						>
 							<Route
 								index
-								element={<CheckoutPage />}
+								element={
+									<Suspense fallback={<Loading />}>
+										<CheckoutPage />
+									</Suspense>
+								}
 							/>
 							<Route
 								path="sales"
@@ -58,18 +75,30 @@ function App() {
 							/>
 							<Route
 								path="sales-history"
-								element={<TransactionsPage />}
+								element={
+									<Suspense fallback={<Loading />}>
+										<TransactionsPage />
+									</Suspense>
+								}
 							/>
 							<Route
 								path="daily-transactions"
-								element={<DailyTransactionsPage />}
+								element={
+									<Suspense fallback={<Loading />}>
+										<DailyTransactionsPage />
+									</Suspense>
+								}
 							/>
 						</Route>
 					</Route>
 
 					<Route
 						path="*"
-						element={<LoginPage />}
+						element={
+							<Suspense fallback={<Loading />}>
+								<LoginPage />
+							</Suspense>
+						}
 					/>
 				</Routes>
 			</AuthProvider>

@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from "react";
 import type { Product, ProductVariant } from "./index";
 
 export interface CustomerFormData {
@@ -22,12 +23,12 @@ export interface CheckoutState {
 }
 
 export interface CheckoutActions {
-	setIsScanning: (value: boolean) => void;
-	setIsSearching: (value: boolean) => void;
-	setScannedBarcode: (value: string | null) => void;
-	setSelectedProduct: (product: Product | null) => void;
-	setIsVariantModalOpen: (value: boolean) => void;
-	setIsCreditModalOpen: (value: boolean) => void;
+	setIsScanning: Dispatch<SetStateAction<boolean>>;
+	setIsSearching: Dispatch<SetStateAction<boolean>>;
+	setScannedBarcode: Dispatch<SetStateAction<string | null>>;
+	setSelectedProduct: Dispatch<SetStateAction<Product | null>>;
+	setIsVariantModalOpen: Dispatch<SetStateAction<boolean>>;
+	setIsCreditModalOpen: Dispatch<SetStateAction<boolean>>;
 	handleProductSelect: (product: Product) => void;
 	handleVariantSelect: (variant: ProductVariant, productName: string) => void;
 	handleScanComplete: (code: string) => void;

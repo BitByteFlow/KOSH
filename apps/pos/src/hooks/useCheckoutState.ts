@@ -12,8 +12,8 @@ export const useCheckoutState = (
 	options?: UseCheckoutStateOptions,
 ): CheckoutState & CheckoutActions => {
 	const { addItem } = useCart();
-	const [isScanning, setIsScanning] = useState(false);
-	const [isSearching, setIsSearching] = useState(false);
+	const [isScanning, setIsScanning] = useState<boolean>(false);
+	const [isSearching, setIsSearching] = useState<boolean>(false);
 	const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
 	const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 	const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);

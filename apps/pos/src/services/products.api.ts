@@ -5,7 +5,6 @@ import type {
 	ProductVariantResponse,
 } from "../types/api";
 
-// API response format from NestJS
 interface ApiProductResponse {
 	success: boolean;
 	message: string;

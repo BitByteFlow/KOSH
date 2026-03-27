@@ -1,9 +1,12 @@
-import React, { useCallback } from "react";
+import React, { useCallback, lazy, Suspense } from "react";
 import { AnimatePresence } from "framer-motion";
 
-import Scanner from "../components/Scanner";
-import ProductSearch from "../components/ProductSearch";
-import VariantSelectionModal from "../components/VariantSelectionModal";
+const Scanner = lazy(() => import("../components/Scanner"));
+const ProductSearch = lazy(() => import("../components/ProductSearch"));
+const VariantSelectionModal = lazy(
+	() => import("../components/VariantSelectionModal"),
+);
+
 import { CartLayout } from "../components/CartLayout";
 import {
 	CheckoutActions,
@@ -11,6 +14,7 @@ import {
 	CreditSaleModal,
 	ProductCatalogHeader,
 } from "../components/checkout";
+import Loading from "../components/Loading";
 
 import { useCheckoutState } from "../hooks/useCheckoutState";
 import { useCheckout } from "../hooks/useCheckout";
@@ -76,9 +80,8 @@ const CheckoutPage: React.FC = () => {
 	);
 
 	return (
-		<div
+		<section
 			className="h-full flex flex-col md:flex-row bg-slate-50"
-			role="main"
 			aria-label="Point of Sale Checkout"
 		>
 			<div className="flex-1 p-6 flex flex-col min-h-0">
@@ -88,9 +91,8 @@ const CheckoutPage: React.FC = () => {
 					onSearchClick={handleSearchToggle}
 				/>
 
-				<div
+				<section
 					className="flex-1 overflow-y-auto pr-2 custom-scrollbar"
-					role="region"
 					aria-label="Product display area"
 				>
 					<AnimatePresence mode="wait">
@@ -100,16 +102,29 @@ const CheckoutPage: React.FC = () => {
 								className="animate-fade-in"
 							>
 								<ProductCatalogHeader />
-								<ProductSearch
-									onProductSelect={handleProductSelected}
-									externalSearch={scannedBarcode || undefined}
-								/>
+								<Suspense
+									fallback={
+										<div className="grid grid-cols-2 gap-3">
+											{Array.from({ length: 4 }).map((val) => (
+												<div
+													key={`productcatalogHeader-${val}`}
+													className="h-40 bg-slate-200 rounded-xl animate-pulse"
+												/>
+											))}
+										</div>
+									}
+								>
+									<ProductSearch
+										onProductSelect={handleProductSelected}
+										externalSearch={scannedBarcode || undefined}
+									/>
+								</Suspense>
 							</div>
 						) : (
 							<EmptyState onScanClick={() => setIsScanning(true)} />
 						)}
 					</AnimatePresence>
-				</div>
+				</section>
 			</div>
 
 			<CartLayout
@@ -123,39 +138,47 @@ const CheckoutPage: React.FC = () => {
 
 			<AnimatePresence>
 				{isScanning && (
-					<Scanner
-						onScan={handleScanComplete}
-						onClose={() => setIsScanning(false)}
-					/>
+					<Suspense fallback={<Loading variant="modal" />}>
+						<Scanner
+							onScan={handleScanComplete}
+							onClose={() => setIsScanning(false)}
+						/>
+					</Suspense>
 				)}
 			</AnimatePresence>
 
-			<VariantSelectionModal
-				product={selectedProduct}
-				isOpen={isVariantModalOpen}
-				onClose={() => {
-					setIsVariantModalOpen(false);
-					setSelectedProduct(null);
-				}}
-				onSelectVariant={handleVariantSelect}
-			/>
+			{isVariantModalOpen && (
+				<Suspense fallback={<Loading variant="modal" />}>
+					<VariantSelectionModal
+						product={selectedProduct}
+						isOpen={isVariantModalOpen}
+						onClose={() => {
+							setIsVariantModalOpen(false);
+							setSelectedProduct(null);
+						}}
+						onSelectVariant={handleVariantSelect}
+					/>
+				</Suspense>
+			)}
 
 			<AnimatePresence>
 				{isCreditModalOpen && (
-					<CreditSaleModal
-						isOpen={isCreditModalOpen}
-						onClose={handleCreditModalClose}
-						onSubmit={handleCreditSubmit}
-						formData={customerData}
-						errors={formErrors}
-						touched={formTouched}
-						handleChange={handleFormChange}
-						handleBlur={handleFormBlur}
-						isProcessing={isProcessing}
-					/>
+					<Suspense fallback={<Loading variant="modal" />}>
+						<CreditSaleModal
+							isOpen={isCreditModalOpen}
+							onClose={handleCreditModalClose}
+							onSubmit={handleCreditSubmit}
+							formData={customerData}
+							errors={formErrors}
+							touched={formTouched}
+							handleChange={handleFormChange}
+							handleBlur={handleFormBlur}
+							isProcessing={isProcessing}
+						/>
+					</Suspense>
 				)}
 			</AnimatePresence>
-		</div>
+		</section>
 	);
 };
 
