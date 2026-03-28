@@ -1,4 +1,5 @@
 import {
+	BadRequestException,
 	ConflictException,
 	Injectable,
 	InternalServerErrorException,
@@ -30,6 +31,9 @@ export class ProductService {
 		try {
 			return await this.database.prisma.$transaction(
 				async (tsx: Prisma.TransactionClient) => {
+					// Lock the store record to serialize SKU generation for this store
+					await tsx.$executeRaw`SELECT 1 FROM "Store" WHERE id = ${storeId} FOR UPDATE`;
+
 					const category = await tsx.category.findUnique({
 						where: { id: productDetail.categoryId },
 					});
@@ -38,7 +42,6 @@ export class ProductService {
 					const existingProduct = await tsx.product.findFirst({
 						where: {
 							name: productDetail.name,
-							categoryId: productDetail.categoryId,
 							storeId,
 						},
 					});
@@ -68,6 +71,7 @@ export class ProductService {
 								category.name,
 								product.name,
 								index,
+								storeId,
 								tsx,
 							);
 							const barcode = await this.generateUniqueBarcode(storeId, tsx);
@@ -173,9 +177,28 @@ export class ProductService {
 			);
 		} catch (error) {
 			console.error(`Create Product Error: ${error.message}`, error.stack);
-			if (error instanceof ConflictException) throw error;
+			if (error.code === "P2002") {
+				const fields = error.meta?.target as string[];
+				if (fields?.includes("name")) {
+					throw new ConflictException("Product with this name already exists");
+				}
+				if (fields?.includes("sku")) {
+					throw new ConflictException("SKU already exists");
+				}
+				if (fields?.includes("barcode")) {
+					throw new ConflictException("Barcode already exists");
+				}
+			}
+
+			if (
+				error instanceof ConflictException ||
+				error instanceof NotFoundException ||
+				error instanceof BadRequestException
+			) {
+				throw error;
+			}
 			throw new InternalServerErrorException(
-				"Failed to process product creation",
+				`Failed to process product creation: ${error.message}`,
 			);
 		}
 	}
@@ -245,6 +268,9 @@ export class ProductService {
 		try {
 			return await this.database.prisma.$transaction(
 				async (tsx: Prisma.TransactionClient) => {
+					// Lock the store record to serialize SKU generation/updates for this store
+					await tsx.$executeRaw`SELECT 1 FROM "Store" WHERE id = ${storeId} FOR UPDATE`;
+
 					const existingProduct = await tsx.product.findUnique({
 						where: { id: productId, storeId },
 						include: { variants: { where: { deletedAt: null } } },
@@ -267,7 +293,6 @@ export class ProductService {
 						const isDuplicate = await tsx.product.findFirst({
 							where: {
 								name: updateData.name,
-								categoryId,
 								storeId,
 								NOT: { id: productId },
 								deletedAt: null,
@@ -282,8 +307,8 @@ export class ProductService {
 					await tsx.product.update({
 						where: { id: productId },
 						data: {
-							name: updateData.name,
-							categoryId: updateData.categoryId,
+							name: updateData.name !== undefined ? updateData.name : undefined,
+							categoryId: updateData.categoryId !== undefined ? updateData.categoryId : undefined,
 						},
 					});
 
@@ -332,6 +357,7 @@ export class ProductService {
 									category.name,
 									updateData.name || existingProduct.name,
 									newVariantSequence++,
+									storeId,
 									tsx,
 								);
 								const barcode = await this.generateUniqueBarcode(storeId, tsx);
@@ -381,13 +407,29 @@ export class ProductService {
 		} catch (error) {
 			console.error(`Update Product Error: ${error.message}`, error.stack);
 
+			if (error.code === "P2002") {
+				const fields = error.meta?.target as string[];
+				if (fields?.includes("name")) {
+					throw new ConflictException("Product with this name already exists");
+				}
+				if (fields?.includes("sku")) {
+					throw new ConflictException("SKU already exists");
+				}
+				if (fields?.includes("barcode")) {
+					throw new ConflictException("Barcode already exists");
+				}
+			}
+
 			if (
 				error instanceof NotFoundException ||
-				error instanceof ConflictException
+				error instanceof ConflictException ||
+				error instanceof BadRequestException
 			) {
 				throw error;
 			}
-			throw new InternalServerErrorException("Failed to update product");
+			throw new InternalServerErrorException(
+				`Failed to update product: ${error.message}`,
+			);
 		}
 	}
 
@@ -399,6 +441,9 @@ export class ProductService {
 		try {
 			return await this.database.prisma.$transaction(
 				async (tsx: Prisma.TransactionClient) => {
+					// Lock the store record to serialize SKU generation
+					await tsx.$executeRaw`SELECT 1 FROM "Store" WHERE id = ${storeId} FOR UPDATE`;
+
 					const product = await tsx.product.findUnique({
 						where: {
 							id: productId,
@@ -420,7 +465,8 @@ export class ProductService {
 					const sku = await this.generateSku(
 						product.category.name,
 						product.name,
-						variantsCount + 1,
+						variantsCount, // Use current variant count as sequence
+						storeId,
 						tsx,
 					);
 
@@ -782,10 +828,13 @@ export class ProductService {
 		categoryName: string,
 		productName: string,
 		sequence: number,
+		storeId: string,
 		tsx?: Prisma.TransactionClient,
 	): Promise<string> {
 		const client = tsx || this.database.prisma;
-		const variantCount = await client.productVariant.count();
+		const variantCount = await client.productVariant.count({
+			where: { storeId },
+		});
 
 		const catCode = categoryName
 			.replace(/[^a-zA-Z]/g, "")
@@ -799,9 +848,28 @@ export class ProductService {
 			.toUpperCase()
 			.padEnd(4, "0");
 
-		const uniqueId = (variantCount + sequence + 1).toString().padStart(6, "0");
+		let currentSequence = sequence;
+		let attempts = 0;
+		while (attempts < 10) {
+			const uniqueId = (variantCount + (currentSequence || 0) + 1)
+				.toString()
+				.padStart(6, "0");
+			const sku = `${catCode}-${prodCode}-${uniqueId}`;
 
-		return `${catCode}-${prodCode}-${uniqueId}`;
+			const existing = await client.productVariant.findFirst({
+				where: { storeId, sku },
+			});
+
+			if (!existing) return sku;
+			currentSequence++;
+			attempts++;
+		}
+
+		// Fallback to random if sequence is exhausted
+		const random = Math.floor(Math.random() * 1000000)
+			.toString()
+			.padStart(6, "0");
+		return `${catCode}-${prodCode}-${random}`;
 	}
 
 	private async generateUniqueBarcode(
@@ -871,10 +939,10 @@ export class ProductService {
 				id: v.id,
 				sku: v.sku,
 				barcode: v.barcode,
-				attributes: v.attributes.map((attr: VariantAttribute) => ({
+				attributes: v.attributes ? v.attributes.map((attr: VariantAttribute) => ({
 					name: attr.name,
 					value: attr.value,
-				})),
+				})) : [],
 				price: Number(v.sellingPrice),
 				costPrice: Number(v.costPrice),
 				sellingPrice: Number(v.sellingPrice),

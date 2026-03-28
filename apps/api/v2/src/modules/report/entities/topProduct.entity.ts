@@ -7,6 +7,9 @@ export class TopProduct {
 
 	@Field(() => String)
 	revenue: string;
+
+	@Field(() => Float)
+	value: number;
 }
 
 
@@ -20,4 +23,7 @@ export class TopProductResponse {
 
 	@Field(() => [TopProduct], { nullable: true })
 	data?: TopProduct[]
+
+	@Field(() => Float, { nullable: true })
+	totalCount?: number;
 }

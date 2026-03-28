@@ -31,6 +31,9 @@ export class AccountsService {
     const todayStr = today.toISOString().split("T")[0];
 
     return this.database.prisma.$transaction(async (tsx: Prisma.TransactionClient) => {
+      // Lock the store record to serialize balance updates
+      await tsx.$executeRaw`SELECT 1 FROM "Store" WHERE id = ${storeId} FOR UPDATE`;
+
       const hasAnyBalanceToday = await tsx.dailyBalance.count({
         where: {
           storeId,
@@ -38,7 +41,13 @@ export class AccountsService {
         },
       });
 
-      if (hasAnyBalanceToday === 0 && type !== "INITIAL_CAPITAL") {
+      const hasAnyHistoricalBalance = await tsx.dailyBalance.count({
+        where: {
+          storeId,
+        },
+      });
+
+      if (hasAnyBalanceToday === 0 && hasAnyHistoricalBalance === 0 && type !== "INITIAL_CAPITAL") {
         throw new ConflictException("First transaction of the day must be INITIAL_CAPITAL");
       }
 
@@ -56,11 +65,17 @@ export class AccountsService {
       let isFirstTransactionOfDay = !dailyBalance;
 
       if (!dailyBalance) {
-        let openingCash = new Prisma.Decimal(0);
+        const lastRecord = await tsx.dailyBalance.findFirst({
+          where: { storeId },
+          orderBy: { date: "desc" },
+        });
+
+        let openingCash = lastRecord?.closingCash ?? new Prisma.Decimal(0);
 
         if (type === "INITIAL_CAPITAL") {
-          openingCash = amount;
+          openingCash = openingCash.add(amount);
         }
+
         if (
           ["WITHDRAWAL", "PURCHASE", "EXPENSES", "DEBT_PAID"].includes(type) &&
           amount.gt(openingCash)
@@ -76,7 +91,7 @@ export class AccountsService {
             date: todayStr,
             openingCash,
             closingCash: openingCash,
-            totalCashIn: new Prisma.Decimal(0),
+            totalCashIn: type === "INITIAL_CAPITAL" ? amount : new Prisma.Decimal(0),
             totalCashOut: new Prisma.Decimal(0),
             totalSales: new Prisma.Decimal(0),
             totalExpense: new Prisma.Decimal(0),
@@ -97,40 +112,43 @@ export class AccountsService {
       // Now apply the transaction effect (unless it's INITIAL_CAPITAL on first tx — already set)
       const updateData: Prisma.DailyBalanceUpdateInput = {};
 
-      const isInitialCapitalFirstTx = isFirstTransactionOfDay && type === "INITIAL_CAPITAL";
+			const isInitialCapitalFirstTx = isFirstTransactionOfDay && type === "INITIAL_CAPITAL";
 
-      if (!isInitialCapitalFirstTx) {
-        switch (type) {
-          case "INITIAL_CAPITAL":
-          case "ADDITIONAL_CAPITAL":
-          case "SALE_INCOME":
-          case "CREDIT_RECEIVED":
-            updateData.closingCash = { increment: amount };
-            updateData.totalCashIn = { increment: amount };
-            if (type === "SALE_INCOME" || type === "CREDIT_RECEIVED") {
-              updateData.totalSales = { increment: amount };
-            }
-            break;
+			if (isInitialCapitalFirstTx) {
+				updateData.closingCash = amount;
+				updateData.totalCashIn = amount;
+			} else {
+				switch (type) {
+					case "INITIAL_CAPITAL":
+					case "ADDITIONAL_CAPITAL":
+					case "SALE_INCOME":
+					case "CREDIT_RECEIVED":
+						updateData.closingCash = { increment: amount };
+						updateData.totalCashIn = { increment: amount };
+						if (type === "SALE_INCOME" || type === "CREDIT_RECEIVED") {
+							updateData.totalSales = { increment: amount };
+						}
+						break;
 
-          case "WITHDRAWAL":
-          case "PURCHASE":
-          case "EXPENSES":
-          case "DEBT_PAID":
-            updateData.closingCash = { decrement: amount };
-            updateData.totalCashOut = { increment: amount };
-            if (["PURCHASE", "EXPENSES", "DEBT_PAID"].includes(type)) {
-              updateData.totalExpense = { increment: amount };
-            }
-            break;
+					case "WITHDRAWAL":
+					case "PURCHASE":
+					case "EXPENSES":
+					case "DEBT_PAID":
+						updateData.closingCash = { decrement: amount };
+						updateData.totalCashOut = { increment: amount };
+						if (["PURCHASE", "EXPENSES", "DEBT_PAID"].includes(type)) {
+							updateData.totalExpense = { increment: amount };
+						}
+						break;
 
-          default:
-            throw new BadRequestException(`Invalid transaction type: ${type}`);
-        }
-      }
+					default:
+						throw new BadRequestException(`Invalid transaction type: ${type}`);
+				}
+			}
 
       if (Object.keys(updateData).length > 0) {
         await tsx.dailyBalance.update({
-          where: { id: dailyBalance.id },
+          where: { id: dailyBalance!.id },
           data: updateData,
         });
       }
@@ -179,31 +197,12 @@ export class AccountsService {
         const lastRecord = await tsx.dailyBalance.findFirst({
           where: {
             storeId,
-            date: todayStr,
+          },
+          orderBy: {
+            date: "desc",
           },
         });
 
-        // const openingCash = lastRecord?.closingCash ?? new Prisma.Decimal(0);
-
-        // const balance = await tsx.dailyBalance.upsert({
-        //   where: {
-        //     userId_date: {
-        //       userId: userId,
-        //       date: today,
-        //     },
-        //   },
-        //   update: {},
-        //   create: {
-        //     userId: userId,
-        //     date: today,
-        //     openingCash: openingCash,
-        //     closingCash: openingCash,
-        //     totalCashIn: 0,
-        //     totalCashOut: 0,
-        //     totalSales: 0,
-        //     totalExpense: 0,
-        //   },
-        // });
         return {
           success: true,
           message: "Today's balance retrieved successfully",
@@ -351,7 +350,16 @@ export class AccountsService {
       };
     } catch (error) {
       console.error("Error updating transaction:", error);
-      throw new InternalServerErrorException("Failed to update transaction");
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        `Failed to update transaction: ${error.message}`,
+      );
     }
   }
 }

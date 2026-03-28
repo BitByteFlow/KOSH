@@ -95,7 +95,7 @@ export class AuthService {
 	async signin(email: string, googleId: string, isCashier: boolean = false): Promise<AuthResponseDto> {
 		const existinguser = await this.database.user.findFirst({
 			where: {
-				OR: [
+				AND: [
 					{ email: email },
 					{
 						googleId: {

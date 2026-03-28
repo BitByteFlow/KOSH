@@ -51,6 +51,12 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     get creditAccount(): PrismaClient['creditAccount'] { return this.prisma.creditAccount; }
     get settings(): PrismaClient['settings'] { return this.prisma.settings; }
     get storeMember(): PrismaClient['storeMember'] { return this.prisma.storeMember; }
+    get store(): PrismaClient['store'] { return this.prisma.store; }
+    get saleItem(): PrismaClient['saleItem'] { return this.prisma.saleItem; }
+    get purchaseItem(): PrismaClient['purchaseItem'] { return this.prisma.purchaseItem; }
+    get variantAttribute(): PrismaClient['variantAttribute'] { return this.prisma.variantAttribute; }
+    get storeJoinRequest(): PrismaClient['storeJoinRequest'] { return this.prisma.storeJoinRequest; }
+    get notification(): PrismaClient['notification'] { return this.prisma.notification; }
     
     get $executeRaw() { return this.prisma.$executeRaw.bind(this.prisma); }
     get $queryRaw() { return this.prisma.$queryRaw.bind(this.prisma); }

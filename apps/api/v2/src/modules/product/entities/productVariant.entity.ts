@@ -1,5 +1,6 @@
 import { Field, ObjectType, ID, Float, Int } from '@nestjs/graphql';
 import { Attribute } from './attribute.entity';
+import { Product } from './product.entity';
 
 @ObjectType()
 export class ProductVariant {
@@ -33,4 +34,6 @@ export class ProductVariant {
   @Field()
   lowStock: boolean;
 
+  @Field(() => Product)
+  product: Product;
 }

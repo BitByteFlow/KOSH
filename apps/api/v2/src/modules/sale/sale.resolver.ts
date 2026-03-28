@@ -20,9 +20,9 @@ export class SaleResolver {
 		@Args("createSaleInput", { type: () => CreateSaleInput })
 		createSaleDto: CreateSaleInput,
 		@CurrentUser() user: AuthenticatedUser,
-		@CurrentStore() storeId: string,
+		// @CurrentStore() storeId: string,
 	): Promise<SaleResponse> {
-		return this.salesService.createSale(createSaleDto, user.id, storeId);
+		return this.salesService.createSale(createSaleDto, user.id);
 	}
 
 	@Query(() => SaleResponse, { name: "getSales" })

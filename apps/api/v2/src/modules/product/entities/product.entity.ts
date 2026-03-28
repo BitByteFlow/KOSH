@@ -17,8 +17,14 @@ export class Product {
   @Field(() => ID)
   id: string;
 
-  @Field()
-  productName: string;
+  @Field(() => String)
+	name: string;
+
+	@Field(() => String)
+	productName: string;
+
+	@Field(() => String, { nullable: true })
+	slug?: string;
 
   @Field(() => Category)
   category: Category;

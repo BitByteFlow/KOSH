@@ -1,28 +1,28 @@
-import { Field, ObjectType, Float, Int } from '@nestjs/graphql';
+import { Field, ObjectType, Float, Int } from "@nestjs/graphql";
 
 @ObjectType()
 export class SalesMetrics {
-  @Field(() => Int)
-  totalTransactions: number;
+	@Field(() => Float)
+	totalTransactions: number;
 
-  @Field(() => Int)
-  totalProfit: number;
+	@Field(() => Float)
+	totalProfit: number;
 
-  @Field(() => Int)
-  totalSales: number;
+	@Field(() => Float)
+	totalSales: number;
 
-  @Field(() => Int)
-  avgSaleValue: number;
+	@Field(() => Float)
+	avgSaleValue: number;
 }
 
 @ObjectType()
 export class SalesMetricsResponse {
-  @Field(() => Boolean)
-  success: boolean;
+	@Field(() => Boolean)
+	success: boolean;
 
-  @Field(() => String, { nullable: true })
-  message?: string
+	@Field(() => String, { nullable: true })
+	message?: string;
 
-  @Field(() => SalesMetrics, { nullable: true })
-  data?: SalesMetrics
+	@Field(() => SalesMetrics, { nullable: true })
+	data?: SalesMetrics;
 }

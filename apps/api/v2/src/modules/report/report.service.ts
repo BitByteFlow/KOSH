@@ -12,13 +12,15 @@ import { AnalyticsTransactionFilter, AnalyticsTransactionResult, AnalyticsTransa
 export class ReportService {
 	constructor(private readonly database: DatabaseService) { }
 
-	async getAnalyticsMetrics(storeId: string, startDate: Date, endDate: Date): Promise<AnalyticsMetricsResponse> {
+	async getAnalyticsMetrics(storeId: string, startDate: string | Date, endDate: string | Date): Promise<AnalyticsMetricsResponse> {
+		const start = new Date(startDate);
+		const end = new Date(endDate);
 		try {
-			const currentMetrics = await this.calculateMetrics(storeId, startDate, endDate);
+			const currentMetrics = await this.calculateMetrics(storeId, start, end);
 
-			const duration = endDate.getTime() - startDate.getTime();
-			const prevEndDate = new Date(startDate);
-			const prevStartDate = new Date(startDate.getTime() - duration);
+			const duration = end.getTime() - start.getTime();
+			const prevEndDate = new Date(start);
+			const prevStartDate = new Date(start.getTime() - duration);
 
 			const prevMetrics = await this.calculateMetrics(storeId, prevStartDate, prevEndDate);
 
@@ -86,14 +88,16 @@ export class ReportService {
 		};
 	}
 
-	async getSalesTrend(storeId: string, startDate: Date, endDate: Date): Promise<AnalyticsTrendResponse> {
+	async getSalesTrend(storeId: string, startDate: string | Date, endDate: string | Date): Promise<AnalyticsTrendResponse> {
+		const start = new Date(startDate);
+		const end = new Date(endDate);
 		try {
 			const sales = await this.database.prisma.sale.findMany({
 				where: {
 					storeId,
 					createdAt: {
-						gte: startDate,
-						lte: endDate,
+						gte: start,
+						lte: end,
 					},
 					deletedAt: null,
 				},
@@ -113,10 +117,10 @@ export class ReportService {
 			});
 
 			const trend: AnalyticsTrend[] = [];
-			const current = new Date(startDate);
-			const end = new Date(endDate);
+			const current = new Date(start);
+			const last = new Date(end);
 
-			while (current <= end) {
+			while (current <= last) {
 				const dateKey = current.toISOString().split('T')[0];
 				trend.push({
 					label: dateKey,
@@ -136,15 +140,17 @@ export class ReportService {
 		}
 	}
 
-	async getTopProducts(storeId: string, startDate: Date, endDate: Date): Promise<TopProductResponse> {
+	async getTopProducts(storeId: string, startDate: string | Date, endDate: string | Date): Promise<TopProductResponse> {
+		const start = new Date(startDate);
+		const end = new Date(endDate);
 		try {
 			const saleItems = await this.database.prisma.saleItem.findMany({
 				where: {
 					sale: {
 						storeId,
 						createdAt: {
-							gte: startDate,
-							lte: endDate,
+							gte: start,
+							lte: end,
 						},
 						deletedAt: null,
 					},
@@ -177,7 +183,8 @@ export class ReportService {
 			return {
 				success: true,
 				message: "Top products fetched successfully",
-				data: topProducts
+				data: topProducts,
+				totalCount: aggregation.size,
 			};
 		} catch (error) {
 			console.error("Error fetching top products:", error);
@@ -533,18 +540,18 @@ export class ReportService {
 				where.id = { contains: searchQuery, mode: 'insensitive' };
 			}
 
-			if (status && status !== 'all') {
-				if (status === 'Completed') {
-					where.isCredit = false;
-				} else if (status === 'Pending') {
-					where.isCredit = true;
+			if (status && status !== "all") {
+				if (status === "Completed") {
+					where.creditId = null;
+				} else if (status === "Pending") {
+					where.creditId = { not: null };
 				}
 			}
 
 			if (minAmount !== undefined || maxAmount !== undefined) {
-				where.totalAmount = {};
-				if (minAmount !== undefined) where.totalAmount.gte = minAmount;
-				if (maxAmount !== undefined) where.totalAmount.lte = maxAmount;
+				where.total = {};
+				if (minAmount !== undefined) where.total.gte = minAmount;
+				if (maxAmount !== undefined) where.total.lte = maxAmount;
 			}
 
 			const [items, totalCount] = await Promise.all([

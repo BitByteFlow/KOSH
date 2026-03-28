@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Get,
+	Post,
+	Req,
+	UseGuards,
+} from "@nestjs/common";
 import { JwtAuthGuard } from "src/utils/jwt.guard";
 import { SalesService } from "./sale.service";
 import type { CreateSaleInput } from "./dto/CreateSaleDto.dto";
@@ -19,8 +27,11 @@ export class SalesController {
 
 	@UseGuards(JwtAuthGuard)
 	@Get()
-	//TODO: not from body, instea x-store-id header
 	async getSales(@Req() req: AuthenticatedRequest) {
-		return this.salesService.getSales(req.user.id, req.body.storeId);
+		const storeId = req.headers["x-store-id"];
+		if (!storeId || typeof storeId !== "string") {
+			throw new BadRequestException("Store ID is required");
+		}
+		return this.salesService.getSales(req.user.id, storeId);
 	}
 }

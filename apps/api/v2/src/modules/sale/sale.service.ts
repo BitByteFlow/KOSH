@@ -67,6 +67,7 @@ export class SalesService {
 				}
 
 				const total = subtotal - Number(discount);
+				totalProfit -= discount;
 
 				if (total < 0) {
 					throw new BadRequestException("Total cannot be negative");
@@ -219,7 +220,7 @@ export class SalesService {
 						data: {
 							storeId: createSaleDto.storeId,
 							// userId: userId,
-							type: TransactionType.DEBT,
+							type: TransactionType.CREDIT,
 							amount: total,
 							note: transactionNote || `Credit Sale #${sale.id.slice(0, 8)}`,
 							saleId: sale.id,

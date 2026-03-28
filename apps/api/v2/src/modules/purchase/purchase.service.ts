@@ -112,31 +112,33 @@ export class PurchasesService {
                 });
 
                 if (!dailyBalance) {
-                    const yesterday = new Date();
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-                    const yesterdayBalance = await tsx.dailyBalance.findUnique({
-                        where: {
-                            storeId_date: {
-                                storeId,
-                                date: yesterdayStr,
-                            },
-                        },
+                    const lastRecord = await tsx.dailyBalance.findFirst({
+                        where: { storeId },
+                        orderBy: { date: "desc" },
                     });
+
+                    const openingCash = lastRecord?.closingCash || new Prisma.Decimal(0);
+
+                    if (amountPaid > Number(openingCash)) {
+                        throw new BadRequestException(`Insufficient funds for purchase. Available: ${openingCash}, Required: ${amountPaid}`);
+                    }
 
                     dailyBalance = await tsx.dailyBalance.create({
                         data: {
                             storeId,
                             date: todayStr,
-                            openingCash: yesterdayBalance?.closingCash || 0,
-                            closingCash: yesterdayBalance?.closingCash || 0,
+                            openingCash: openingCash,
+                            closingCash: openingCash,
                             totalCashIn: 0,
                             totalCashOut: 0,
                             totalSales: 0,
                             totalExpense: 0,
                         },
                     });
+                } else {
+                    if (amountPaid > Number(dailyBalance.closingCash)) {
+                        throw new BadRequestException(`Insufficient funds for purchase. Available: ${dailyBalance.closingCash}, Required: ${amountPaid}`);
+                    }
                 }
 
                 await tsx.dailyBalance.update({
@@ -168,7 +170,7 @@ export class PurchasesService {
 
         }).catch((error: any) => {
             console.error('Purchase creation error:', error);
-            if (error instanceof NotFoundException || error instanceof BadRequestException) {
+            if (error?.status && error?.message) {
                 throw error;
             }
             throw new InternalServerErrorException('Failed to create purchase');
@@ -254,31 +256,33 @@ export class PurchasesService {
                 });
 
                 if (!dailyBalance) {
-                    const yesterday = new Date();
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-                    const yesterdayBalance = await tsx.dailyBalance.findUnique({
-                        where: {
-                            storeId_date: {
-                                storeId,
-                                date: yesterdayStr
-                            }
-                        }
+                    const lastRecord = await tsx.dailyBalance.findFirst({
+                        where: { storeId },
+                        orderBy: { date: "desc" },
                     });
+
+                    const openingCash = lastRecord?.closingCash || new Prisma.Decimal(0);
+
+                    if (additionalPayment > Number(openingCash)) {
+                        throw new BadRequestException(`Insufficient funds for payment. Available: ${openingCash}, Required: ${additionalPayment}`);
+                    }
 
                     dailyBalance = await tsx.dailyBalance.create({
                         data: {
                             storeId,
                             date: todayStr,
-                            openingCash: yesterdayBalance?.closingCash || 0,
-                            closingCash: yesterdayBalance?.closingCash || 0,
+                            openingCash: openingCash,
+                            closingCash: openingCash,
                             totalCashIn: 0,
                             totalCashOut: 0,
                             totalSales: 0,
                             totalExpense: 0
                         }
                     });
+                } else {
+                    if (additionalPayment > Number(dailyBalance.closingCash)) {
+                        throw new BadRequestException(`Insufficient funds for payment. Available: ${dailyBalance.closingCash}, Required: ${additionalPayment}`);
+                    }
                 }
 
                 await tsx.dailyBalance.update({
