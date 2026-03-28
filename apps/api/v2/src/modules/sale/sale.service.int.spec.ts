@@ -1,8 +1,4 @@
-import {
-	TestContext,
-	createTestContext,
-	generateTestId,
-} from "test/test-utils";
+import { createTestContext, generateTestId } from "test/test-utils";
 import { PrismaClient } from "@kosh/db";
 import { SalesService } from "./sale.service";
 import { DatabaseService } from "../../database/database.service";
@@ -22,7 +18,6 @@ describe("SalesService Integration Tests", () => {
 	let testCategoryId: string;
 
 	beforeAll(async () => {
-		// Create test context with isolated PostgreSQL container
 		context = await createTestContext();
 		testUserId = context.userId;
 		testStoreId = context.storeId;
@@ -30,11 +25,9 @@ describe("SalesService Integration Tests", () => {
 		databaseService = context.databaseService;
 		prisma = databaseService.prisma;
 
-		// Initialize services from the app container
 		notificationService = context.app.get(NotificationService);
 		salesService = context.app.get(SalesService);
 
-		// Setup test data
 		const category = await prisma.category.create({
 			data: {
 				name: generateTestId("Electronics"),
@@ -72,7 +65,6 @@ describe("SalesService Integration Tests", () => {
 	});
 
 	beforeEach(async () => {
-		// Clean up before each test
 		await prisma.saleItem.deleteMany();
 		await prisma.sale.deleteMany();
 		await prisma.accountTransaction.deleteMany();
@@ -80,7 +72,6 @@ describe("SalesService Integration Tests", () => {
 		await prisma.creditAccount.deleteMany();
 		await prisma.notification.deleteMany();
 
-		// Reset variant stock
 		await prisma.productVariant.update({
 			where: { id: testVariantId },
 			data: { stock: 100 },
@@ -110,12 +101,11 @@ describe("SalesService Integration Tests", () => {
 			expect(result.message).toBe("Sale created successfully");
 			expect(result.data).toHaveLength(1);
 			const sale = result.data![0];
-			expect(sale.total).toBe(290); // (150 * 2) - 10
-			expect(sale.profit).toBe(90); // (50 * 2) - 10
+			expect(sale.total).toBe(290); 
+			expect(sale.profit).toBe(90);
 			expect(sale.discount).toBe(10);
 			expect(sale.paymentType).toBe("CASH");
 
-			// Verify stock was decremented
 			const updatedVariant = await prisma.productVariant.findUnique({
 				where: { id: testVariantId },
 			});
@@ -143,7 +133,6 @@ describe("SalesService Integration Tests", () => {
 			expect(result.data![0].total).toBe(150);
 			expect(result.data![0].paymentType).toBe("ONLINE");
 
-			// Verify daily balance was updated
 			const todayStr = new Date().toISOString().split("T")[0];
 			const dailyBalance = await prisma.dailyBalance.findUnique({
 				where: { storeId_date: { storeId: testStoreId, date: todayStr } },
@@ -180,7 +169,6 @@ describe("SalesService Integration Tests", () => {
 			expect(result.data![0].total).toBe(450);
 			expect(result.data![0].paymentType).toBe("CREDIT");
 
-			// Verify credit account was created
 			const creditAccount = await prisma.creditAccount.findFirst({
 				where: { customerName: "Test Customer" },
 			});
@@ -189,7 +177,6 @@ describe("SalesService Integration Tests", () => {
 			expect(Number(creditAccount?.balance)).toBe(450);
 			expect(creditAccount?.email).toBe("customer@test.com");
 
-			// Verify no daily balance update for credit sales
 			const todayStr = new Date().toISOString().split("T")[0];
 			const dailyBalance = await prisma.dailyBalance.findUnique({
 				where: { storeId_date: { storeId: testStoreId, date: todayStr } },
@@ -198,7 +185,6 @@ describe("SalesService Integration Tests", () => {
 		});
 
 		it("should update existing credit account balance", async () => {
-			// Create a credit account first
 			const creditAccount = await prisma.creditAccount.create({
 				data: {
 					storeId: testStoreId,
@@ -227,11 +213,10 @@ describe("SalesService Integration Tests", () => {
 			expect(result.success).toBe(true);
 			expect(result.data![0].total).toBe(300);
 
-			// Verify credit account balance was updated
 			const updatedAccount = await prisma.creditAccount.findUnique({
 				where: { id: creditAccount.id },
 			});
-			expect(Number(updatedAccount?.balance)).toBe(400); // 100 + 300
+			expect(Number(updatedAccount?.balance)).toBe(400);
 		});
 
 		it("should create daily balance if it doesn't exist", async () => {
@@ -268,7 +253,6 @@ describe("SalesService Integration Tests", () => {
 			yesterday.setDate(yesterday.getDate() - 1);
 			const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-			// Create yesterday's daily balance
 			await prisma.dailyBalance.create({
 				data: {
 					storeId: testStoreId,
@@ -303,8 +287,8 @@ describe("SalesService Integration Tests", () => {
 				where: { storeId_date: { storeId: testStoreId, date: todayStr } },
 			});
 
-			expect(Number(todayBalance?.openingCash)).toBe(1500); // Yesterday's closing
-			expect(Number(todayBalance?.closingCash)).toBe(1700); // 1500 + 200
+			expect(Number(todayBalance?.openingCash)).toBe(1500);
+			expect(Number(todayBalance?.closingCash)).toBe(1700);
 		});
 
 		it("should create account transaction for cash sale", async () => {
@@ -336,7 +320,6 @@ describe("SalesService Integration Tests", () => {
 		});
 
 		it("should handle multiple items in a single sale", async () => {
-			// Create another variant
 			const variant2 = await prisma.productVariant.create({
 				data: {
 					productId: testProductId,
@@ -373,12 +356,8 @@ describe("SalesService Integration Tests", () => {
 			const result = await salesService.createSale(createSaleDto, testUserId);
 
 			expect(result.success).toBe(true);
-			// (150 * 2) + (120 * 3) - 20 = 300 + 360 - 20 = 640
 			expect(result.data![0].total).toBe(640);
-			// Profit: (50 * 2) + (40 * 3) - 20 = 100 + 120 - 20 = 200
 			expect(result.data![0].profit).toBe(200);
-
-			// Verify both variants' stock was decremented
 			const variant1Updated = await prisma.productVariant.findUnique({
 				where: { id: testVariantId },
 			});
@@ -448,7 +427,6 @@ describe("SalesService Integration Tests", () => {
 		});
 
 		it("should throw BadRequestException for insufficient stock", async () => {
-			// Set low stock
 			await prisma.productVariant.update({
 				where: { id: testVariantId },
 				data: { stock: 5 },
@@ -472,7 +450,6 @@ describe("SalesService Integration Tests", () => {
 				salesService.createSale(createSaleDto, testUserId),
 			).rejects.toThrow("Insufficient stock");
 
-			// Verify stock wasn't changed
 			const variant = await prisma.productVariant.findUnique({
 				where: { id: testVariantId },
 			});
@@ -529,7 +506,6 @@ describe("SalesService Integration Tests", () => {
 				salesService.createSale(createSaleDto, testUserId),
 			).rejects.toThrow();
 
-			// Verify stock wasn't changed due to transaction rollback
 			const variant = await prisma.productVariant.findUnique({
 				where: { id: testVariantId },
 			});
@@ -539,7 +515,6 @@ describe("SalesService Integration Tests", () => {
 
 	describe("createSale - Low Stock Notifications", () => {
 		it("should trigger low stock notification when variant stock falls below threshold", async () => {
-			// Set low stock threshold
 			await prisma.settings.upsert({
 				where: { storeId: testStoreId },
 				update: { lowStockThreshold: 10 },
@@ -549,13 +524,11 @@ describe("SalesService Integration Tests", () => {
 				},
 			});
 
-			// Set variant stock to threshold + 1
 			await prisma.productVariant.update({
 				where: { id: testVariantId },
 				data: { stock: 11 },
 			});
 
-			// Create sale that brings stock to threshold
 			const createSaleDto = {
 				storeId: testStoreId,
 				discount: 0,
@@ -563,7 +536,7 @@ describe("SalesService Integration Tests", () => {
 				items: [
 					{
 						variantId: testVariantId,
-						quantity: 2, // Brings stock to 9
+						quantity: 2, 
 						sellPrice: 150,
 						costPrice: 100,
 					},
@@ -572,7 +545,6 @@ describe("SalesService Integration Tests", () => {
 
 			await salesService.createSale(createSaleDto, testUserId);
 
-			// Verify notification was created
 			const notification = await prisma.notification.findFirst({
 				where: { userId: testUserId },
 				orderBy: { createdAt: "desc" },
@@ -620,7 +592,6 @@ describe("SalesService Integration Tests", () => {
 
 	describe("getMetrices", () => {
 		it("should return today's sales metrics", async () => {
-			// Create test sales
 			await salesService.createSale(
 				{
 					storeId: testStoreId,
@@ -675,7 +646,6 @@ describe("SalesService Integration Tests", () => {
 		});
 
 		it("should only count today's sales", async () => {
-			// Create a sale for today
 			await salesService.createSale(
 				{
 					storeId: testStoreId,
@@ -701,7 +671,6 @@ describe("SalesService Integration Tests", () => {
 
 	describe("getSales", () => {
 		it("should return all sales for today with items", async () => {
-			// Create test sales
 			await salesService.createSale(
 				{
 					storeId: testStoreId,
@@ -723,12 +692,11 @@ describe("SalesService Integration Tests", () => {
 
 			expect(result.success).toBe(true);
 			expect(result.data).toHaveLength(1);
-			expect(result.data[0].items).toHaveLength(1);
-			expect(Number(result.data[0].total)).toBe(150);
+			expect(result.data?.[0].items).toHaveLength(1);
+			expect(Number(result.data?.[0].total)).toBe(150);
 		});
 
 		it("should return sales in descending order by creation date", async () => {
-			// Create multiple sales
 			await salesService.createSale(
 				{
 					storeId: testStoreId,
@@ -766,8 +734,7 @@ describe("SalesService Integration Tests", () => {
 			const result = await salesService.getSales(testUserId, testStoreId);
 
 			expect(result.data).toHaveLength(2);
-			// Most recent sale should be first
-			expect(Number(result.data[0].total)).toBe(400);
+			expect(Number(result.data?.[0].total)).toBe(400);
 		});
 
 		it("should return empty array when no sales exist", async () => {
@@ -811,8 +778,6 @@ describe("SalesService Integration Tests", () => {
 				where: { id: testVariantId },
 			});
 			const initialStock = initialVariant?.stock || 100;
-
-			// Create multiple sales concurrently
 			const salePromises = Array.from({ length: 5 }).map(() =>
 				salesService.createSale(
 					{
@@ -833,13 +798,10 @@ describe("SalesService Integration Tests", () => {
 			);
 
 			const results = await Promise.all(salePromises);
-
-			// All sales should succeed
 			results.forEach((result) => {
 				expect(result.success).toBe(true);
 			});
 
-			// Verify stock was decremented correctly (5 sales * 2 items = 10 items)
 			const finalVariant = await prisma.productVariant.findUnique({
 				where: { id: testVariantId },
 			});
@@ -864,8 +826,7 @@ describe("SalesService Integration Tests", () => {
 			const result = await salesService.createSale(createSaleDto, testUserId);
 
 			expect(result.success).toBe(true);
-			// Verify decimal precision is maintained
-			expect(result.data[0].total).toBeCloseTo(299.64, 2); // (99.99 * 3) - 0.33
+			expect(Number(result.data?.[0].total)).toBeCloseTo(299.64, 2); 
 		});
 
 		it("should properly link sale items to sale", async () => {
@@ -884,7 +845,7 @@ describe("SalesService Integration Tests", () => {
 			};
 
 			const result = await salesService.createSale(createSaleDto, testUserId);
-			const saleId = result.data[0].id;
+			const saleId = result.data?.[0].id;
 
 			const saleWithItems = await prisma.sale.findUnique({
 				where: { id: saleId },
@@ -943,9 +904,9 @@ describe("SalesService Integration Tests", () => {
 
 			const result = await salesService.createSale(createSaleDto, testUserId);
 
-			expect(result.data[0].total).toBe(150);
-			expect(result.data[0].profit).toBe(50);
-			expect(result.data[0].discount).toBe(0);
+			expect(Number(result.data?.[0].total)).toBe(150);
+			expect(Number(result.data?.[0].profit)).toBe(50);
+			expect(Number(result.data?.[0].discount)).toBe(0);
 		});
 
 		it("should handle large quantity sales", async () => {
@@ -966,7 +927,7 @@ describe("SalesService Integration Tests", () => {
 			const result = await salesService.createSale(createSaleDto, testUserId);
 
 			expect(result.success).toBe(true);
-			expect(result.data[0].total).toBe(7500); // 150 * 50
+			expect(Number(result.data?.[0].total)).toBe(7500); // 150 * 50
 
 			const updatedVariant = await prisma.productVariant.findUnique({
 				where: { id: testVariantId },
@@ -1010,7 +971,6 @@ describe("SalesService Integration Tests", () => {
 				data: { stock: 10 },
 			});
 
-			// First sale
 			await salesService.createSale(
 				{
 					storeId: testStoreId,
@@ -1028,7 +988,6 @@ describe("SalesService Integration Tests", () => {
 				testUserId,
 			);
 
-			// Second sale
 			await salesService.createSale(
 				{
 					storeId: testStoreId,

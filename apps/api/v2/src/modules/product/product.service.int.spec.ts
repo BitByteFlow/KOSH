@@ -18,7 +18,6 @@ describe("ProductService Integration Tests", () => {
 	let testCategoryId: string;
 
 	beforeAll(async () => {
-		// Create test context with isolated PostgreSQL container
 		context = await createTestContext();
 		testUserId = context.userId;
 		testStoreId = context.storeId;
@@ -27,7 +26,6 @@ describe("ProductService Integration Tests", () => {
 		prisma = databaseService.prisma;
 		productService = new ProductService(databaseService);
 
-		// Setup test category
 		const category = await prisma.category.create({
 			data: {
 				name: generateTestId("Electronics"),
@@ -42,11 +40,9 @@ describe("ProductService Integration Tests", () => {
 	});
 
 	beforeEach(async () => {
-		// Clean up before each test
 		await prisma.saleItem.deleteMany();
 		await prisma.sale.deleteMany();
 		await prisma.purchaseItem.deleteMany();
-		// await prisma.storeJoinRequest.deleteMany();
 		await prisma.purchase.deleteMany();
 		await prisma.variantAttribute.deleteMany();
 		await prisma.productVariant.deleteMany();
@@ -92,8 +88,8 @@ describe("ProductService Integration Tests", () => {
 			expect(variant.costPrice).toBe(800);
 			expect(variant.stock).toBe(50);
 			expect(variant.attributes).toHaveLength(1);
-			expect(variant.attributes[0].name).toBe("Color");
-			expect(variant.attributes[0].value).toBe("Titanium");
+			expect(variant.attributes?.[0].name).toBe("Color");
+			expect(variant.attributes?.[0].value).toBe("Titanium");
 		});
 
 		it("should create product with multiple variants", async () => {
@@ -179,7 +175,6 @@ describe("ProductService Integration Tests", () => {
 
 			expect(result.success).toBe(true);
 
-			// Verify purchase was created
 			const purchase = await prisma.purchase.findFirst({
 				where: { supplierName: "Test Supplier" },
 				include: { items: true },
@@ -191,7 +186,6 @@ describe("ProductService Integration Tests", () => {
 			expect(purchase?.items).toHaveLength(1);
 			expect(purchase?.items[0].quantity).toBe(50);
 
-			// Verify daily balance was updated
 			const todayStr = new Date().toISOString().split("T")[0];
 			const dailyBalance = await prisma.dailyBalance.findUnique({
 				where: { storeId_date: { storeId: testStoreId, date: todayStr } },
@@ -203,7 +197,6 @@ describe("ProductService Integration Tests", () => {
 		});
 
 		it("should reactivate a deleted product with same name", async () => {
-			// Create and delete a product first
 			const deletedProduct = await prisma.product.create({
 				data: {
 					name: generateTestId("Old Product"),
@@ -236,7 +229,6 @@ describe("ProductService Integration Tests", () => {
 			expect(result.success).toBe(true);
 			expect(result.message).toContain("Reactivated");
 
-			// Verify product was reactivated
 			const reactivatedProduct = await prisma.product.findUnique({
 				where: { id: deletedProduct.id },
 			});
@@ -291,8 +283,6 @@ describe("ProductService Integration Tests", () => {
 
 		it("should throw ConflictException if active product with same name exists", async () => {
 			const productName = generateTestId("Duplicate Product");
-
-			// Create first product
 			await productService.createProduct(testUserId, testStoreId, {
 				name: productName,
 				categoryId: testCategoryId,
@@ -307,7 +297,6 @@ describe("ProductService Integration Tests", () => {
 				keepPurchaseRecord: false,
 			});
 
-			// Try to create duplicate
 			const duplicateDto = {
 				name: productName,
 				categoryId: testCategoryId,
@@ -328,7 +317,6 @@ describe("ProductService Integration Tests", () => {
 		});
 
 		it("should throw ConflictException if product exists in different category", async () => {
-			// Create another category
 			const category2 = await prisma.category.create({
 				data: {
 					name: generateTestId("Category 2"),
@@ -338,7 +326,6 @@ describe("ProductService Integration Tests", () => {
 
 			const productName = generateTestId("Cross Category Product");
 
-			// Create product in first category
 			await productService.createProduct(testUserId, testStoreId, {
 				name: productName,
 				categoryId: testCategoryId,
@@ -353,7 +340,6 @@ describe("ProductService Integration Tests", () => {
 				keepPurchaseRecord: false,
 			});
 
-			// Try to create in second category
 			const duplicateDto = {
 				name: productName,
 				categoryId: category2.id,
@@ -391,7 +377,7 @@ describe("ProductService Integration Tests", () => {
 				],
 				keepPurchaseRecord: false,
 			});
-			productId = result.data[0].id;
+			productId = result.data![0].id;
 		});
 
 		it("should soft delete product successfully", async () => {
@@ -416,7 +402,6 @@ describe("ProductService Integration Tests", () => {
 
 			await productService.deleteProduct(productId, testStoreId);
 
-			// Check all variants are soft deleted
 			for (const variantId of variantIds) {
 				const variant = await prisma.productVariant.findUnique({
 					where: { id: variantId },
@@ -433,7 +418,6 @@ describe("ProductService Integration Tests", () => {
 		});
 
 		it("should throw NotFoundException if product belongs to different store", async () => {
-			// Create product in different store
 			const otherStore = await prisma.store.create({
 				data: {
 					name: generateTestId("Other Store"),
@@ -472,7 +456,7 @@ describe("ProductService Integration Tests", () => {
 				],
 				keepPurchaseRecord: false,
 			});
-			productId = result.data[0].id;
+			productId = result.data![0].id;
 		});
 
 		it("should update product name successfully", async () => {
@@ -483,7 +467,7 @@ describe("ProductService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			expect(result.data[0].productName).toBe(newName);
+			expect(result.data![0].productName).toBe(newName);
 
 			const updatedProduct = await prisma.product.findUnique({
 				where: { id: productId },
@@ -504,7 +488,7 @@ describe("ProductService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			expect(result.data[0].category.id).toBe(newCategory.id);
+			expect(result.data![0].category.id).toBe(newCategory.id);
 		});
 
 		it("should update variant prices and stock", async () => {
@@ -528,10 +512,10 @@ describe("ProductService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			expect(result.data[0].variants[0].costPrice).toBe(120);
-			expect(result.data[0].variants[0].sellingPrice).toBe(180);
-			expect(result.data[0].variants[0].stock).toBe(25);
-			expect(result.data[0].variants[0].attributes[0].value).toBe("Blue");
+			expect(result.data![0].variants[0].costPrice).toBe(120);
+			expect(result.data![0].variants[0].sellingPrice).toBe(180);
+			expect(result.data![0].variants[0].stock).toBe(25);
+			expect(result.data![0].variants[0].attributes?.[0].value).toBe("Blue");
 		});
 
 		it("should add new variant to existing product", async () => {
@@ -560,12 +544,11 @@ describe("ProductService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			expect(result.data[0].variants).toHaveLength(2);
-			expect(result.data[0].totalStock).toBe(25); // 10 + 15
+			expect(result.data![0].variants).toHaveLength(2);
+			expect(result.data![0].totalStock).toBe(25); // 10 + 15
 		});
 
 		it("should remove variant from product", async () => {
-			// Add a second variant first
 			const productBefore = await prisma.product.findUnique({
 				where: { id: productId },
 				include: { variants: true },
@@ -595,7 +578,6 @@ describe("ProductService Integration Tests", () => {
 				include: { variants: true },
 			});
 
-			// Keep only the first variant
 			const firstVariantId = product?.variants[0].id || "";
 
 			const result = await productService.updateProduct(productId, testStoreId, {
@@ -611,8 +593,7 @@ describe("ProductService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			// Should have 1 active variant (the second is soft deleted)
-			expect(result.data[0].variants).toHaveLength(1);
+			expect(result.data![0].variants).toHaveLength(1);
 		});
 
 		it("should throw NotFoundException if product doesn't exist", async () => {
@@ -672,7 +653,7 @@ describe("ProductService Integration Tests", () => {
 				],
 				keepPurchaseRecord: false,
 			});
-			productId = result.data[0].id;
+			productId = result.data![0].id;
 		});
 
 		it("should add variant to product successfully", async () => {
@@ -689,8 +670,8 @@ describe("ProductService Integration Tests", () => {
 
 			expect(result.success).toBe(true);
 			expect(result.message).toBe("Variant added successfully");
-			expect(result.data[0].variants).toHaveLength(2);
-			expect(result.data[0].totalStock).toBe(30); // 10 + 20
+			expect(result.data![0].variants).toHaveLength(2);
+			expect(result.data![0].totalStock).toBe(30); // 10 + 20
 		});
 
 		it("should generate unique SKU for new variant", async () => {
@@ -705,10 +686,10 @@ describe("ProductService Integration Tests", () => {
 				testStoreId,
 			);
 
-			const newVariant = result.data[0].variants.find(
+			const newVariant = result.data![0].variants.find(
 				(v) => v.costPrice === 100 && v.sellingPrice === 150 && v.stock === 10,
 			);
-			const oldVariant = result.data[0].variants.find(
+			const oldVariant = result.data![0].variants.find(
 				(v) => v.costPrice === 200 && v.sellingPrice === 300 && v.stock === 20,
 			);
 
@@ -728,7 +709,7 @@ describe("ProductService Integration Tests", () => {
 				testStoreId,
 			);
 
-			const newVariant = result.data[0].variants.find(
+			const newVariant = result.data![0].variants.find(
 				(v) => v.stock === 10 && v.price === 150,
 			);
 			expect(newVariant?.barcode).toBeDefined();
@@ -752,7 +733,6 @@ describe("ProductService Integration Tests", () => {
 
 	describe("listProductsWithVariant", () => {
 		beforeEach(async () => {
-			// Create multiple products
 			await productService.createProduct(testUserId, testStoreId, {
 				name: generateTestId("Product 1"),
 				categoryId: testCategoryId,
@@ -787,19 +767,18 @@ describe("ProductService Integration Tests", () => {
 
 			expect(result.success).toBe(true);
 			expect(result.message).toBe("Product Returned Successfully");
-			expect(result.data.length).toBeGreaterThanOrEqual(2);
+			expect(result.data?.length).toBeGreaterThanOrEqual(2);
 		});
 
 		it("should exclude deleted products", async () => {
 			const products = await productService.listProductsWithVariant(testStoreId);
-			const productId = products.data[0].id;
+			const productId = products.data![0].id;
 
 			await productService.deleteProduct(productId, testStoreId);
 
 			const result = await productService.listProductsWithVariant(testStoreId);
 
-			// Deleted product should not be in the list
-			const deletedProduct = result.data.find((p) => p.id === productId);
+			const deletedProduct = result.data?.find((p) => p.id === productId);
 			expect(deletedProduct).toBeUndefined();
 		});
 
@@ -824,7 +803,7 @@ describe("ProductService Integration Tests", () => {
 
 			const result = await productService.listProductsWithVariant(testStoreId);
 
-			const productWithAttrs = result.data.find(
+			const productWithAttrs = result.data?.find(
 				(p) => p.productName === productName,
 			);
 			expect(productWithAttrs).toBeDefined();
@@ -847,7 +826,7 @@ describe("ProductService Integration Tests", () => {
 				},
 			);
 
-			expect(result.data[0].totalStock).toBe(60);
+			expect(result.data![0].totalStock).toBe(60);
 		});
 	});
 
@@ -869,8 +848,8 @@ describe("ProductService Integration Tests", () => {
 				],
 				keepPurchaseRecord: false,
 			});
-			productId = result.data[0].id;
-			variantId = result.data[0].variants[0].id;
+			productId = result.data![0].id;
+			variantId = result.data![0].variants[0].id;
 		});
 
 		it("should update variant successfully", async () => {
@@ -888,10 +867,10 @@ describe("ProductService Integration Tests", () => {
 			);
 
 			expect(result.success).toBe(true);
-			expect(result.data[0].variants[0].costPrice).toBe(120);
-			expect(result.data[0].variants[0].sellingPrice).toBe(180);
-			expect(result.data[0].variants[0].stock).toBe(25);
-			expect(result.data[0].variants[0].attributes[0].value).toBe("Blue");
+			expect(result.data![0].variants![0].costPrice).toBe(120);
+			expect(result.data![0].variants![0].sellingPrice).toBe(180);
+			expect(result.data![0].variants![0].stock).toBe(25);
+			expect(result.data![0].variants![0].attributes![0].value).toBe("Blue");
 		});
 
 		it("should update variant status", async () => {
@@ -909,7 +888,7 @@ describe("ProductService Integration Tests", () => {
 			);
 
 			expect(result.success).toBe(true);
-			expect(result.data[0].variants[0].status).toBe("IN_ACTIVE");
+			expect(result.data![0].variants![0].status).toBe("IN_ACTIVE");
 		});
 
 		it("should throw NotFoundException if variant doesn't exist", async () => {
@@ -930,7 +909,6 @@ describe("ProductService Integration Tests", () => {
 		});
 
 		it("should throw NotFoundException if variant belongs to different product", async () => {
-			// Create another product
 			const otherProduct = await productService.createProduct(
 				testUserId,
 				testStoreId,
@@ -952,7 +930,7 @@ describe("ProductService Integration Tests", () => {
 			await expect(
 				productService.updateProductVariant(
 					{
-						productId: otherProduct.data[0].id,
+						productId: otherProduct.data![0].id,
 						costPrice: 100,
 						sellingPrice: 150,
 						stock: 10,
@@ -984,8 +962,8 @@ describe("ProductService Integration Tests", () => {
 				],
 				keepPurchaseRecord: false,
 			});
-			productId = result.data[0].id;
-			variantId = result.data[0].variants[0].id;
+			productId = result.data![0].id;
+			variantId = result.data![0].variants![0].id;
 		});
 
 		it("should soft delete variant successfully", async () => {
@@ -1006,7 +984,6 @@ describe("ProductService Integration Tests", () => {
 		});
 
 		it("should update product total stock after variant deletion", async () => {
-			// Add another variant
 			await productService.addVariant(
 				{
 					costPrice: 200,
@@ -1025,7 +1002,7 @@ describe("ProductService Integration Tests", () => {
 			);
 
 			expect(result.success).toBe(true);
-			expect(result.data[0].totalStock).toBe(20); // Only second variant's stock
+			expect(result.data![0].totalStock).toBe(20); // Only second variant's stock
 		});
 
 		it("should throw NotFoundException if product doesn't exist", async () => {
@@ -1041,7 +1018,6 @@ describe("ProductService Integration Tests", () => {
 
 	describe("listProductsWithFilters", () => {
 		beforeEach(async () => {
-			// Create products with different attributes
 			await productService.createProduct(testUserId, testStoreId, {
 				name: generateTestId("Cheap Product"),
 				categoryId: testCategoryId,
@@ -1080,7 +1056,7 @@ describe("ProductService Integration Tests", () => {
 
 			expect(result.success).toBe(true);
 			expect(result.data).toHaveLength(1);
-			expect(result.data[0].productName).toContain("Cheap Product");
+			expect(result.data![0].productName).toContain("Cheap Product");
 		});
 
 		it("should filter products by category", async () => {
@@ -1091,7 +1067,7 @@ describe("ProductService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			expect(result.data.length).toBeGreaterThanOrEqual(2);
+			expect(result.data?.length).toBeGreaterThanOrEqual(2);
 		});
 
 		it("should filter products by low stock", async () => {
@@ -1102,8 +1078,7 @@ describe("ProductService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			// Should return products with variants having stock < 10
-			expect(result.data.length).toBeGreaterThanOrEqual(1);
+			expect(result.data!.length).toBeGreaterThanOrEqual(1);
 		});
 
 		it("should filter products by price range", async () => {
@@ -1115,11 +1090,9 @@ describe("ProductService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			// Should filter based on selling price
 		});
 
 		it("should return paginated results", async () => {
-			// Create more products
 			for (let i = 0; i < 15; i++) {
 				await productService.createProduct(testUserId, testStoreId, {
 					name: generateTestId(`Product ${i}`),
@@ -1151,7 +1124,6 @@ describe("ProductService Integration Tests", () => {
 		});
 
 		it("should return second page of results", async () => {
-			// Create more products
 			for (let i = 0; i < 15; i++) {
 				await productService.createProduct(testUserId, testStoreId, {
 					name: generateTestId(`Product ${i}`),
@@ -1179,7 +1151,7 @@ describe("ProductService Integration Tests", () => {
 
 		it("should exclude deleted products by default", async () => {
 			const products = await productService.listProductsWithVariant(testStoreId);
-			const productId = products.data[0].id;
+			const productId = products.data![0].id;
 
 			await productService.deleteProduct(productId, testStoreId);
 
@@ -1188,13 +1160,13 @@ describe("ProductService Integration Tests", () => {
 				limit: 10,
 			});
 
-			const deletedProduct = result.data.find((p) => p.id === productId);
+			const deletedProduct = result.data!.find((p) => p.id === productId);
 			expect(deletedProduct).toBeUndefined();
 		});
 
 		it("should include deleted products when requested", async () => {
 			const products = await productService.listProductsWithVariant(testStoreId);
-			const productId = products.data[0].id;
+			const productId = products.data![0].id;
 
 			await productService.deleteProduct(productId, testStoreId);
 
@@ -1204,8 +1176,7 @@ describe("ProductService Integration Tests", () => {
 				includeDeleted: true,
 			});
 
-			// Deleted product should be included
-			const deletedProduct = result.data.find((p) => p.id === productId);
+			const deletedProduct = result.data!.find((p) => p.id === productId);
 			expect(deletedProduct).toBeDefined();
 		});
 	});
@@ -1240,8 +1211,8 @@ describe("ProductService Integration Tests", () => {
 			);
 
 			const skus = [
-				...product1.data[0].variants.map((v) => v.sku),
-				...product2.data[0].variants.map((v) => v.sku),
+				...product1.data![0].variants.map((v) => v.sku),
+				...product2.data![0].variants.map((v) => v.sku),
 			];
 
 			const uniqueSkus = new Set(skus);
@@ -1276,8 +1247,8 @@ describe("ProductService Integration Tests", () => {
 			);
 
 			const barcodes = [
-				product1.data[0].variants[0].barcode,
-				product2.data[0].variants[0].barcode,
+				product1.data![0].variants![0].barcode,
+				product2.data![0].variants![0].barcode,
 			];
 
 			const uniqueBarcodes = new Set(barcodes);
@@ -1302,9 +1273,8 @@ describe("ProductService Integration Tests", () => {
 				expect(result.success).toBe(true);
 			});
 
-			// Verify all products were created
 			const allProducts = await productService.listProductsWithVariant(testStoreId);
-			expect(allProducts.data.length).toBeGreaterThanOrEqual(5);
+			expect(allProducts.data!.length).toBeGreaterThanOrEqual(5);
 		});
 
 		it("should properly link variant attributes", async () => {
@@ -1329,7 +1299,7 @@ describe("ProductService Integration Tests", () => {
 				},
 			);
 
-			const variantId = result.data[0].variants[0].id;
+			const variantId = result.data![0].variants[0].id;
 
 			const variant = await prisma.productVariant.findUnique({
 				where: { id: variantId },
@@ -1353,8 +1323,8 @@ describe("ProductService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			expect(result.data[0].status).toBe("out-of-stock");
-			expect(result.data[0].totalStock).toBe(0);
+			expect(result.data![0].status).toBe("out-of-stock");
+			expect(result.data![0].totalStock).toBe(0);
 		});
 
 		it("should handle product with very large stock", async () => {
@@ -1368,7 +1338,7 @@ describe("ProductService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			expect(result.data[0].totalStock).toBe(1000000);
+			expect(result.data![0].totalStock).toBe(1000000);
 		});
 
 		it("should handle product with decimal prices", async () => {
@@ -1387,8 +1357,8 @@ describe("ProductService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			expect(result.data[0].variants[0].costPrice).toBe(99.99);
-			expect(result.data[0].variants[0].sellingPrice).toBe(149.99);
+			expect(result.data![0].variants[0].costPrice).toBe(99.99);
+			expect(result.data![0].variants[0].sellingPrice).toBe(149.99);
 		});
 
 		it("should handle product with special characters in name", async () => {
@@ -1402,7 +1372,7 @@ describe("ProductService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			expect(result.data[0].productName).toContain("Special");
+			expect(result.data![0].productName).toContain("Special");
 		});
 
 		it("should handle variant with many attributes", async () => {
@@ -1427,7 +1397,7 @@ describe("ProductService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			expect(result.data[0].variants[0].attributes).toHaveLength(5);
+			expect(result.data![0].variants[0].attributes).toHaveLength(5);
 		});
 	});
 });

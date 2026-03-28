@@ -17,7 +17,6 @@ describe("AccountsService Integration Tests", () => {
 	let testStoreId: string;
 
 	beforeAll(async () => {
-		// Create test context with isolated PostgreSQL container
 		context = await createTestContext();
 		testUserId = context.userId;
 		testStoreId = context.storeId;
@@ -32,7 +31,6 @@ describe("AccountsService Integration Tests", () => {
 	});
 
 	beforeEach(async () => {
-		// Clean up before each test
 		await prisma.accountTransaction.deleteMany();
 		await prisma.dailyBalance.deleteMany();
 	});

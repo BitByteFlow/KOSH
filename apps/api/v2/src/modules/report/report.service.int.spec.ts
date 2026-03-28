@@ -35,14 +35,12 @@ describe("ReportService Integration Tests", () => {
 		databaseService = context.databaseService;
 		prisma = databaseService.prisma;
 
-		// Initialize services from the app container
 		notificationService = context.app.get<NotificationService>(NotificationService);
 		salesService = context.app.get<SalesService>(SalesService);
 		productService = context.app.get<ProductService>(ProductService);
 		purchasesService = context.app.get<PurchasesService>(PurchasesService);
 		reportService = context.app.get<ReportService>(ReportService);
 
-		// Setup test data
 		const category = await prisma.category.create({
 			data: {
 				name: generateTestId("Electronics"),
@@ -88,7 +86,6 @@ describe("ReportService Integration Tests", () => {
 		await prisma.dailyBalance.deleteMany();
 		await prisma.creditAccount.deleteMany();
 
-		// Reset variant stock
 		await prisma.productVariant.update({
 			where: { id: testVariantId },
 			data: { stock: 100 },
@@ -97,14 +94,12 @@ describe("ReportService Integration Tests", () => {
 
 	describe("getAnalyticsMetrics", () => {
 		it("should return analytics metrics for date range", async () => {
-			// Create test sales
 			const today = new Date();
 			const startDate = new Date(today);
 			startDate.setDate(startDate.getDate() - 7);
 			const endDate = new Date(today);
-			endDate.setDate(endDate.getDate() + 1); // Set to tomorrow to include today's sales
+			endDate.setDate(endDate.getDate() + 1); 
 
-			// Create multiple sales
 			for (let i = 0; i < 5; i++) {
 				await salesService.createSale(
 					{
@@ -133,23 +128,23 @@ describe("ReportService Integration Tests", () => {
 			expect(result.success).toBe(true);
 			expect(result.data).toHaveLength(4);
 
-			const totalSalesMetric = result.data.find((m) => m.label === "TOTAL SALES");
+			const totalSalesMetric = result.data?.find((m) => m.label === "TOTAL SALES");
 			expect(totalSalesMetric).toBeDefined();
 			expect(totalSalesMetric?.value).toBe(1500); // 5 sales * 300
 
-			const totalProfitMetric = result.data.find(
+			const totalProfitMetric = result.data?.find(
 				(m) => m.label === "TOTAL PROFIT",
 			);
 			expect(totalProfitMetric).toBeDefined();
 			expect(totalProfitMetric?.value).toBe(500); // 5 sales * 100
 
-			const transactionsMetric = result.data.find(
+			const transactionsMetric = result.data?.find(
 				(m) => m.label === "TRANSACTIONS",
 			);
 			expect(transactionsMetric).toBeDefined();
 			expect(transactionsMetric?.value).toBe(5);
 
-			const avgBillValueMetric = result.data.find(
+			const avgBillValueMetric = result.data?.find(
 				(m) => m.label === "AVG BILL VALUE",
 			);
 			expect(avgBillValueMetric).toBeDefined();
@@ -172,7 +167,7 @@ describe("ReportService Integration Tests", () => {
 			expect(result.success).toBe(true);
 			expect(result.data).toHaveLength(4);
 
-			result.data.forEach((metric) => {
+			result.data?.forEach((metric) => {
 				expect(metric.value).toBe(0);
 			});
 		});
@@ -184,7 +179,7 @@ describe("ReportService Integration Tests", () => {
 			const startDate = new Date(today);
 			startDate.setDate(startDate.getDate() - 7);
 
-			// Create sales in current period
+			
 			for (let i = 0; i < 10; i++) {
 				await salesService.createSale(
 					{
@@ -211,7 +206,7 @@ describe("ReportService Integration Tests", () => {
 			);
 
 			expect(result.success).toBe(true);
-			const totalSalesMetric = result.data.find((m) => m.label === "TOTAL SALES");
+			const totalSalesMetric = result.data?.find((m) => m.label === "TOTAL SALES");
 			expect(totalSalesMetric?.value).toBe(1000);
 			expect(totalSalesMetric?.trend).toBeDefined();
 		});
@@ -246,7 +241,7 @@ describe("ReportService Integration Tests", () => {
 			);
 
 			expect(result.success).toBe(true);
-			const totalSalesMetric = result.data.find((m) => m.label === "TOTAL SALES");
+			const totalSalesMetric = result.data?.find((m) => m.label === "TOTAL SALES");
 			expect(totalSalesMetric?.value).toBe(200);
 		});
 	});
@@ -259,7 +254,6 @@ describe("ReportService Integration Tests", () => {
 			const endDate = new Date(today);
 			endDate.setDate(endDate.getDate() + 1);
 
-			// Create sales for specific days
 			await salesService.createSale(
 				{
 					storeId: testStoreId,
@@ -286,7 +280,6 @@ describe("ReportService Integration Tests", () => {
 			expect(result.success).toBe(true);
 			expect(result.data!).toHaveLength(8);
 
-			// Today should have sales
 			const todayStr = today.toISOString().split("T")[0];
 			const todayTrend = result.data!.find((t) => t.label === todayStr);
 			expect(todayTrend).toBeDefined();
@@ -309,7 +302,6 @@ describe("ReportService Integration Tests", () => {
 			expect(result.success).toBe(true);
 			expect(result.data!).toHaveLength(8);
 
-			// Most days should have zero sales
 			const zeroDays = result.data!.filter((t) => t.value === 0);
 			expect(zeroDays.length).toBeGreaterThanOrEqual(6);
 		});
@@ -320,7 +312,6 @@ describe("ReportService Integration Tests", () => {
 			const endDate = new Date(today);
 			endDate.setDate(endDate.getDate() + 1);
 
-			// Create multiple sales for today
 			for (let i = 0; i < 3; i++) {
 				await salesService.createSale(
 					{
@@ -360,7 +351,6 @@ describe("ReportService Integration Tests", () => {
 			const endDate = new Date(today);
 			endDate.setDate(endDate.getDate() + 1);
 
-			// Create sales for test product
 			for (let i = 0; i < 5; i++) {
 				await salesService.createSale(
 					{
@@ -387,11 +377,11 @@ describe("ReportService Integration Tests", () => {
 			);
 
 			expect(result.success).toBe(true);
-			expect(result.data.length).toBeGreaterThanOrEqual(1);
+			expect(result.data?.length).toBeGreaterThanOrEqual(1);
 
-			const topProduct = result.data[0];
+			const topProduct = result.data![0];
 			expect(topProduct.name).toContain("Test Product");
-			expect(topProduct.value).toBe(1500); // 5 sales * 2 items * 150
+			expect(topProduct.value).toBe(1500); 
 			expect(topProduct.revenue).toBe("Rs. 1,500");
 		});
 
@@ -412,7 +402,6 @@ describe("ReportService Integration Tests", () => {
 		});
 
 		it("should return paginated transactions with total count", async () => {
-			// Create multiple products
 			const products = [];
 			for (let i = 0; i < 15; i++) {
 				const product = await prisma.product.create({
@@ -425,7 +414,6 @@ describe("ReportService Integration Tests", () => {
 				products.push(product);
 			}
 
-			// Create sales for each product
 			for (const product of products) {
 				const variant = await prisma.productVariant.create({
 					data: {
@@ -449,8 +437,8 @@ describe("ReportService Integration Tests", () => {
 							{
 								variantId: variant.id,
 								quantity: 1,
-								sellPrice: variant.sellingPrice,
-								costPrice: variant.costPrice,
+								sellPrice: Number(variant.sellingPrice),
+								costPrice: Number(variant.costPrice),
 							},
 						],
 					},
@@ -465,8 +453,8 @@ describe("ReportService Integration Tests", () => {
 			endDate.setDate(endDate.getDate() + 2);
 
 			const result = await reportService.getAnalyticsTransactions(testStoreId, {
-				startDate: startDate.toISOString(),
-				endDate: endDate.toISOString(),
+				startDate: startDate,
+				endDate: endDate,
 				skip: 0,
 				take: 10,
 			});
@@ -478,7 +466,6 @@ describe("ReportService Integration Tests", () => {
 		it("should sort products by revenue descending", async () => {
 			const today = new Date();
 
-			// Create products with different revenues
 			const variant1 = await prisma.productVariant.create({
 				data: {
 					productId: testProductId,
@@ -521,7 +508,6 @@ describe("ReportService Integration Tests", () => {
 
 	describe("getSalesReport", () => {
 		it("should return sales report with all sales", async () => {
-			// Create test sales
 			for (let i = 0; i < 3; i++) {
 				await salesService.createSale(
 					{
@@ -559,7 +545,6 @@ describe("ReportService Integration Tests", () => {
 			const yesterday = new Date(today);
 			yesterday.setDate(yesterday.getDate() - 1);
 
-			// Create sales for today
 			await salesService.createSale(
 				{
 					storeId: testStoreId,
@@ -589,7 +574,6 @@ describe("ReportService Integration Tests", () => {
 		});
 
 		it("should filter sales by payment method", async () => {
-			// Create sales with different payment types
 			await salesService.createSale(
 				{
 					storeId: testStoreId,
@@ -635,7 +619,6 @@ describe("ReportService Integration Tests", () => {
 		});
 
 		it("should filter sales by status", async () => {
-			// Create cash sale (completed)
 			await salesService.createSale(
 				{
 					storeId: testStoreId,
@@ -653,7 +636,6 @@ describe("ReportService Integration Tests", () => {
 				testUserId,
 			);
 
-			// Create credit sale (pending)
 			await salesService.createSale(
 				{
 					storeId: testStoreId,
@@ -700,10 +682,10 @@ describe("ReportService Integration Tests", () => {
 				testUserId,
 			);
 
-			const saleId = sale.data[0].id;
+			const saleId = sale.data?.[0].id;
 
 			const result = await reportService.getSalesReport(testStoreId, {
-				searchQuery: saleId.substring(0, 8),
+				searchQuery: saleId?.substring(0, 8),
 			});
 
 			expect(result.success).toBe(true);
@@ -795,7 +777,6 @@ describe("ReportService Integration Tests", () => {
 
 	describe("getProductPerformance", () => {
 		it("should return product performance metrics", async () => {
-			// Create sales
 			for (let i = 0; i < 5; i++) {
 				await salesService.createSale(
 					{
@@ -847,7 +828,6 @@ describe("ReportService Integration Tests", () => {
 		});
 
 		it("should filter products by minimum sold", async () => {
-			// Create sales
 			for (let i = 0; i < 10; i++) {
 				await salesService.createSale(
 					{
@@ -915,7 +895,6 @@ describe("ReportService Integration Tests", () => {
 		});
 
 		it("should paginate results", async () => {
-			// Create multiple products
 			for (let i = 0; i < 15; i++) {
 				const product = await prisma.product.create({
 					data: {
@@ -981,8 +960,6 @@ describe("ReportService Integration Tests", () => {
 
 			const product = result.items.find((p) => p.name === generateTestId("Test Product"));
 			if (product) {
-				// Margin = (Revenue - Cost) / Revenue * 100
-				// = (750 - 500) / 750 * 100 = 33.33%
 				expect(product.margin).toBeCloseTo(33.33, 2);
 			}
 		});
@@ -999,7 +976,7 @@ describe("ReportService Integration Tests", () => {
 			expect(result.data).toBeDefined();
 			expect(result.totalCount).toBeGreaterThanOrEqual(1);
 
-			result.data.forEach((item) => {
+			result.data?.forEach((item) => {
 				expect(item.id).toBeDefined();
 				expect(item.name).toBeDefined();
 				expect(item.stock).toBeDefined();
@@ -1013,7 +990,7 @@ describe("ReportService Integration Tests", () => {
 				take: 10,
 			});
 
-			const product = result.data.find((p) => p.name === generateTestId("Test Product"));
+			const product = result.data?.find((p) => p.name === generateTestId("Test Product"));
 			if (product) {
 				expect(product.stock).toBe(100);
 			}
@@ -1025,9 +1002,8 @@ describe("ReportService Integration Tests", () => {
 				take: 10,
 			});
 
-			const product = result.data.find((p) => p.name === generateTestId("Test Product"));
+			const product = result.data?.find((p) => p.name === generateTestId("Test Product"));
 			if (product) {
-				// Value = stock * costPrice = 100 * 100 = 10000
 				expect(product.value).toBe(10000);
 			}
 		});
@@ -1060,7 +1036,7 @@ describe("ReportService Integration Tests", () => {
 				take: 10,
 			});
 
-			const oosProduct = result.data.find((p) => p.name === oosName);
+			const oosProduct = result.data?.find((p) => p.name === oosName);
 			expect(oosProduct).toBeDefined();
 			expect(oosProduct?.status).toBe("Out of Stock");
 		});
@@ -1108,7 +1084,7 @@ describe("ReportService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			result.data.forEach((item) => {
+			result.data?.forEach((item) => {
 				expect(item.status).toBe("In Stock");
 			});
 		});
@@ -1120,7 +1096,7 @@ describe("ReportService Integration Tests", () => {
 				take: 10,
 			});
 
-			result.data.forEach((item) => {
+			result.data?.forEach((item) => {
 				expect(item.stock).toBeGreaterThanOrEqual(50);
 			});
 		});
@@ -1132,7 +1108,7 @@ describe("ReportService Integration Tests", () => {
 				take: 10,
 			});
 
-			result.data.forEach((item) => {
+			result.data?.forEach((item) => {
 				expect(item.stock).toBeLessThanOrEqual(50);
 			});
 		});
@@ -1145,13 +1121,12 @@ describe("ReportService Integration Tests", () => {
 			});
 
 			expect(result.success).toBe(true);
-			result.data.forEach((item) => {
+			result.data?.forEach((item) => {
 				expect(item.name).toContain("Test Product");
 			});
 		});
 
 		it("should paginate results", async () => {
-			// Create multiple products
 			for (let i = 0; i < 15; i++) {
 				const product = await prisma.product.create({
 					data: {
@@ -1180,14 +1155,13 @@ describe("ReportService Integration Tests", () => {
 				take: 10,
 			});
 
-			expect(result.data.length).toBeLessThanOrEqual(10);
+			expect(result.data?.length).toBeLessThanOrEqual(10);
 			expect(result.totalCount).toBeGreaterThanOrEqual(15);
 		});
 	});
 
 	describe("getAnalyticsTransactions", () => {
 		it("should return analytics transactions", async () => {
-			// Create sales
 			for (let i = 0; i < 3; i++) {
 				await salesService.createSale(
 					{
@@ -1209,8 +1183,8 @@ describe("ReportService Integration Tests", () => {
 
 			const today = new Date();
 			const result = await reportService.getAnalyticsTransactions(testStoreId, {
-				startDate: today.toISOString(),
-				endDate: today.toISOString(),
+				startDate: today,
+				endDate: today,
 				skip: 0,
 				take: 10,
 			});
@@ -1256,21 +1230,20 @@ describe("ReportService Integration Tests", () => {
 
 			const today = new Date();
 			const result = await reportService.getAnalyticsTransactions(testStoreId, {
-				startDate: today.toISOString(),
-				endDate: today.toISOString(),
+				startDate: today,
+				endDate: today,
 				paymentTypes: ["CASH"],
 				skip: 0,
 				take: 10,
 			});
 
 			expect(result.success).toBe(true);
-			result.data.forEach((tx) => {
+			result.data?.forEach((tx) => {
 				expect(tx.paymentType).toBe("CASH");
 			});
 		});
 
 		it("should filter by status", async () => {
-			// Create credit sale (pending)
 			await salesService.createSale(
 				{
 					storeId: testStoreId,
@@ -1289,7 +1262,6 @@ describe("ReportService Integration Tests", () => {
 				testUserId,
 			);
 
-			// Create cash sale (completed)
 			await salesService.createSale(
 				{
 					storeId: testStoreId,
@@ -1309,15 +1281,15 @@ describe("ReportService Integration Tests", () => {
 
 			const today = new Date();
 			const result = await reportService.getAnalyticsTransactions(testStoreId, {
-				startDate: today.toISOString(),
-				endDate: today.toISOString(),
+				startDate: today,
+				endDate: today,
 				status: "Completed",
 				skip: 0,
 				take: 10,
 			});
 
 			expect(result.success).toBe(true);
-			result.data.forEach((tx) => {
+			result.data?.forEach((tx) => {
 				expect(tx.status).toBe("Completed");
 			});
 		});
@@ -1359,15 +1331,15 @@ describe("ReportService Integration Tests", () => {
 
 			const today = new Date();
 			const result = await reportService.getAnalyticsTransactions(testStoreId, {
-				startDate: today.toISOString(),
-				endDate: today.toISOString(),
+				startDate: today,
+				endDate: today,
 				minAmount: 200,
 				skip: 0,
 				take: 10,
 			});
 
 			expect(result.success).toBe(true);
-			result.data.forEach((tx) => {
+			result.data?.forEach((tx) => {
 				expect(tx.amount).toBeGreaterThanOrEqual(200);
 			});
 		});
@@ -1392,21 +1364,19 @@ describe("ReportService Integration Tests", () => {
 
 			const today = new Date();
 			const result = await reportService.getAnalyticsTransactions(testStoreId, {
-				startDate: today.toISOString(),
-				endDate: today.toISOString(),
+				startDate: today,
+				endDate: today,
 				skip: 0,
 				take: 10,
 			});
 
-			if (result.data.length > 0) {
+			if (result.data && result.data.length > 0) {
 				const tx = result.data[0];
-				// Profit = (sellPrice - costPrice) * quantity = (150 - 100) * 2 = 100
 				expect(tx.profit).toBe(100);
 			}
 		});
 
 		it("should paginate results", async () => {
-			// Create multiple sales
 			for (let i = 0; i < 15; i++) {
 				await salesService.createSale(
 					{
@@ -1433,13 +1403,13 @@ describe("ReportService Integration Tests", () => {
 			endDate.setDate(endDate.getDate() + 1);
 
 			const result = await reportService.getAnalyticsTransactions(testStoreId, {
-				startDate: startDate.toISOString(),
-				endDate: endDate.toISOString(),
+				startDate: startDate,
+				endDate: endDate,
 				skip: 0,
 				take: 10,
 			});
 
-			expect(result.data.length).toBeLessThanOrEqual(10);
+			expect(result.data?.length).toBeLessThanOrEqual(10);
 			expect(result.totalCount).toBeGreaterThanOrEqual(15);
 		});
 
@@ -1463,13 +1433,13 @@ describe("ReportService Integration Tests", () => {
 
 			const today = new Date();
 			const result = await reportService.getAnalyticsTransactions(testStoreId, {
-				startDate: today.toISOString(),
-				endDate: today.toISOString(),
+				startDate: today,
+				endDate: today,
 				skip: 0,
 				take: 10,
 			});
 
-			if (result.data.length > 0) {
+			if (result.data && result.data.length > 0) {
 				const tx = result.data[0];
 				expect(tx.date).toBeDefined();
 				expect(tx.time).toBeDefined();
@@ -1538,7 +1508,6 @@ describe("ReportService Integration Tests", () => {
 		});
 
 		it("should handle multiple stores independently", async () => {
-			// Create another store
 			const otherStore = await prisma.store.create({
 				data: {
 					name: generateTestId("Other Store"),
@@ -1546,7 +1515,6 @@ describe("ReportService Integration Tests", () => {
 				},
 			});
 
-			// Create sales for test store
 			await salesService.createSale(
 				{
 					storeId: testStoreId,
@@ -1572,7 +1540,7 @@ describe("ReportService Integration Tests", () => {
 			);
 
 			expect(result.success).toBe(true);
-			const totalSalesMetric = result.data.find((m) => m.label === "TOTAL SALES");
+			const totalSalesMetric = result.data?.find((m) => m.label === "TOTAL SALES");
 			expect(totalSalesMetric?.value).toBe(0); // No sales in other store
 		});
 	});

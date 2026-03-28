@@ -109,7 +109,7 @@ describe("CategoriesService Integration Tests", () => {
 
 			expect(result.success).toBe(true);
 			expect(result.data).toBeDefined();
-			expect(result.data.length).toBeGreaterThanOrEqual(2);
+			expect(result.data?.length).toBeGreaterThanOrEqual(2);
 		});
 	});
 
