@@ -1,6 +1,6 @@
 import { Prisma } from '@kosh/db';
 import { Field, ObjectType, ID, Float, Int } from '@nestjs/graphql';
-import { ProductVariant } from '../../product/entities/productVariant.entity';
+import { ProductVariant } from 'src/modules/product/entities/product.entity';
 
 @ObjectType()
 export class PurchaseItem {
