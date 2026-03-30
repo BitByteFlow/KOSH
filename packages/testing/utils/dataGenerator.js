@@ -35,3 +35,17 @@ export function generateVariantData() {
         ]
     };
 }
+
+export function generateRandomPaymentType() {
+    const types = ['CASH', 'ONLINE', 'CREDIT'];
+    return types[Math.floor(Math.random() * types.length)];
+}
+
+export function generateSaleItemData(variantId) {
+    return {
+        variantId: variantId,
+        quantity: generateRandomNumber(1, 5),
+        sellPrice: generateRandomNumber(100, 200),
+        costPrice: generateRandomNumber(50, 90)
+    };
+}
