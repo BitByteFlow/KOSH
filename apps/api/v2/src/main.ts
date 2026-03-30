@@ -1,30 +1,36 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { ConfigService } from '@nestjs/config';
-import { ZodValidationPipe } from 'nestjs-zod';
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
+import { ConfigService } from "@nestjs/config";
+import { ZodValidationPipe } from "nestjs-zod";
+import cookieParser from "cookie-parser";
+import { SentryExceptionFilter, SentryModule } from "./common/observability";
+
+SentryModule.init();
 
 async function bootstrap() {
+	const app = await NestFactory.create(AppModule);
 
-  const app = await NestFactory.create(AppModule);
-
-  app.setGlobalPrefix("/api/v2")
+	app.setGlobalPrefix("/api/v2");
 
 	const configService = app.get(ConfigService);
 
-  app.enableCors({
-    origin: "*",
-    credentials: true,
-  })
-
+	app.enableCors({
+		origin: "*",
+		credentials: true,
+	});
+	app.use(cookieParser());
 	app.useGlobalPipes(new ZodValidationPipe());
 
-  try {
-    const port = configService.get("PORT")
-    await app.listen(port);
-    console.log(`Application is running on: http://localhost:${port}`);
-  } catch (error) {
-    console.error("❌ Failed to start application:", error);
-    process.exit(1);
-  }
+	app.useGlobalFilters(new SentryExceptionFilter());
+
+	try {
+		const port = configService.get("PORT");
+		await app.listen(port);
+		console.log(`Application is running on: http://localhost:${port}`);
+	} catch (error) {
+		console.error("❌ Failed to start application:", error);
+		process.exit(1);
+	}
 }
+
 bootstrap();

@@ -11,7 +11,7 @@ import {
 } from "@kosh/ui/components/dropdown-menu";
 
 export function StoreSwitcher() {
-	const { stores, activeStoreId, switchStore, isLoading } = useStore();
+	const { stores, isLoading } = useStore();
 
 	if (isLoading && stores.length === 0) {
 		return (
@@ -33,7 +33,7 @@ export function StoreSwitcher() {
 
 	return (
 		<div className="w-full">
-			<DropdownMenu>
+			<DropdownMenu modal={false}>
 				<DropdownMenuTrigger className="hover:cursor-pointer w-full h-9 border-gray-300 border-2 shadow-inner  rounded-lg hover:bg-accent transition-colors focus:ring-0 px-3 ">
 					<div className="flex items-center gap-2 truncate text-foreground/80">
 						<div className="flex items-center justify-center text-primary shrink-0 gap-4">

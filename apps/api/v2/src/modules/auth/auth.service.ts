@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { DatabaseService } from "src/database/database.service";
 import { AuthResponseDto } from "./dto/AuthResponseDto";
-import { Prisma, User } from "@kosh/db";
+import { Prisma } from "@kosh/db";
 
 @Injectable()
 export class AuthService {
@@ -16,6 +16,7 @@ export class AuthService {
 		googleId: string,
 		image: string,
 		username: string,
+		isCashier: boolean = false,
 	): Promise<AuthResponseDto> {
 		const existinguser = await this.database.user.findFirst({
 			where: {
@@ -43,7 +44,25 @@ export class AuthService {
 					image: image,
 					username: username,
 				},
+			})
+
+			const token = this.jwtService.sign({
+				sub: user.id,
+				email: user.email,
+				username: user.username,
 			});
+
+			if (isCashier) {
+				return {
+					token: token,
+					user: {
+						id: user.id,
+						email: user.email,
+						username: user.username,
+					},
+				}
+			}
+
 			const store = await tsx.store.create({
 				data: {
 					name: `store-${username}`,
@@ -56,12 +75,6 @@ export class AuthService {
 					}
 				}
 			})
-
-			const token = this.jwtService.sign({
-				sub: user.id,
-				email: user.email,
-				username: user.username,
-			});
 
 			return {
 				token: token,
@@ -79,10 +92,10 @@ export class AuthService {
 
 	}
 
-	async signin(email: string, googleId: string): Promise<AuthResponseDto> {
+	async signin(email: string, googleId: string, isCashier: boolean = false): Promise<AuthResponseDto> {
 		const existinguser = await this.database.user.findFirst({
 			where: {
-				OR: [
+				AND: [
 					{ email: email },
 					{
 						googleId: {
@@ -92,6 +105,16 @@ export class AuthService {
 				],
 			},
 			include: {
+				storeMember: {
+					include: {
+						store: {
+							select: {
+								id: true,
+								name: true,
+							}
+						}
+					}
+				},
 				createdStores: {
 					take: 1,
 					select: {
@@ -122,9 +145,10 @@ export class AuthService {
 				username: existinguser.username,
 			},
 			store: {
-				storeId: existinguser.createdStores[0].id,
-				storeName: existinguser.createdStores[0].name,
-			}
+				storeId: isCashier ? existinguser.storeMember?.store.id || "" : existinguser.createdStores[0].id,
+				storeName: isCashier ? existinguser.storeMember?.store.name || "" : existinguser.createdStores[0].name,
+			},
+			isStoreCashier: isCashier && existinguser.storeMember !== null && existinguser.storeMember.isActive,
 		};
 	}
 }

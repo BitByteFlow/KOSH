@@ -6,11 +6,11 @@ import { VariantInput } from './variant.input';
 @InputType()
 export class UpdateProductInput extends createZodDto(updateProductSchema) {
 
-  @Field(() => String)
-  name: string;
+  @Field(() => String, { nullable: true })
+  name?: string;
 
-  @Field(() => String)
-  categoryId: string;
+  @Field(() => String, { nullable: true })
+  categoryId?: string;
 
   @Field(() => [VariantInput], { nullable: true })
   variants?: VariantInput[];

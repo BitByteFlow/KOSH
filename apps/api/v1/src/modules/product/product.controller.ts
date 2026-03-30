@@ -47,9 +47,6 @@ export class ProductController {
 		@Req() req: AuthenticatedRequest,
 		@Query() filterDto: ProductFilterDto,
 	): Promise<any> {
-		console.log("GET /products - UserID:", req.user.id);
-		console.log("GET /products - FilterDTO:", JSON.stringify(filterDto, null, 2));
-		
 		const response = await this.productService.listProductsWithFilters(
 			req.user.id,
 			filterDto,

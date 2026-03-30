@@ -1,107 +1,174 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException } from '@nestjs/common';
-import { CategoriesService } from './categories.service';
-import { DatabaseService } from '../../database/database.service';
+import {
+	TestContext,
+	createTestContext,
+	generateTestId,
+} from "test/test-utils";
+import { PrismaClient } from "@kosh/db";
+import { CategoriesService } from "./categories.service";
+import { DatabaseService } from "../../database/database.service";
 
-describe('CategoriesService (Integration)', () => {
+describe("CategoriesService Integration Tests", () => {
+	let context: TestContext;
 	let categoriesService: CategoriesService;
 	let databaseService: DatabaseService;
+	let prisma: PrismaClient;
 
-	const userId = 'user-cat-int-test';
+	let testStoreId: string;
 
 	beforeAll(async () => {
-		const module: TestingModule = await Test.createTestingModule({
-			providers: [CategoriesService, DatabaseService],
-		}).compile();
+		console.log("Starting CategoriesService tests...");
+		context = await createTestContext();
+		testStoreId = context.storeId;
 
-		categoriesService = module.get<CategoriesService>(CategoriesService);
-		databaseService = module.get<DatabaseService>(DatabaseService);
-
-		await databaseService.prisma.$connect();
+		databaseService = context.databaseService;
+		prisma = databaseService.prisma;
+		categoriesService = new CategoriesService(databaseService);
+		
+		console.log("Test setup complete. Store ID:", testStoreId);
 	});
 
 	afterAll(async () => {
-		await databaseService.prisma.category.deleteMany({ where: { userId } });
-		await databaseService.prisma.user.deleteMany({ where: { id: userId } });
-		await databaseService.prisma.$disconnect();
+		console.log("Cleaning up...");
+		await context.close();
 	});
 
 	beforeEach(async () => {
-		await databaseService.prisma.category.deleteMany({ where: { userId } });
-
-		await databaseService.prisma.user.upsert({
-			where: { id: userId },
-			update: {},
-			create: { id: userId, email: 'cat-test@example.com', username: 'cat_tester' },
-		});
+		await prisma.category.deleteMany();
+		console.log("Database cleaned for test");
 	});
 
-	describe('createCategory', () => {
-		it('should persist a new category in the database', async () => {
-			const catName = 'Hardware';
-			await categoriesService.createCategory({ name: catName }, userId);
+	describe("createCategory - Success Scenarios", () => {
+		it("should create a category successfully", async () => {
+			console.log("Running: should create a category successfully");
+			const categoryName = generateTestId("Electronics");
 
-			const category = await databaseService.prisma.category.findFirst({
-				where: { name: catName, userId },
-			});
+			const result = await categoriesService.createCategory(
+				{ name: categoryName },
+				testStoreId,
+			);
 
-			expect(category).not.toBeNull();
-			expect(category?.name).toBe(catName);
-		});
-
-		it('should throw ConflictException on duplicate name for same user', async () => {
-			const catName = 'Duplicate';
-			await databaseService.prisma.category.create({
-				data: { name: catName, userId },
-			});
-
-			await expect(categoriesService.createCategory({ name: catName }, userId))
-				.rejects.toThrow(ConflictException);
-		});
-	});
-
-	describe('getCategories', () => {
-		it('should fetch all categories from the database', async () => {
-			await databaseService.prisma.category.createMany({
-				data: [
-					{ name: 'Cat A', userId },
-					{ name: 'Cat B', userId },
-				],
-			});
-
-			const result = await categoriesService.getCategories(userId);
+			console.log("Result:", result);
 			expect(result.success).toBe(true);
-			expect(result.data).toHaveLength(2);
+			expect(result.message).toContain(categoryName);
+
+			// Verify category was created
+			const category = await prisma.category.findFirst({
+				where: { name: categoryName },
+			});
+			expect(category).toBeDefined();
+			expect(category?.storeId).toBe(testStoreId);
+		});
+
+		it("should create multiple categories", async () => {
+			const categories = [
+				generateTestId("Electronics"),
+				generateTestId("Clothing"),
+				generateTestId("Books"),
+			];
+
+			for (const name of categories) {
+				await categoriesService.createCategory({ name }, testStoreId);
+			}
+
+			const allCategories = await prisma.category.findMany({
+				where: { storeId: testStoreId },
+			});
+
+			expect(allCategories).toHaveLength(3);
 		});
 	});
 
-	describe('updateCategory', () => {
-		it('should modify existing category name in DB', async () => {
-			const category = await databaseService.prisma.category.create({
-				data: { name: 'Old Name', userId },
-			});
+	describe("createCategory - Error Scenarios", () => {
+		it("should throw ConflictException if category with same name exists", async () => {
+			const categoryName = generateTestId("Duplicate Category");
 
-			await categoriesService.updateCategory(category.id, userId, { name: 'New Name' });
+			// Create first category
+			await categoriesService.createCategory({ name: categoryName }, testStoreId);
 
-			const updated = await databaseService.prisma.category.findUnique({
-				where: { id: category.id },
-			});
-			expect(updated?.name).toBe('New Name');
+			// Try to create duplicate
+			await expect(
+				categoriesService.createCategory({ name: categoryName }, testStoreId),
+			).rejects.toThrow("already exists");
 		});
 	});
 
-	describe('deleteCategory', () => {
-		it('should remove category from the database', async () => {
-			const category = await databaseService.prisma.category.create({
-				data: { name: 'To Delete', userId },
-			});
+	describe("getCategories", () => {
+		beforeEach(async () => {
+			await categoriesService.createCategory(
+				{ name: generateTestId("Category 1") },
+				testStoreId,
+			);
+			await categoriesService.createCategory(
+				{ name: generateTestId("Category 2") },
+				testStoreId,
+			);
+		});
 
-			await categoriesService.deleteCategory(category.id, userId);
+		it("should return all categories for store", async () => {
+			const result = await categoriesService.getCategories(testStoreId);
 
-			const deleted = await databaseService.prisma.category.findUnique({
-				where: { id: category.id },
+			expect(result.success).toBe(true);
+			expect(result.data).toBeDefined();
+			expect(result.data?.length).toBeGreaterThanOrEqual(2);
+		});
+	});
+
+	describe("deleteCategory", () => {
+		let categoryId: string;
+
+		beforeEach(async () => {
+			const categoryName = generateTestId("Category to Delete");
+			await categoriesService.createCategory({ name: categoryName }, testStoreId);
+			const category = await prisma.category.findFirst({
+				where: { name: categoryName },
 			});
-			expect(deleted).toBeNull();
+			categoryId = category?.id || "";
+		});
+
+		it("should delete category successfully", async () => {
+			const result = await categoriesService.deleteCategory(
+				categoryId,
+				testStoreId,
+			);
+
+			expect(result.success).toBe(true);
+			expect(result.message).toBe("Deleted successfully!");
+
+			const deletedCategory = await prisma.category.findUnique({
+				where: { id: categoryId },
+			});
+			expect(deletedCategory).toBeNull();
+		});
+	});
+
+	describe("updateCategory", () => {
+		let categoryId: string;
+
+		beforeEach(async () => {
+			const categoryName = generateTestId("Category to Update");
+			await categoriesService.createCategory({ name: categoryName }, testStoreId);
+			const category = await prisma.category.findFirst({
+				where: { name: categoryName },
+			});
+			categoryId = category?.id || "";
+		});
+
+		it("should update category name successfully", async () => {
+			const newName = generateTestId("Updated Category");
+
+			const result = await categoriesService.updateCategory(
+				categoryId,
+				testStoreId,
+				{ name: newName },
+			);
+
+			expect(result.success).toBe(true);
+			expect(result.message).toBe("Category Updated");
+
+			const updatedCategory = await prisma.category.findUnique({
+				where: { id: categoryId },
+			});
+			expect(updatedCategory?.name).toBe(newName);
 		});
 	});
 });

@@ -16,13 +16,13 @@ export class PurchaseVariantItem extends createZodDto(purchaseVariantItemSchema)
 export class CreatePurchaseInput extends createZodDto(createPurchaseSchema) {
   @Field(() => String)
   supplierName: string;
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   email: string;
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   contact: string;
   @Field(() => Number)
   amountPaid: number;
-  @Field(() => Date)
+  @Field(() => Date, { nullable: true })
   dueDate: Date;
   @Field(() => [PurchaseVariantItem], { nullable: true})
   variants: PurchaseVariantItem[];

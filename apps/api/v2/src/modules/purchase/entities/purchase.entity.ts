@@ -16,10 +16,10 @@ export class Purchase {
   @Field()
   supplierName: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   email?: string | null;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   contact?: string | null;
 
   @Field(() => Float)
@@ -31,7 +31,7 @@ export class Purchase {
   @Field(() => Float)
   balanceDue: Prisma.Decimal;
 
-  @Field({ nullable: true })
+  @Field(() => Date, { nullable: true })
   dueDate?: Date | null;
 
   @Field(() => PaymentStatus)
@@ -46,6 +46,6 @@ export class Purchase {
   @Field()
   updatedAt: Date;
 
-  @Field({ nullable: true })
+  @Field(() => Date, { nullable: true })
   deletedAt?: Date | null;
 }

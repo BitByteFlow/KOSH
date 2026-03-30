@@ -12,9 +12,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 	private pool?: Pool;
 	public readonly prisma: PrismaClient;
 
-	constructor(private configService: ConfigService) {
-		const dbUrl = configService.get<string>("DATABASE_URL");
-		const maxConnections = configService.get<number>("DB_MAX_CONNECTIONS") || 3;
+	constructor(@Inject(ConfigService) private readonly configService: ConfigService) {
+		const dbUrl = this.configService.get<string>("DATABASE_URL");
+		const maxConnections = this.configService.get<number>("DB_MAX_CONNECTIONS") || 3;
+
+		if (!dbUrl) {
+			throw new Error("DATABASE_URL environment variable is not set");
+		}
 
 		const pool = new Pool({
 			connectionString: dbUrl,
@@ -51,7 +55,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     get creditAccount(): PrismaClient['creditAccount'] { return this.prisma.creditAccount; }
     get settings(): PrismaClient['settings'] { return this.prisma.settings; }
     get storeMember(): PrismaClient['storeMember'] { return this.prisma.storeMember; }
-    
+    get store(): PrismaClient['store'] { return this.prisma.store; }
+    get saleItem(): PrismaClient['saleItem'] { return this.prisma.saleItem; }
+    get purchaseItem(): PrismaClient['purchaseItem'] { return this.prisma.purchaseItem; }
+    get variantAttribute(): PrismaClient['variantAttribute'] { return this.prisma.variantAttribute; }
+    get storeJoinRequest(): PrismaClient['storeJoinRequest'] { return this.prisma.storeJoinRequest; }
+    get notification(): PrismaClient['notification'] { return this.prisma.notification; }
+
     get $executeRaw() { return this.prisma.$executeRaw.bind(this.prisma); }
     get $queryRaw() { return this.prisma.$queryRaw.bind(this.prisma); }
 
