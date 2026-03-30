@@ -6,38 +6,33 @@ import {
 	PrismaClientInitializationError,
 	PrismaClientValidationError,
 } from "@kosh/db";
-import * as Sentry from "@sentry/nestjs";
-import { ErrorType } from "./sentry.service";
+import { SentryService } from "../sentry/sentry.service";
+import { DatabaseError, ErrorCode } from "../sentry/errors";
+import type { PrismaErrorContext } from "../sentry/types";
 
-export interface PrismaErrorContext {
-	operation?: string;
-	model?: string;
-	args?: Record<string, unknown>;
-	userId?: string;
-	query?: string;
-}
-
-export class DatabaseError extends Error {
-	type = "DATABASE_ERROR";
-	code: string;
-	isRetryable: boolean;
-
-	constructor(message: string, code: string, isRetryable = false) {
-		super(message);
-		this.code = code;
-		this.isRetryable = isRetryable;
-		this.name = "DatabaseError";
-	}
-}
-
+/**
+ * PrismaErrorHandler - Database error classification and reporting
+ *
+ * Uses SentryService for error reporting (no direct Sentry SDK calls)
+ * Provides user-friendly error messages while preserving technical details
+ */
 @Injectable()
 export class PrismaErrorHandler {
 	private readonly logger = new Logger(PrismaErrorHandler.name);
-	handlePrismaError(error: unknown, context?: PrismaErrorContext): never {
-		const errorInfo = this.classifyPrismaError(error, context);
 
-		Sentry.withScope((scope) => {
-			scope.setTag("error.type", ErrorType.DATABASE);
+	constructor(private readonly sentryService: SentryService) {}
+
+	/**
+	 * Handle Prisma errors by classifying and reporting them
+	 *
+	 * This method always throws a DatabaseError - it never returns normally
+	 */
+	handlePrismaError(error: unknown, context?: PrismaErrorContext): never {
+		const errorInfo = this._classifyPrismaError(error, context);
+
+		// Report to Sentry via service wrapper
+		this.sentryService.withScope((scope) => {
+			scope.setTag("error.type", "DATABASE_ERROR");
 			scope.setTag("error.source", "prisma");
 			scope.setTag("prisma.error_code", errorInfo.code);
 			scope.setTag(
@@ -61,21 +56,38 @@ export class PrismaErrorHandler {
 			}
 
 			scope.setLevel(errorInfo.isExpected ? "warning" : "error");
-			Sentry.captureException(error);
+			this.sentryService.captureException(error);
 		});
 
-		this.logger.error(
-			`Prisma error [${errorInfo.code}]: ${errorInfo.message}`,
-			errorInfo.isExpected ? undefined : error,
-		);
+		// Log for debugging (expected errors at debug level)
+		if (errorInfo.isExpected) {
+			this.logger.debug(
+				`Prisma error [${errorInfo.code}]: ${errorInfo.message}`,
+			);
+		} else {
+			this.logger.error(
+				`Prisma error [${errorInfo.code}]: ${errorInfo.message}`,
+				error,
+			);
+		}
 
-		throw new DatabaseError(
-			errorInfo.userMessage,
-			errorInfo.code,
-			errorInfo.isRetryable,
-		);
+		throw new DatabaseError(errorInfo.userMessage, {
+			code: errorInfo.code as ErrorCode,
+			cause: error,
+		});
 	}
 
+	/**
+	 * Wrap a Prisma operation with automatic error handling
+	 *
+	 * @example
+	 * ```typescript
+	 * const user = await this.prismaErrorHandler.wrapPrismaOperation(
+	 *   () => this.prisma.user.findUnique({ where: { id } }),
+	 *   { operation: 'findUser', model: 'User', userId: id }
+	 * );
+	 * ```
+	 */
 	async wrapPrismaOperation<T>(
 		operation: () => Promise<T>,
 		context?: PrismaErrorContext,
@@ -87,7 +99,10 @@ export class PrismaErrorHandler {
 		}
 	}
 
-	private classifyPrismaError(
+	/**
+	 * Classify a Prisma error into a standardized format
+	 */
+	private _classifyPrismaError(
 		error: unknown,
 		context?: PrismaErrorContext,
 	): {
@@ -101,8 +116,9 @@ export class PrismaErrorHandler {
 		const model = context?.model || "Unknown";
 		const operation = context?.operation || "unknown";
 
+		// Handle known Prisma error types
 		if (error instanceof PrismaClientKnownRequestError) {
-			return this.handleKnownPrismaError(error, model, operation);
+			return this._handleKnownPrismaError(error, model, operation);
 		}
 
 		if (error instanceof PrismaClientUnknownRequestError) {
@@ -150,6 +166,7 @@ export class PrismaErrorHandler {
 			};
 		}
 
+		// Generic error handling
 		if (error instanceof Error) {
 			return {
 				code: "DATABASE_ERROR",
@@ -161,6 +178,7 @@ export class PrismaErrorHandler {
 			};
 		}
 
+		// Unknown error type
 		return {
 			code: "UNKNOWN_DATABASE_ERROR",
 			message: String(error),
@@ -171,7 +189,10 @@ export class PrismaErrorHandler {
 		};
 	}
 
-	private handleKnownPrismaError(
+	/**
+	 * Handle known Prisma error codes with specific messages
+	 */
+	private _handleKnownPrismaError(
 		error: PrismaClientKnownRequestError,
 		model: string,
 		operation: string,
@@ -186,6 +207,7 @@ export class PrismaErrorHandler {
 		const code = error.code;
 
 		switch (code) {
+			// P2025: Record not found
 			case "P2025":
 				return {
 					code,
@@ -196,6 +218,7 @@ export class PrismaErrorHandler {
 					isRetryable: false,
 				};
 
+			// P2002: Unique constraint failed
 			case "P2002": {
 				const target =
 					(error.meta?.target as string[])?.join(", ") || "unique field";
@@ -209,6 +232,7 @@ export class PrismaErrorHandler {
 				};
 			}
 
+			// P2003: Foreign key constraint failed
 			case "P2003":
 				return {
 					code,
@@ -219,6 +243,7 @@ export class PrismaErrorHandler {
 					isRetryable: false,
 				};
 
+			// P2000: Value too long
 			case "P2000":
 				return {
 					code,
@@ -229,6 +254,7 @@ export class PrismaErrorHandler {
 					isRetryable: false,
 				};
 
+			// P2006: Invalid value
 			case "P2006":
 				return {
 					code,
@@ -239,17 +265,20 @@ export class PrismaErrorHandler {
 					isRetryable: false,
 				};
 
+			// P2020/P2021: Timeout
 			case "P2020":
 			case "P2021":
 				return {
 					code,
 					message: error.message,
-					userMessage: "The database operation timed out. Please try again.",
+					userMessage:
+						"The database operation timed out. Please try again.",
 					category: "timeout",
 					isExpected: false,
 					isRetryable: true,
 				};
 
+			// P2005: Database busy
 			case "P2005":
 				return {
 					code,
@@ -260,16 +289,19 @@ export class PrismaErrorHandler {
 					isRetryable: true,
 				};
 
+			// P2010: Schema configuration error
 			case "P2010":
 				return {
 					code,
 					message: error.message,
-					userMessage: "Database configuration error. Please contact support.",
+					userMessage:
+						"Database configuration error. Please contact support.",
 					category: "schema",
 					isExpected: false,
 					isRetryable: false,
 				};
 
+			// P2018: Required relation not found
 			case "P2018":
 				return {
 					code,
@@ -280,6 +312,7 @@ export class PrismaErrorHandler {
 					isRetryable: false,
 				};
 
+			// Default: Unknown error code
 			default:
 				return {
 					code,

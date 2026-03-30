@@ -3,8 +3,9 @@ import { AppModule } from "./app.module";
 import { ConfigService } from "@nestjs/config";
 import { ZodValidationPipe } from "nestjs-zod";
 import cookieParser from "cookie-parser";
-import * as Sentry from "@sentry/nestjs";
-import { SentryExceptionFilter } from "./common/filters/sentryFilter";
+import { SentryExceptionFilter, SentryModule } from "./common/observability";
+
+SentryModule.init();
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
@@ -20,7 +21,6 @@ async function bootstrap() {
 	app.use(cookieParser());
 	app.useGlobalPipes(new ZodValidationPipe());
 
-	// Use global exception filter for non-GraphQL errors
 	app.useGlobalFilters(new SentryExceptionFilter());
 
 	try {
@@ -28,9 +28,9 @@ async function bootstrap() {
 		await app.listen(port);
 		console.log(`Application is running on: http://localhost:${port}`);
 	} catch (error) {
-		Sentry.captureException(error);
 		console.error("❌ Failed to start application:", error);
 		process.exit(1);
 	}
 }
+
 bootstrap();

@@ -1,4 +1,10 @@
 import { Module } from "@nestjs/common";
+import {
+	ObservabilityModule,
+	SentryGraphQLInterceptor,
+	SentryService,
+	PrismaErrorHandler,
+} from "./common/observability";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { GraphQLModule } from "@nestjs/graphql";
@@ -20,19 +26,16 @@ import { NotificationModule } from "./modules/notification/notification.module";
 import { StoreModule } from "./modules/store/store.module";
 import { StoreMemberModule } from "./modules/storeMember/storeMember.module";
 import { StoreJoinRequestModule } from "./modules/storeJoinRequest/storeJoinRequest.module";
-import { SentryModule } from "./common/sentry/sentry.module";
-import { SentryService, PrismaErrorHandler, SentryGraphQLInterceptor } from "./common/sentry";
 import { APP_INTERCEPTOR } from "@nestjs/core";
-import { Request } from "express";
+import type { Request } from "express";
 
 @Module({
 	imports: [
 		ConfigModule.forRoot({
-			envFilePath: "../.env",
+			envFilePath: ".env",
 			isGlobal: true,
 		}),
-		// Initialize Sentry after ConfigModule so it can access environment variables
-		SentryModule.forRoot(),
+		ObservabilityModule,
 		GraphQLModule.forRoot<ApolloDriverConfig>({
 			driver: ApolloDriver,
 			autoSchemaFile: true,
@@ -41,8 +44,6 @@ import { Request } from "express";
 				"graphql-ws": true,
 			},
 			context: ({ req, extra }: { req: Request; extra: any }) => {
-				// For subscriptions, the user data is in extra.user (if populated by onConnect)
-				// or we might need to handle it differently depending on the auth setup.
 				return { req: req || extra?.request };
 			},
 		}),
@@ -69,7 +70,6 @@ import { Request } from "express";
 			provide: "APP_PIPE",
 			useClass: ZodValidationPipe,
 		},
-		// Register Sentry GraphQL interceptor globally for all resolvers
 		{
 			provide: APP_INTERCEPTOR,
 			useFactory: (sentryService: SentryService) => {
@@ -77,9 +77,7 @@ import { Request } from "express";
 			},
 			inject: [SentryService],
 		},
-		// Provide SentryService for use in resolvers and services
 		SentryService,
-		// Provide PrismaErrorHandler for use in services
 		PrismaErrorHandler,
 	],
 })
