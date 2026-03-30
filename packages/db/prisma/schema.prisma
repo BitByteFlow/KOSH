@@ -10,7 +10,6 @@ datasource db {
 enum Role {
   ADMIN
   CASHIER
-  MANAGER
 }
 
 enum ProductStatus {
@@ -35,6 +34,7 @@ enum PaymentType {
 enum TransactionType {
   INITIAL_CAPITAL
   ADDITIONAL_CAPITAL
+  CREDIT
   WITHDRAWAL
   SALE_INCOME
   PURCHASE
@@ -49,6 +49,15 @@ enum NotificationType {
   LOW_STOCK
   NEW_FEATURE_ADDED
   SYSTEM_ALERT
+  JOIN_REQUEST
+  JOIN_ACCEPTED
+  JOIN_REJECTED
+}
+
+enum StoreJoinRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
 
 enum StockMovementType {
@@ -66,15 +75,15 @@ model User {
   username  String
   googleId  String   @unique
   image     String
-  role      Role     @default(ADMIN)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  createdStores Store[]        @relation("StoreCreator")
-  storesMembers StoreMember[]
+  createdStores Store[]            @relation("StoreCreator")
+  storeMember   StoreMember?
   purchases     Purchase[]
   sales         Sale[]
   notifications Notification[]
+  joinRequests  StoreJoinRequest[]
 }
 
 model Store {
@@ -99,12 +108,13 @@ model Store {
   accountTransactions AccountTransaction[]
   dailyBalances       DailyBalance[]
   settings            Settings?
+  joinRequests        StoreJoinRequest[]
 }
 
 model StoreMember {
   id       String  @id @default(uuid())
   storeId  String
-  userId   String
+  userId   String  @unique
   role     Role    @default(CASHIER)
   isActive Boolean @default(true)
 
@@ -112,6 +122,22 @@ model StoreMember {
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([storeId, userId])
+}
+
+model StoreJoinRequest {
+  id        String                 @id @default(uuid())
+  storeId   String
+  userId    String
+  status    StoreJoinRequestStatus @default(PENDING)
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, userId])
+  @@index([storeId])
+  @@index([userId])
 }
 
 model Settings {

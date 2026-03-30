@@ -5,3 +5,4 @@ export * from "./src/product.schema";
 export * from "./src/sales.schema";
 export * from "./src/purchase.schema";
 export * from "./src/store.schema";
+export * from "./src/storeJoinRequest.schema";

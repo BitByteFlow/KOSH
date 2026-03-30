@@ -45,8 +45,8 @@ export const updateVariantSchema = z.object({
 export const addVariantSchema = variantDtoSchema;
 
 export const updateProductSchema = z.object({
-  name: z.string().min(2),
-  categoryId: z.string().uuid(),
+  name: z.string().min(2).optional(),
+  categoryId: z.string().uuid().optional(),
   variants: z.array(variantDtoSchema).optional(),
 });
 
