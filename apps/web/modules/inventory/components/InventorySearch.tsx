@@ -4,7 +4,11 @@ import { Search, Download, ChevronDown, Plus, Check } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
 import { ProductSheet } from "./ProductSheet";
 import { AddCategoryModal } from "./AddCategoryModal";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@kosh/ui/components/tooltip";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@kosh/ui/components/tooltip";
 import { Input } from "@kosh/ui/components/input";
 import { useState, useMemo } from "react";
 import {
@@ -40,18 +44,20 @@ const InventorySearch = ({
 }: InventorySearchProps) => {
 	const { data: rawData, loading } = useCategoryList();
 
-	const categories = useMemo(() =>
-		rawData?.getCategories?.data ?? [],
-		[rawData?.getCategories?.data]
+	const categories = useMemo(
+		() => rawData?.getCategories?.data ?? [],
+		[rawData?.getCategories?.data],
 	);
 
 	const [categorySearch, setCategorySearch] = useState("");
 
 	const filteredCategories = useMemo(() => {
 		if (!categorySearch) return categories;
-		return categories?.filter((cat: any) =>
-			cat.name.toLowerCase().includes(categorySearch.toLowerCase())
-		) ?? [];
+		return (
+			categories?.filter((cat: any) =>
+				cat.name.toLowerCase().includes(categorySearch.toLowerCase()),
+			) ?? []
+		);
 	}, [categories, categorySearch]);
 
 	const selectedCategoryName = useMemo(() => {
@@ -70,7 +76,7 @@ const InventorySearch = ({
 		if (!activeStatus) return "Status";
 		const opt = statusOptions.find((o) => o.value === activeStatus);
 		return opt ? opt.label : "Status";
-	}, [activeStatus, statusOptions]);
+	}, [activeStatus, statusOptions.find]);
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -104,14 +110,19 @@ const InventorySearch = ({
 							size="sm"
 							className={cn(
 								"text-base flex items-center gap-2 h-10 px-4 bg-transparent border-border hover:bg-muted/50",
-								activeCategoryId && "border-primary text-primary bg-primary/5"
+								activeCategoryId && "border-primary text-primary bg-primary/5",
 							)}
 						>
-							<span className="max-w-[100px] truncate">{selectedCategoryName}</span>
+							<span className="max-w-25 truncate">
+								{selectedCategoryName}
+							</span>
 							<ChevronDown className="w-4 h-4 opacity-50" />
 						</Button>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end" className="w-[200px]">
+					<DropdownMenuContent
+						align="end"
+						className="w-50"
+					>
 						<div className="p-2">
 							<Input
 								placeholder="Search categories..."
@@ -130,7 +141,7 @@ const InventorySearch = ({
 							{!activeCategoryId && <Check className="w-4 h-4" />}
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
-						<div className="max-h-[200px] overflow-auto">
+						<div className="max-h-50 overflow-auto">
 							{filteredCategories.map((cat) => (
 								<DropdownMenuItem
 									key={cat.id}
@@ -157,14 +168,17 @@ const InventorySearch = ({
 							size="sm"
 							className={cn(
 								"text-base flex items-center gap-2 h-10 px-4 bg-transparent border-border hover:bg-muted/50",
-								activeStatus && "border-primary text-primary bg-primary/5"
+								activeStatus && "border-primary text-primary bg-primary/5",
 							)}
 						>
 							{selectedStatusLabel}
 							<ChevronDown className="w-4 h-4 opacity-50" />
 						</Button>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end" className="w-[160px]">
+					<DropdownMenuContent
+						align="end"
+						className="w-40"
+					>
 						<DropdownMenuItem
 							onClick={() => onStatusFilter?.(null)}
 							className="flex items-center justify-between"
@@ -193,14 +207,16 @@ const InventorySearch = ({
 					disabled={selectedCount === 0}
 					className={cn(
 						"text-base flex items-center gap-2 h-10 px-4 bg-transparent border-border",
-						selectedCount > 0 && "border-success text-success bg-success/5"
+						selectedCount > 0 && "border-success text-success bg-success/5",
 					)}
 				>
 					<Tooltip>
 						<TooltipTrigger asChild>
 							<div className="flex items-center gap-2 justify-center">
 								<Download className="w-4 h-4" />
-								<span>Barcodes {selectedCount > 0 && `(${selectedCount})`}</span>
+								<span>
+									Barcodes {selectedCount > 0 && `(${selectedCount})`}
+								</span>
 							</div>
 						</TooltipTrigger>
 						<TooltipContent className="bg-popover text-popover-foreground border-border shadow-md">
@@ -213,6 +229,6 @@ const InventorySearch = ({
 			</div>
 		</div>
 	);
-}
+};
 
 export default InventorySearch;

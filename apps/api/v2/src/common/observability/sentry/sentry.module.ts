@@ -22,7 +22,7 @@ export class SentryModule {
 		Sentry.init({
 			dsn: process.env.SENTRY_DSN,
 			environment: process.env.NODE_ENV ?? "development",
-			release: process.env.GITHUB_SHA ?? "unversioned",
+			// release: process.env.GITHUB_SHA ?? "unversioned",
 
 			tracesSampleRate: isProd ? 0.1 : 1.0,
 			profilesSampleRate: 0, 

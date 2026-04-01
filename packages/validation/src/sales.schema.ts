@@ -20,33 +20,36 @@ export const createSaleSchema = z
 		storeId: z.uuid(),
 		discount: z.number().min(0, "Discount cannot be negative"),
 		paymentType: z.enum(["CASH", "ONLINE", "CREDIT"]),
-		creditId: z.string().uuid().optional(),
+		creditId: z.uuid().optional(),
 		items: z
 			.array(createSaleItemSchema)
 			.min(1, "At least one item is required"),
 		transactionNote: z.string().optional(),
 		customerName: z.string().optional(),
-		customerEmail: z
-			.string()
-			.email("Invalid email format")
-			.optional()
-			.or(z.literal("")),
+		customerEmail: z.email("Invalid email format").optional(),
 		customerContact: z.string().optional(),
 	})
 	.superRefine((data, ctx) => {
 		if (data.paymentType === "CREDIT") {
 			if (!data.customerName || data.customerName.trim() === "") {
 				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
-					message: "Customer name is required for credit sales",
+					code: "custom",
+					message: "Required",
 					path: ["customerName"],
 				});
 			}
 			if (!data.customerContact || data.customerContact.trim() === "") {
 				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
-					message: "Customer contact is required for credit sales",
+					code: "custom",
+					message: "Required",
 					path: ["customerContact"],
+				});
+			}
+			if (!data.customerEmail || data.customerEmail.trim() === "") {
+				ctx.addIssue({
+					code: "custom",
+					message: "Required",
+					path: ["customerEmail"],
 				});
 			}
 		}

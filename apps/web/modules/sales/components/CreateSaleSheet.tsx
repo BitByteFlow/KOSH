@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState, useRef, useMemo } from "react";
-import { useForm, useFieldArray, Controller, SubmitHandler } from "react-hook-form";
+import {
+	useForm,
+	useFieldArray,
+	Controller,
+	SubmitHandler,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createSaleSchema, CreateSaleInput } from "@kosh/validation";
 import {
@@ -21,7 +26,18 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@kosh/ui/components/select";
-import { Plus, Trash2, Loader2, Search, Package, ShoppingCart, User, CreditCard, AlertCircle, ArrowLeft } from "lucide-react";
+import {
+	Plus,
+	Trash2,
+	Loader2,
+	Search,
+	Package,
+	ShoppingCart,
+	User,
+	CreditCard,
+	AlertCircle,
+	ArrowLeft,
+} from "lucide-react";
 import { useCreateSale } from "../hooks/useSales";
 import { formatCurrency } from "@/lib/utils";
 import { LIST_PRODUCTS_WITH_FILTER } from "@/services/products.service";
@@ -37,6 +53,7 @@ import {
 } from "@/gql/graphql";
 import { parseGraphQLListResponse } from "@/lib/graphql/utils";
 import { z } from "zod";
+import { useCurrentStore } from "@/context/StoreContext";
 
 type SaleFormValues = z.infer<typeof createSaleSchema>;
 
@@ -45,7 +62,10 @@ interface ProductSearchSelectorProps {
 	disabled?: boolean;
 }
 
-function ProductSearchSelector({ onSelect, disabled }: ProductSearchSelectorProps) {
+function ProductSearchSelector({
+	onSelect,
+	disabled,
+}: ProductSearchSelectorProps) {
 	const [query, setQuery] = useState("");
 	const [isOpen, setIsOpen] = useState(false);
 	const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -54,28 +74,32 @@ function ProductSearchSelector({ onSelect, disabled }: ProductSearchSelectorProp
 	const debouncedQuery = useDebounce(query, 300);
 	const containerRef = useRef<HTMLDivElement>(null);
 
-	const { data: rawData, loading: isLoading } = useQuery<{ listProductsWithFilter: ProductResponse }>(
-		LIST_PRODUCTS_WITH_FILTER,
-		{
-			variables: {
-				filterInput: {
-					search: debouncedQuery,
-					limit: 5,
-					page: 1
-				}
+	const { data: rawData, loading: isLoading } = useQuery<{
+		listProductsWithFilter: ProductResponse;
+	}>(LIST_PRODUCTS_WITH_FILTER, {
+		variables: {
+			filterInput: {
+				search: debouncedQuery,
+				limit: 5,
+				page: 1,
 			},
-			skip: debouncedQuery.length <= 1 || !!selectedProduct
-		}
-	);
+		},
+		skip: debouncedQuery.length <= 1 || !!selectedProduct,
+	});
 
-	const results = useMemo(() =>
-		parseGraphQLListResponse<Product>(rawData?.listProductsWithFilter).data || [],
-		[rawData]
+	const results = useMemo(
+		() =>
+			parseGraphQLListResponse<Product>(rawData?.listProductsWithFilter).data ||
+			[],
+		[rawData],
 	);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
-			if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+			if (
+				containerRef.current &&
+				!containerRef.current.contains(event.target as Node)
+			) {
 				setIsOpen(false);
 				setSelectedProduct(null);
 			}
@@ -89,7 +113,10 @@ function ProductSearchSelector({ onSelect, disabled }: ProductSearchSelectorProp
 	};
 
 	return (
-		<div className="relative" ref={containerRef}>
+		<div
+			className="relative"
+			ref={containerRef}
+		>
 			<div className="relative">
 				<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 				<Input
@@ -115,7 +142,7 @@ function ProductSearchSelector({ onSelect, disabled }: ProductSearchSelectorProp
 
 			{isOpen && (isFocused || query.length > 0 || selectedProduct) && (
 				<div className="absolute top-full left-0 right-0 z-50 mt-1 bg-popover border rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-					<div className="max-h-[350px] overflow-y-auto p-1">
+					<div className="max-h-87.5 overflow-y-auto p-1">
 						{selectedProduct ? (
 							<div className="space-y-1">
 								<button
@@ -127,7 +154,9 @@ function ProductSearchSelector({ onSelect, disabled }: ProductSearchSelectorProp
 									Back to search results
 								</button>
 								<div className="px-3 py-2">
-									<p className="text-xs font-bold uppercase text-muted-foreground mb-2">Select Variant for {selectedProduct.productName}</p>
+									<p className="text-xs font-bold uppercase text-muted-foreground mb-2">
+										Select Variant for {selectedProduct.productName}
+									</p>
 									<div className="grid gap-1">
 										{selectedProduct.variants.map((v) => (
 											<button
@@ -146,14 +175,27 @@ function ProductSearchSelector({ onSelect, disabled }: ProductSearchSelectorProp
 														<span className="font-bold">{v.sku}</span>
 														{v.attributes && v.attributes.length > 0 && (
 															<span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-																{v.attributes.map(a => a.value).join(" / ")}
+																{v.attributes.map((a) => a.value).join(" / ")}
 															</span>
 														)}
 													</div>
-													<p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">Stock: <span className={cn(v.stock <= 0 ? "text-destructive" : "text-green-600")}>{v.stock}</span></p>
+													<p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">
+														Stock:{" "}
+														<span
+															className={cn(
+																v.stock <= 0
+																	? "text-destructive"
+																	: "text-green-600",
+															)}
+														>
+															{v.stock}
+														</span>
+													</p>
 												</div>
 												<div className="text-right">
-													<p className="font-bold text-primary">{formatCurrency(v.price)}</p>
+													<p className="font-bold text-primary">
+														{formatCurrency(v.price)}
+													</p>
 													<Plus className="h-4 w-4 ml-auto text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
 												</div>
 											</button>
@@ -173,13 +215,16 @@ function ProductSearchSelector({ onSelect, disabled }: ProductSearchSelectorProp
 										<Package className="h-5 w-5" />
 									</div>
 									<div className="flex-1 min-w-0">
-										<p className="font-bold truncate text-base">{p.productName}</p>
+										<p className="font-bold truncate text-base">
+											{p.productName}
+										</p>
 										<div className="flex items-center gap-2">
 											<span className="text-[10px] uppercase font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
 												{p.category.name}
 											</span>
 											<span className="text-[10px] font-bold text-primary">
-												{p.variants.length} variant{p.variants.length > 1 ? "s" : ""}
+												{p.variants.length} variant
+												{p.variants.length > 1 ? "s" : ""}
 											</span>
 										</div>
 									</div>
@@ -204,6 +249,7 @@ function ProductSearchSelector({ onSelect, disabled }: ProductSearchSelectorProp
 
 export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 	const [isOpen, setIsOpen] = useState(false);
+	const { store } = useCurrentStore();
 	const [addedProducts, setAddedProducts] = useState<Product[]>([]);
 	const [mutate, { loading: isMutating }] = useCreateSale();
 
@@ -218,6 +264,7 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 	} = useForm<SaleFormValues>({
 		resolver: zodResolver(createSaleSchema),
 		defaultValues: {
+			storeId: store?.id,
 			paymentType: "CASH",
 			discount: 0,
 			transactionNote: "",
@@ -236,26 +283,38 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 	const watchPaymentType = watch("paymentType");
 
 	useEffect(() => {
+		if (store?.id) {
+			setValue("storeId", store.id);
+		}
+	}, [store?.id, setValue]);
+
+	useEffect(() => {
 		if (!isOpen) {
-			reset();
+			reset({
+				storeId: store?.id as string,
+				paymentType: "CASH",
+				discount: 0,
+				transactionNote: "",
+				items: [],
+			});
 			setAddedProducts([]);
 		}
-	}, [isOpen, reset]);
+	}, [isOpen, reset, store?.id]);
 
 	const subtotal = watchItems.reduce((sum: number, item: any) => {
 		const quantity = item?.quantity || 0;
 		const sellPrice = item?.sellPrice || 0;
-		return sum + (Number(quantity) * Number(sellPrice));
+		return sum + Number(quantity) * Number(sellPrice);
 	}, 0);
 
 	const total = subtotal - Number(watchDiscount);
 
-	const profit = watchItems.reduce((sum: number, item: any) => {
-		const quantity = item?.quantity || 0;
-		const sellPrice = item?.sellPrice || 0;
-		const costPrice = item?.costPrice || 0;
-		return sum + (Number(quantity) * (Number(sellPrice) - Number(costPrice)));
-	}, 0);
+	// const profit = watchItems.reduce((sum: number, item: any) => {
+	// 	const quantity = item?.quantity || 0;
+	// 	const sellPrice = item?.sellPrice || 0;
+	// 	const costPrice = item?.costPrice || 0;
+	// 	return sum + Number(quantity) * (Number(sellPrice) - Number(costPrice));
+	// }, 0);
 
 	const onSubmit: SubmitHandler<SaleFormValues> = async (data) => {
 		try {
@@ -265,14 +324,14 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 						...data,
 						paymentType: data.paymentType as PaymentType,
 						discount: Number(data.discount),
-						items: data.items.map(item => ({
+						items: data.items.map((item) => ({
 							...item,
 							quantity: Number(item.quantity),
 							sellPrice: Number(item.sellPrice),
 							costPrice: Number(item.costPrice),
-						}))
-					}
-				}
+						})),
+					},
+				},
 			});
 
 			if (result?.createSale?.success) {
@@ -285,8 +344,8 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 	};
 
 	const addItem = (product: Product, variant: ProductVariant) => {
-		setAddedProducts(prev => {
-			if (prev.find(p => p.id === product.id)) return prev;
+		setAddedProducts((prev) => {
+			if (prev.find((p) => p.id === product.id)) return prev;
 			return [...prev, product];
 		});
 
@@ -299,7 +358,10 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 	};
 
 	return (
-		<Sheet open={isOpen} onOpenChange={setIsOpen}>
+		<Sheet
+			open={isOpen}
+			onOpenChange={setIsOpen}
+		>
 			<SheetTrigger asChild>
 				{children || (
 					<Button className="py-6 flex items-center gap-2 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 hover:cursor-pointer">
@@ -308,7 +370,7 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 					</Button>
 				)}
 			</SheetTrigger>
-			<SheetContent className="sm:max-w-[750px] overflow-hidden flex flex-col p-0 border-l-0">
+			<SheetContent className="sm:max-w-187.5 overflow-hidden flex flex-col p-0 border-l-0">
 				<div className="bg-primary/5 p-6 border-b">
 					<SheetHeader>
 						<SheetTitle className="text-2xl font-bold flex items-center gap-2">
@@ -321,10 +383,13 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 					</SheetHeader>
 				</div>
 
-				<form onSubmit={handleSubmit(onSubmit, (errors) => {
-					console.error("Form Errors:", errors);
-					toast.error("Please fix the errors in the form before submitting.");
-				})} className="flex-1 overflow-hidden flex flex-col">
+				<form
+					onSubmit={handleSubmit(onSubmit, (errors) => {
+						console.log("form errors: ", errors);
+						toast.error("Please fix the errors in the form before submitting.");
+					})}
+					className="flex-1 overflow-hidden flex flex-col"
+				>
 					<div className="flex-1 overflow-y-auto p-6 space-y-8">
 						<div className="space-y-4">
 							<div className="flex items-center justify-between">
@@ -333,7 +398,10 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 									Add Products
 								</h3>
 							</div>
-							<ProductSearchSelector onSelect={addItem} disabled={isSubmitting || isMutating} />
+							<ProductSearchSelector
+								onSelect={addItem}
+								disabled={isSubmitting || isMutating}
+							/>
 							{errors.items?.message && (
 								<p className="text-xs text-destructive flex items-center gap-1">
 									<AlertCircle className="h-3 w-3" />
@@ -346,7 +414,9 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 							{fields.length === 0 ? (
 								<div className="h-40 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 text-muted-foreground bg-muted/5">
 									<Package className="h-8 w-8 opacity-20" />
-									<p className="text-sm">Search and select products to see them here</p>
+									<p className="text-sm">
+										Search and select products to see them here
+									</p>
 								</div>
 							) : (
 								<div className="space-y-3">
@@ -354,8 +424,12 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 										const item = watchItems[index];
 										if (!item) return null;
 
-										const product = addedProducts.find(p => p.variants.some(v => v.id === item.variantId));
-										const currentVariant = product?.variants.find(v => v.id === item.variantId);
+										const product = addedProducts.find((p) =>
+											p.variants.some((v) => v.id === item.variantId),
+										);
+										const currentVariant = product?.variants.find(
+											(v) => v.id === item.variantId,
+										);
 
 										return (
 											<div
@@ -365,7 +439,9 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 												<div className="absolute top-0 left-0 w-1 h-full bg-primary/20 group-hover:bg-primary transition-colors" />
 												<div className="flex flex-col md:flex-row md:items-center gap-4">
 													<div className="flex-1 space-y-1">
-														<p className="font-bold text-lg">{product?.productName || "Product"}</p>
+														<p className="font-bold text-lg">
+															{product?.productName || "Product"}
+														</p>
 														<div className="flex flex-col gap-1">
 															<Controller
 																name={`items.${index}.variantId`}
@@ -376,11 +452,22 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 																		<Select
 																			value={field.value}
 																			onValueChange={(val) => {
-																				const variant = variants.find(v => v.id === val);
+																				const variant = variants.find(
+																					(v) => v.id === val,
+																				);
 																				if (variant) {
-																					setValue(`items.${index}.variantId`, val);
-																					setValue(`items.${index}.sellPrice`, Number(variant.price));
-																					setValue(`items.${index}.costPrice`, Number(variant.costPrice));
+																					setValue(
+																						`items.${index}.variantId`,
+																						val,
+																					);
+																					setValue(
+																						`items.${index}.sellPrice`,
+																						Number(variant.price),
+																					);
+																					setValue(
+																						`items.${index}.costPrice`,
+																						Number(variant.costPrice),
+																					);
 																				}
 																			}}
 																		>
@@ -388,8 +475,12 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 																				<SelectValue placeholder="Select variant" />
 																			</SelectTrigger>
 																			<SelectContent>
-																				{variants.map(v => (
-																					<SelectItem key={v.id} value={v.id} className="text-xs">
+																				{variants.map((v) => (
+																					<SelectItem
+																						key={v.id}
+																						value={v.id}
+																						className="text-xs"
+																					>
 																						{v.sku} ({v.stock} in stock)
 																					</SelectItem>
 																				))}
@@ -399,42 +490,67 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 																}}
 															/>
 															{errors.items?.[index]?.variantId && (
-																<p className="text-[10px] text-destructive">{errors.items[index]?.variantId?.message}</p>
+																<p className="text-[10px] text-destructive">
+																	{errors.items[index]?.variantId?.message}
+																</p>
 															)}
 														</div>
 													</div>
 
 													<div className="flex items-center gap-4">
 														<div className="w-24">
-															<label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Qty</label>
+															<label
+																htmlFor="quantity"
+																className="text-sm font-bold uppercase text-muted-foreground mb-1 block"
+															>
+																Qty
+															</label>
 															<Input
 																type="number"
-																{...register(`items.${index}.quantity`, { valueAsNumber: true })}
+																id="quantity"
+																{...register(`items.${index}.quantity`, {
+																	valueAsNumber: true,
+																})}
 																className={cn(
 																	"h-10 text-center font-semibold bg-muted/30 border-none px-2",
-																	errors.items?.[index]?.quantity && "ring-1 ring-destructive"
+																	errors.items?.[index]?.quantity &&
+																		"ring-1 ring-destructive",
 																)}
 															/>
 															{errors.items?.[index]?.quantity && (
-																<p className="text-[10px] text-destructive mt-1">{errors.items[index]?.quantity?.message}</p>
+																<p className="text-[10px] text-destructive mt-1">
+																	{errors.items[index]?.quantity?.message}
+																</p>
 															)}
 														</div>
 														<div className="w-32">
-															<label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Price</label>
+															<label
+																htmlFor="productPrice"
+																className="text-sm font-bold uppercase text-muted-foreground mb-1 block"
+															>
+																Price
+															</label>
 															<div className="relative">
-																<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">Rs</span>
+																<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
+																	Rs
+																</span>
 																<Input
 																	type="number"
 																	step="0.01"
-																	{...register(`items.${index}.sellPrice`, { valueAsNumber: true })}
+																	{...register(`items.${index}.sellPrice`, {
+																		valueAsNumber: true,
+																	})}
 																	className={cn(
 																		"h-10 pl-8 font-semibold bg-primary/5 border-none",
-																		errors.items?.[index]?.sellPrice && "ring-1 ring-destructive"
+																		errors.items?.[index]?.sellPrice &&
+																			"ring-1 ring-destructive",
 																	)}
 																/>
 															</div>
 															{errors.items?.[index]?.sellPrice && (
-																<p className="text-[10px] text-destructive mt-1">{errors.items[index]?.sellPrice?.message}</p>
+																<p className="text-[10px] text-destructive mt-1">
+																	{errors.items[index]?.sellPrice?.message}
+																</p>
 															)}
 														</div>
 														<Button
@@ -458,7 +574,10 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t">
 							<div className="space-y-6">
 								<div className="space-y-2">
-									<label className="text-sm font-semibold flex items-center gap-2">
+									<label
+										htmlFor="paymentMethod"
+										className="text-sm font-semibold flex items-center gap-2"
+									>
 										<CreditCard className="h-4 w-4 text-primary" />
 										Payment Method
 									</label>
@@ -470,7 +589,7 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 												{[
 													{ label: "CASH", value: "CASH" },
 													{ label: "ONLINE", value: "ONLINE" },
-													{ label: "CREDIT", value: "CREDIT" }
+													{ label: "CREDIT", value: "CREDIT" },
 												].map((type) => (
 													<button
 														key={type.value}
@@ -480,7 +599,7 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 															"flex-1 py-2 text-xs font-bold rounded-lg transition-all",
 															field.value === type.value
 																? "bg-white shadow-sm text-primary"
-																: "text-muted-foreground hover:bg-white/50"
+																: "text-muted-foreground hover:bg-white/50",
 														)}
 													>
 														{type.label}
@@ -490,7 +609,9 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 										)}
 									/>
 									{errors.paymentType && (
-										<p className="text-xs text-destructive">{errors.paymentType.message}</p>
+										<p className="text-xs text-destructive">
+											{errors.paymentType.message}
+										</p>
 									)}
 								</div>
 
@@ -499,49 +620,85 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 										<div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 space-y-4">
 											<p className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
 												<User className="h-4 w-4" />
-												Customer Details {watchPaymentType === "CREDIT" ? "(Required)" : "(Optional)"}
+												Customer Details{" "}
+												{watchPaymentType === "CREDIT"
+													? "(Required)"
+													: "(Optional)"}
 											</p>
 
 											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 												<div className="space-y-2">
-													<label className="text-[11px] font-bold uppercase text-muted-foreground">Customer Name</label>
+													<label
+														htmlFor="customerName"
+														className="text-sm font-bold uppercase text-muted-foreground"
+													>
+														Customer Name
+													</label>
 													<Input
+														id="customerName"
 														{...register("customerName")}
+														required={watchPaymentType === "CREDIT"}
 														placeholder="Full Name"
 														className={cn(
 															"rounded-xl bg-white border-none shadow-sm",
-															errors.customerName && "ring-1 ring-destructive"
+															errors.customerName && "ring-1 ring-destructive",
 														)}
 													/>
 													{errors.customerName && (
-														<p className="text-[10px] text-destructive">{errors.customerName.message}</p>
+														<p className="text-xs text-destructive">
+															{errors.customerName.message}
+														</p>
 													)}
 												</div>
 												<div className="space-y-2">
-													<label className="text-[11px] font-bold uppercase text-muted-foreground">Contact Number</label>
+													<label
+														htmlFor="contactNumber"
+														className="text-sm font-bold uppercase text-muted-foreground"
+													>
+														Contact Number
+													</label>
 													<Input
+														id="contactNumber"
 														{...register("customerContact")}
+														required={watchPaymentType === "CREDIT"}
 														placeholder="+977-98XXXXXXXX"
-														className="rounded-xl bg-white border-none shadow-sm"
+														className={cn(
+															"rounded-xl bg-white border-none shadow-sm",
+															errors.customerContact &&
+																"ring-1 ring-destructive",
+														)}
 													/>
+													{errors.customerContact && (
+														<p className="text-xs text-destructive">
+															{errors.customerContact.message}
+														</p>
+													)}
 												</div>
 												<div className="space-y-2 col-span-full">
-													<label className="text-[11px] font-bold uppercase text-muted-foreground">Email Address</label>
+													<label
+														htmlFor="emailAddress"
+														className="text-sm font-bold uppercase text-muted-foreground"
+													>
+														Email Address
+													</label>
 													<Input
+														id="emailAddress"
 														{...register("customerEmail")}
+														required={watchPaymentType === "CREDIT"}
 														type="email"
 														placeholder="customer@example.com"
 														className={cn(
 															"rounded-xl bg-white border-none shadow-sm",
-															errors.customerEmail && "ring-1 ring-destructive"
+															errors.customerEmail && "ring-1 ring-destructive",
 														)}
 													/>
 													{errors.customerEmail && (
-														<p className="text-[10px] text-destructive">{errors.customerEmail.message}</p>
+														<p className="text-xs text-destructive">
+															{errors.customerEmail.message}
+														</p>
 													)}
 												</div>
 											</div>
-
 										</div>
 									</div>
 								)}
@@ -549,29 +706,43 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 
 							<div className="space-y-6">
 								<div className="space-y-2">
-									<label className="text-sm font-semibold">Discount Amount</label>
+									<label
+										htmlFor="discountAmmount"
+										className="text-sm font-semibold"
+									>
+										Discount Amount
+									</label>
 									<div className="relative">
-										<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">Rs</span>
+										<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
+											Rs
+										</span>
 										<Input
 											type="number"
 											step="0.01"
 											{...register("discount", { valueAsNumber: true })}
 											className={cn(
 												"pl-8 h-10 font-bold bg-muted/30 border-none rounded-xl",
-												errors.discount && "ring-1 ring-destructive"
+												errors.discount && "ring-1 ring-destructive",
 											)}
 										/>
 									</div>
 									{errors.discount && (
-										<p className="text-xs text-destructive">{errors.discount.message}</p>
+										<p className="text-xs text-destructive">
+											{errors.discount.message}
+										</p>
 									)}
 								</div>
 
 								<div className="space-y-2">
-									<label className="text-sm font-semibold">Note / Remarks</label>
+									<label
+										htmlFor="remarks"
+										className="text-sm font-semibold"
+									>
+										Note / Remarks
+									</label>
 									<textarea
 										{...register("transactionNote")}
-										className="w-full min-h-[100px] p-4 bg-muted/30 rounded-2xl border-none focus:ring-1 ring-primary transition-all text-sm outline-none resize-none"
+										className="w-full min-h-25 p-4 bg-muted/30 rounded-2xl border-none focus:ring-1 ring-primary transition-all text-sm outline-none resize-none"
 										placeholder="Write a brief note for this sale..."
 									/>
 								</div>
@@ -582,8 +753,12 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 					<div className="p-6 bg-card border-t shadow-[0_-10px_20px_-15px_rgba(0,0,0,0.1)]">
 						<div className="grid grid-cols-2 gap-4 mb-6">
 							<div className="space-y-1">
-								<p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Subtotal</p>
-								<p className="text-lg font-semibold">{formatCurrency(subtotal)}</p>
+								<p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
+									Subtotal
+								</p>
+								<p className="text-lg font-semibold">
+									{formatCurrency(subtotal)}
+								</p>
 							</div>
 							{/* <div className="space-y-1 text-right">
 								<p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Est. Profit</p>
@@ -593,7 +768,9 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 
 						<div className="flex flex-col sm:flex-row gap-4">
 							<div className="flex-1 bg-primary p-4 rounded-2xl text-primary-foreground flex flex-col justify-center">
-								<p className="text-[10px] font-bold uppercase tracking-tight opacity-70">Total Payable</p>
+								<p className="text-[10px] font-bold uppercase tracking-tight opacity-70">
+									Total Payable
+								</p>
 								<p className="text-2xl font-black">{formatCurrency(total)}</p>
 							</div>
 							<div className="flex sm:flex-col gap-2">
@@ -607,10 +784,19 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 								</Button>
 								<Button
 									type="submit"
-									disabled={isSubmitting || isMutating || total < 0 || watchItems.length === 0}
-									className="flex-[2] sm:h-auto rounded-xl shadow-xl shadow-primary/20"
+									disabled={
+										isSubmitting ||
+										isMutating ||
+										total < 0 ||
+										watchItems.length === 0
+									}
+									className="flex-2 sm:h-auto rounded-xl shadow-xl shadow-primary/20"
 								>
-									{isSubmitting || isMutating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Complete Sale"}
+									{isSubmitting || isMutating ? (
+										<Loader2 className="h-4 w-4 animate-spin" />
+									) : (
+										"Complete Sale"
+									)}
 								</Button>
 							</div>
 						</div>

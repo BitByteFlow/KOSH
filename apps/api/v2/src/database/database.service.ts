@@ -12,9 +12,12 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 	private pool?: Pool;
 	public readonly prisma: PrismaClient;
 
-	constructor(@Inject(ConfigService) private readonly configService: ConfigService) {
+	constructor(
+		@Inject(ConfigService) private readonly configService: ConfigService,
+	) {
 		const dbUrl = this.configService.get<string>("DATABASE_URL");
-		const maxConnections = this.configService.get<number>("DB_MAX_CONNECTIONS") || 3;
+		const maxConnections =
+			this.configService.get<number>("DB_MAX_CONNECTIONS") || 3;
 
 		if (!dbUrl) {
 			throw new Error("DATABASE_URL environment variable is not set");
@@ -31,10 +34,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
 		this.prisma = new PrismaClient({
 			adapter,
-			log:
-				process.env.NODE_ENV === "development"
-					? ["query", "error", "warn"]
-					: ["error"],
+			// log:
+			// 	process.env.NODE_ENV === "development"
+			// 		? ["query", "error", "warn"]
+			// 		: ["error"],
 			transactionOptions: {
 				maxWait: 5000,
 				timeout: 10000,
@@ -44,26 +47,64 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 		this.pool = pool;
 	}
 
-    get user(): PrismaClient['user'] { return this.prisma.user; }
-    get product(): PrismaClient['product'] { return this.prisma.product; }
-    get category(): PrismaClient['category'] { return this.prisma.category; }
-    get productVariant(): PrismaClient['productVariant'] { return this.prisma.productVariant; }
-    get purchase(): PrismaClient['purchase'] { return this.prisma.purchase; }
-    get sale(): PrismaClient['sale'] { return this.prisma.sale; }
-    get accountTransaction(): PrismaClient['accountTransaction'] { return this.prisma.accountTransaction; }
-    get dailyBalance(): PrismaClient['dailyBalance'] { return this.prisma.dailyBalance; }
-    get creditAccount(): PrismaClient['creditAccount'] { return this.prisma.creditAccount; }
-    get settings(): PrismaClient['settings'] { return this.prisma.settings; }
-    get storeMember(): PrismaClient['storeMember'] { return this.prisma.storeMember; }
-    get store(): PrismaClient['store'] { return this.prisma.store; }
-    get saleItem(): PrismaClient['saleItem'] { return this.prisma.saleItem; }
-    get purchaseItem(): PrismaClient['purchaseItem'] { return this.prisma.purchaseItem; }
-    get variantAttribute(): PrismaClient['variantAttribute'] { return this.prisma.variantAttribute; }
-    get storeJoinRequest(): PrismaClient['storeJoinRequest'] { return this.prisma.storeJoinRequest; }
-    get notification(): PrismaClient['notification'] { return this.prisma.notification; }
+	get user(): PrismaClient["user"] {
+		return this.prisma.user;
+	}
+	get product(): PrismaClient["product"] {
+		return this.prisma.product;
+	}
+	get category(): PrismaClient["category"] {
+		return this.prisma.category;
+	}
+	get productVariant(): PrismaClient["productVariant"] {
+		return this.prisma.productVariant;
+	}
+	get purchase(): PrismaClient["purchase"] {
+		return this.prisma.purchase;
+	}
+	get sale(): PrismaClient["sale"] {
+		return this.prisma.sale;
+	}
+	get accountTransaction(): PrismaClient["accountTransaction"] {
+		return this.prisma.accountTransaction;
+	}
+	get dailyBalance(): PrismaClient["dailyBalance"] {
+		return this.prisma.dailyBalance;
+	}
+	get creditAccount(): PrismaClient["creditAccount"] {
+		return this.prisma.creditAccount;
+	}
+	get settings(): PrismaClient["settings"] {
+		return this.prisma.settings;
+	}
+	get storeMember(): PrismaClient["storeMember"] {
+		return this.prisma.storeMember;
+	}
+	get store(): PrismaClient["store"] {
+		return this.prisma.store;
+	}
+	get saleItem(): PrismaClient["saleItem"] {
+		return this.prisma.saleItem;
+	}
+	get purchaseItem(): PrismaClient["purchaseItem"] {
+		return this.prisma.purchaseItem;
+	}
+	get variantAttribute(): PrismaClient["variantAttribute"] {
+		return this.prisma.variantAttribute;
+	}
+	get storeJoinRequest(): PrismaClient["storeJoinRequest"] {
+		return this.prisma.storeJoinRequest;
+	}
+	get notification(): PrismaClient["notification"] {
+		return this.prisma.notification;
+	}
 
-    get $executeRaw() { return this.prisma.$executeRaw.bind(this.prisma); }
-    get $queryRaw() { return this.prisma.$queryRaw.bind(this.prisma); }
+	get $executeRaw() {
+		return this.prisma.$executeRaw.bind(this.prisma);
+	}
+	get $queryRaw() {
+		return this.prisma.$queryRaw.bind(this.prisma);
+	}
 
 	async onModuleInit() {
 		try {
@@ -91,8 +132,16 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 		if (process.env.NODE_ENV === "production") {
 			throw new Error("DANGER: Cannot clear database in production!");
 		}
-        // Or using Reflect to find models on this.prisma
-        const models = ['user', 'product', 'category', 'productVariant', 'purchase'];
-        return Promise.all(models.map(model => (this.prisma as any)[model].deleteMany()));
+		// Or using Reflect to find models on this.prisma
+		const models = [
+			"user",
+			"product",
+			"category",
+			"productVariant",
+			"purchase",
+		];
+		return Promise.all(
+			models.map((model) => (this.prisma as any)[model].deleteMany()),
+		);
 	}
 }
