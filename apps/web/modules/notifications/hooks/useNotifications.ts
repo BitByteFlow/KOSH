@@ -1,6 +1,5 @@
 import { useMutation, useQuery } from "@apollo/client/react";
 import {
-	notificationsService,
 	GET_NOTIFICATIONS,
 	MARK_ALL_AS_READ,
 	NOTIFICATION_SUBSCRIPTION,
@@ -53,7 +52,6 @@ export const useNotifications = () => {
 
 				const currentData = notifications.data || [];
 
-				// Check if notification already exists to avoid duplicates
 				if (
 					currentData.some((n: Notification) => n.id === newNotification.id)
 				) {

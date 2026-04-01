@@ -1,30 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "./app/api/auth/[...nextauth]/auth";
 
-const proxy = async (req: NextRequest) => {
+const proxy = (req: NextRequest) => {
 	const path = req.nextUrl.pathname;
-	const session = await auth();
-	// console.log("this is expires: ", session?.user.storeId);
-	const isPublicPath = path === "/auth/get-started" || path === "/";
-	if (session?.expires && new Date(session.expires) < new Date()) {
-		return NextResponse.redirect(new URL("/auth/get-started", req.url));
+
+	if (
+		path.startsWith("/api") ||
+		path.startsWith("/_next") ||
+		path.includes(".") || // Static files with extensions
+		path === "/favicon.ico" ||
+		path === "/sitemap.xml" ||
+		path === "/robots.txt"
+	) {
+		return NextResponse.next();
 	}
-	if (isPublicPath && session?.user) {
+
+	const publicRoutes = ["/auth/get-started", "/"];
+
+	const token =
+		req.cookies.get("next-auth.session-token")?.value ||
+		req.cookies.get("authjs.session-token")?.value;
+	const isAuthenticated = !!token;
+
+	if (path.startsWith("/auth/get-started") && isAuthenticated) {
 		return NextResponse.redirect(new URL("/dashboard", req.url));
 	}
 
-	const privateRoutes = [
-		"/dashboard",
-		"/sales",
-		"/inventory",
-		"/reports-analytics",
-		"settings",
-	];
-	const isPrivateRoute = privateRoutes.includes(path);
-
-	if (isPrivateRoute && !session) {
-		return NextResponse.redirect(new URL("/auth/get-started", req.url));
+	if (
+		!publicRoutes.some((route) => path.startsWith(route)) &&
+		!isAuthenticated
+	) {
+		const loginUrl = new URL("/auth/get-started", req.url);
+		loginUrl.searchParams.set("callbackUrl", encodeURIComponent(path));
+		return NextResponse.redirect(loginUrl);
 	}
+
 	return NextResponse.next();
 };
 
@@ -32,12 +41,6 @@ export default proxy;
 
 export const config = {
 	matcher: [
-		"/",
-		"/auth/get-started",
-		"/dashboard/:path*",
-		"/inventory/:path*",
-		"/sales/:path*",
-		"/reports-analytics/:path*",
-		"/settings/:path*",
+		"/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
 	],
 };
