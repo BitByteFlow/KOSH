@@ -180,14 +180,6 @@ export class AccountsService {
     });
   }
 
-  /**
-   * Retrieves the current day's cash balance for a user.
-   * If no balance exists for today, creates one using yesterday's closing balance as opening balance.
-   *
-   * @param userId - User ID from authenticated session
-   * @returns BalanceDto containing opening/closing cash, total cash in/out, sales, and expenses
-   * @throws InternalServerErrorException - If database operation fails
-   */
   async getCurrentCashBalance(userId: string, storeId: string): Promise<BalanceResponse> {
     try {
       const now = new Date();
