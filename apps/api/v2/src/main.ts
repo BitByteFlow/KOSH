@@ -5,7 +5,7 @@ import { ZodValidationPipe } from "nestjs-zod";
 import cookieParser from "cookie-parser";
 import { SentryExceptionFilter, SentryModule } from "./common/observability";
 
-SentryModule.init();
+// SentryModule.init();
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
@@ -21,7 +21,7 @@ async function bootstrap() {
 	app.use(cookieParser());
 	app.useGlobalPipes(new ZodValidationPipe());
 
-	app.useGlobalFilters(new SentryExceptionFilter());
+	// app.useGlobalFilters(new SentryExceptionFilter());
 
 	try {
 		const port = configService.get("PORT");

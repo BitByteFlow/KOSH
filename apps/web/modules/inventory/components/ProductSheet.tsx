@@ -14,7 +14,7 @@ import { Button } from "@kosh/ui/components/button";
 import {
 	useCreateProduct,
 	useUpdateProduct,
-	useCategoryList
+	useCategoryList,
 } from "../hooks/useProducts";
 import {
 	Sheet,
@@ -36,10 +36,7 @@ import {
 	Controller,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-	createProductSchema,
-	type CreateProductInput,
-} from "@kosh/validation";
+import { createProductSchema, type CreateProductInput } from "@kosh/validation";
 import { toast } from "sonner";
 import { Product } from "@/gql/graphql";
 
@@ -76,12 +73,11 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 										)}
 										{...field}
 									/>
-									{
-										fieldState.error &&
+									{fieldState.error && (
 										<p className="text-xs text-red-500">
 											{fieldState.error.message}
 										</p>
-									}
+									)}
 								</div>
 							)}
 						/>
@@ -100,12 +96,11 @@ function AttributeList({ variantIndex, control }: AttributeListProps) {
 										)}
 										{...field}
 									/>
-									{
-										fieldState.error &&
+									{fieldState.error && (
 										<p className="text-xs text-red-500">
 											{fieldState.error.message}
 										</p>
-									}
+									)}
 								</div>
 							)}
 						/>
@@ -151,13 +146,14 @@ export function ProductSheet({
 	trigger,
 	product,
 }: ProductSheetProps) {
-	const client = useApolloClient();
+	// const client = useApolloClient();
 	const [internalOpen, setInternalOpen] = useState(false);
-	const { data: rawCategoryData, loading: categoriesLoading } = useCategoryList();
+	const { data: rawCategoryData, loading: categoriesLoading } =
+		useCategoryList();
 
-	const categories = useMemo(() =>
-		rawCategoryData?.getCategories?.data ?? [],
-		[rawCategoryData?.getCategories?.data]
+	const categories = useMemo(
+		() => rawCategoryData?.getCategories?.data ?? [],
+		[rawCategoryData?.getCategories?.data],
 	);
 
 	const [createProductMutation, { loading: isCreating }] = useCreateProduct();
@@ -171,6 +167,7 @@ export function ProductSheet({
 		resolver: zodResolver(createProductSchema),
 		defaultValues: {
 			name: "",
+			categoryName: "",
 			categoryId: "",
 			supplierName: "",
 			keepPurchaseRecord: false,
@@ -200,6 +197,7 @@ export function ProductSheet({
 				reset({
 					name: product.productName,
 					categoryId: product.category.id || "",
+					categoryName: product.category.name,
 					supplierName: "",
 					keepPurchaseRecord: false,
 					variants: product.variants.map((v: any) => ({
@@ -207,7 +205,10 @@ export function ProductSheet({
 						costPrice: v.costPrice,
 						sellingPrice: v.sellingPrice,
 						stock: v.stock,
-						attributes: v.attributes.length > 0 ? v.attributes : [{ name: "", value: "" }],
+						attributes:
+							v.attributes.length > 0
+								? v.attributes
+								: [{ name: "", value: "" }],
 					})),
 				});
 			} else {
@@ -268,17 +269,19 @@ export function ProductSheet({
 								stock: v.stock,
 								attributes: v.attributes?.map((attr: any) => ({
 									name: attr.name,
-									value: attr.value
-								}))
-							}))
-						}
-					}
+									value: attr.value,
+								})),
+							})),
+						},
+					},
 				});
 
 				if (updateResult?.updateProduct?.success) {
 					toast.success("Product updated successfully");
 				} else {
-					toast.error(updateResult?.updateProduct?.message || "Failed to update product");
+					toast.error(
+						updateResult?.updateProduct?.message || "Failed to update product",
+					);
 				}
 			} else {
 				const { data: createResult } = await createProductMutation({
@@ -292,18 +295,22 @@ export function ProductSheet({
 								stock: v.stock,
 								attributes: v.attributes?.map((attr: any) => ({
 									name: attr.name,
-									value: attr.value
-								}))
+									value: attr.value,
+								})),
 							})),
 							keepPurchaseRecord: data.keepPurchaseRecord,
-							supplierName: data.keepPurchaseRecord ? data.supplierName : undefined,
-						}
-					}
+							supplierName: data.keepPurchaseRecord
+								? data.supplierName
+								: undefined,
+						},
+					},
 				});
 				if (createResult?.createProduct?.success) {
 					toast.success("Product created successfully");
 				} else {
-					toast.error(createResult?.createProduct?.message || "Failed to create product");
+					toast.error(
+						createResult?.createProduct?.message || "Failed to create product",
+					);
 				}
 			}
 			setIsOpen(false);
@@ -311,7 +318,7 @@ export function ProductSheet({
 		} catch (error: any) {
 			toast.error(
 				error.message ||
-				(product ? "Failed to update product" : "Failed to create product"),
+					(product ? "Failed to update product" : "Failed to create product"),
 			);
 		}
 	};
@@ -476,7 +483,6 @@ export function ProductSheet({
 
 										<div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-50">
 											<div className="space-y-2">
-
 												<Label className="text-sm font-bold text-muted-foreground">
 													Cost Price
 												</Label>
@@ -492,17 +498,18 @@ export function ProductSheet({
 														className={cn(
 															"h-9 pl-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl",
 															errors.variants?.[index]?.costPrice &&
-															"border-red-500",
+																"border-red-500",
 														)}
-														{...register(`variants.${index}.costPrice`, { valueAsNumber: true })}
+														{...register(`variants.${index}.costPrice`, {
+															valueAsNumber: true,
+														})}
 													/>
 												</div>
-												{
-													errors.variants?.[index]?.costPrice &&
+												{errors.variants?.[index]?.costPrice && (
 													<p className="text-xs text-red-500">
 														{errors.variants[index].costPrice.message}
 													</p>
-												}
+												)}
 											</div>
 
 											<div className="space-y-2">
@@ -521,18 +528,19 @@ export function ProductSheet({
 														className={cn(
 															"h-9 pl-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl",
 															errors.variants?.[index]?.sellingPrice &&
-															"border-red-500",
+																"border-red-500",
 														)}
-														{...register(`variants.${index}.sellingPrice`, { valueAsNumber: true })}
+														{...register(`variants.${index}.sellingPrice`, {
+															valueAsNumber: true,
+														})}
 													/>
 												</div>
 
-												{
-													errors.variants?.[index]?.sellingPrice &&
+												{errors.variants?.[index]?.sellingPrice && (
 													<p className="text-xs text-red-500">
 														{errors.variants[index].sellingPrice.message}
 													</p>
-												}
+												)}
 											</div>
 											<div className="space-y-2">
 												<Label className="text-sm font-bold text-muted-foreground">
@@ -546,17 +554,17 @@ export function ProductSheet({
 														"h-9 bg-gray-50/50 border-transparent focus:bg-white transition-colors rounded-xl",
 														errors.variants?.[index]?.stock && "border-red-500",
 													)}
-													{...register(`variants.${index}.stock`, { valueAsNumber: true })}
+													{...register(`variants.${index}.stock`, {
+														valueAsNumber: true,
+													})}
 												/>
 
-												{
-													errors.variants?.[index]?.stock &&
+												{errors.variants?.[index]?.stock && (
 													<p className="text-xs text-red-500">
 														{errors.variants[index].stock.message}
 													</p>
-												}
+												)}
 											</div>
-
 										</div>
 									</div>
 								))}
@@ -635,13 +643,7 @@ export function ProductSheet({
 						</Button>
 						<Button
 							type="submit"
-							disabled={
-								!!(
-									isCreating ||
-									isUpdating ||
-									(product && !isDirty)
-								)
-							}
+							disabled={!!(isCreating || isUpdating || (product && !isDirty))}
 							className="rounded-xl px-8 shadow-md shadow-primary/20 gap-2 min-w-[140px]"
 						>
 							{isCreating || isUpdating ? (

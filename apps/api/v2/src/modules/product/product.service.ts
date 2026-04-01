@@ -29,30 +29,40 @@ export class ProductService {
 		productDetail: CreateProductInput,
 	): Promise<ProductResponse> {
 		try {
+			const preparedVariants = productDetail.variants.map((v, index) => {
+				const sku = this.generateSkuOffline(
+					productDetail.categoryName,
+					productDetail.name,
+					index,
+					storeId,
+				);
+				const barcode = this.generateBarcodeOffline(storeId, sku);
+
+				return { ...v, sku, barcode };
+			});
 			return await this.database.prisma.$transaction(
 				async (tsx: Prisma.TransactionClient) => {
-					// Lock the store record to serialize SKU generation for this store
-					await tsx.$executeRaw`SELECT 1 FROM "Store" WHERE id = ${storeId} FOR UPDATE`;
-
 					const category = await tsx.category.findUnique({
 						where: { id: productDetail.categoryId },
 					});
 					if (!category) throw new ConflictException("Category doesn't exist");
 
 					const existingProduct = await tsx.product.findFirst({
-						where: {
-							name: productDetail.name,
-							storeId,
-						},
+						where: { name: productDetail.name, storeId },
 					});
 
-					let product;
+					let product: any;
 					if (existingProduct) {
-						if (!existingProduct.deletedAt)
+						if (!existingProduct.deletedAt) {
 							throw new ConflictException("Product already exists");
+						}
 						product = await tsx.product.update({
-							where: { id: existingProduct.id },
-							data: { deletedAt: null },
+							where: {
+								id: existingProduct.id,
+							},
+							data: {
+								deletedAt: null,
+							},
 						});
 					} else {
 						product = await tsx.product.create({
@@ -63,106 +73,106 @@ export class ProductService {
 							},
 						});
 					}
+					await tsx.productVariant.createMany({
+						data: preparedVariants.map((v) => ({
+							productId: product.id,
+							storeId,
+							sku: v.sku,
+							barcode: v.barcode,
+							costPrice: v.costPrice,
+							sellingPrice: v.sellingPrice,
+							stock: v.stock,
+							status: "ACTIVE",
+						})),
+					});
 
-					let totalPurchaseAmount = Prisma.Decimal(0);
-					const variantCreationPromises = productDetail.variants.map(
-						async (v, index) => {
-							const sku = await this.generateSku(
-								category.name,
-								product.name,
-								index,
-								storeId,
-								tsx,
-							);
-							const barcode = await this.generateUniqueBarcode(storeId, tsx);
+					const createdVariants = await tsx.productVariant.findMany({
+						where: { productId: product.id },
+					});
 
-							const cost = Prisma.Decimal(v.costPrice);
-							totalPurchaseAmount = totalPurchaseAmount.add(cost.mul(v.stock));
+					const allAttributes = preparedVariants.flatMap((v, index) => {
+						const variant = createdVariants[index];
+						return (v.attributes || []).map((attr) => ({
+							variantId: variant.id,
+							name: attr.name,
+							value: attr.value,
+						}));
+					});
+					if (allAttributes.length > 0) {
+						await tsx.variantAttribute.createMany({
+							data: allAttributes,
+						});
+					}
+					let totalPurchaseAmount = new Prisma.Decimal(0);
+					if (productDetail.keepPurchaseRecord) {
+						totalPurchaseAmount = preparedVariants.reduce(
+							(sum, v) => sum.add(new Prisma.Decimal(v.costPrice).mul(v.stock)),
+							new Prisma.Decimal(0),
+						);
 
-							return tsx.productVariant.create({
+						if (totalPurchaseAmount.gt(0)) {
+							const purchase = await tsx.purchase.create({
 								data: {
-									productId: product.id,
 									storeId,
-									sku,
-									barcode,
-									costPrice: v.costPrice,
-									sellingPrice: v.sellingPrice,
-									stock: v.stock,
-									status: "ACTIVE",
-									attributes: v.attributes
-										? {
-												create: v.attributes.map((attr) => ({
-													name: attr.name,
-													value: attr.value,
-												})),
-											}
-										: undefined,
+									userId,
+									supplierName: productDetail.supplierName || "Initial Stock",
+									total: totalPurchaseAmount,
+									amountPaid: totalPurchaseAmount,
+									balanceDue: 0,
+									status: "PAID",
 								},
 							});
-						},
-					);
 
-					const createdVariants = await Promise.all(variantCreationPromises);
-
-					if (productDetail.keepPurchaseRecord && totalPurchaseAmount.gt(0)) {
-						const purchase = await tsx.purchase.create({
-							data: {
-								storeId,
-								userId,
-								supplierName: productDetail.supplierName || "Initial Stock",
-								total: totalPurchaseAmount,
-								amountPaid: totalPurchaseAmount,
-								balanceDue: 0,
-								status: "PAID",
-								items: {
-									create: createdVariants.map((v) => ({
+							await tsx.purchaseItem.createMany({
+								data: createdVariants.map((v, index) => {
+									const variantInput = preparedVariants[index];
+									return {
+										purchaseId: purchase.id,
 										variantId: v.id,
-										quantity: v.stock,
-										price: v.costPrice,
-									})),
+										quantity: variantInput.stock,
+										price: variantInput.costPrice,
+									};
+								}),
+							});
+
+							const today = new Date();
+							const todayStr = today.toISOString().split("T")[0];
+
+							const dailyBalance = await tsx.dailyBalance.upsert({
+								where: { storeId_date: { storeId, date: todayStr } },
+								update: {
+									closingCash: { decrement: totalPurchaseAmount },
+									totalCashOut: { increment: totalPurchaseAmount },
+									totalExpense: { increment: totalPurchaseAmount },
 								},
-							},
-						});
+								create: {
+									storeId,
+									date: todayStr,
+									openingCash: 0,
+									closingCash: totalPurchaseAmount.negated(),
+									totalCashOut: totalPurchaseAmount,
+									totalExpense: totalPurchaseAmount,
+								},
+							});
 
-						const today = new Date();
-						const todayStr = today.toISOString().split("T")[0];
-
-						const dailyBalance = await tsx.dailyBalance.upsert({
-							where: { storeId_date: { storeId, date: todayStr } },
-							update: {
-								closingCash: { decrement: totalPurchaseAmount },
-								totalCashOut: { increment: totalPurchaseAmount },
-								totalExpense: { increment: totalPurchaseAmount },
-							},
-							create: {
-								storeId,
-								date: todayStr,
-								openingCash: 0,
-								closingCash: totalPurchaseAmount.negated(),
-								totalCashOut: totalPurchaseAmount,
-								totalExpense: totalPurchaseAmount,
-							},
-						});
-
-						await tsx.accountTransaction.create({
-							data: {
-								storeId,
-								type: "PURCHASE",
-								amount: totalPurchaseAmount,
-								note: `Initial stock for ${product.name}`,
-								purchaseId: purchase.id,
-								dailyBalanceId: dailyBalance.id,
-							},
-						});
+							await tsx.accountTransaction.create({
+								data: {
+									storeId,
+									type: "PURCHASE",
+									amount: totalPurchaseAmount,
+									note: `Initial stock for ${product.name}`,
+									purchaseId: purchase.id,
+									dailyBalanceId: dailyBalance.id,
+								},
+							});
+						}
 					}
 
 					const finalData = await tsx.product.findUnique({
 						where: { id: product.id },
 						include: {
 							category: true,
-							variants: {
-								include: { attributes: true },
-							},
+							variants: { include: { attributes: true } },
 						},
 					});
 
@@ -174,22 +184,27 @@ export class ProductService {
 						data: [this.formatProduct(finalData!)],
 					};
 				},
+				{
+					timeout: 10000, // 10 seconds max
+				},
 			);
 		} catch (error) {
-			console.error(`Create Product Error: ${error.message}`, error.stack);
 			if (error.code === "P2002") {
 				const fields = error.meta?.target as string[];
+				if (fields?.includes("sku")) {
+					throw new ConflictException(
+						"SKU conflict detected. Please try again with different product details.",
+					);
+				}
+				if (fields?.includes("barcode")) {
+					throw new ConflictException(
+						"Barcode conflict detected. Please try again.",
+					);
+				}
 				if (fields?.includes("name")) {
 					throw new ConflictException("Product with this name already exists");
 				}
-				if (fields?.includes("sku")) {
-					throw new ConflictException("SKU already exists");
-				}
-				if (fields?.includes("barcode")) {
-					throw new ConflictException("Barcode already exists");
-				}
 			}
-
 			if (
 				error instanceof ConflictException ||
 				error instanceof NotFoundException ||
@@ -202,6 +217,7 @@ export class ProductService {
 			);
 		}
 	}
+
 	async deleteProduct(
 		productId: string,
 		storeId: string,
@@ -308,7 +324,10 @@ export class ProductService {
 						where: { id: productId },
 						data: {
 							name: updateData.name !== undefined ? updateData.name : undefined,
-							categoryId: updateData.categoryId !== undefined ? updateData.categoryId : undefined,
+							categoryId:
+								updateData.categoryId !== undefined
+									? updateData.categoryId
+									: undefined,
 						},
 					});
 
@@ -353,14 +372,13 @@ export class ProductService {
 									},
 								});
 							} else {
-								const sku = await this.generateSku(
+								const sku = await this.generateSkuOffline(
 									category.name,
 									updateData.name || existingProduct.name,
 									newVariantSequence++,
 									storeId,
-									tsx,
 								);
-								const barcode = await this.generateUniqueBarcode(storeId, tsx);
+								const barcode = await this.generateBarcodeOffline(storeId, sku);
 
 								await tsx.productVariant.create({
 									data: {
@@ -462,15 +480,14 @@ export class ProductService {
 						where: { productId: productId },
 					});
 
-					const sku = await this.generateSku(
+					const sku = await this.generateSkuOffline(
 						product.category.name,
 						product.name,
 						variantsCount, // Use current variant count as sequence
 						storeId,
-						tsx,
 					);
 
-					const barcode = await this.generateUniqueBarcode(storeId, tsx);
+					const barcode = await this.generateBarcodeOffline(storeId, sku);
 
 					const productVariant = await tsx.productVariant.create({
 						data: {
@@ -486,17 +503,15 @@ export class ProductService {
 					});
 
 					if (variantDetail.attributes && variantDetail.attributes.length > 0) {
-						const attributePromises = variantDetail.attributes.map(
-							(attribute: VariantAttribute) =>
-								tsx.variantAttribute.create({
-									data: {
-										variantId: productVariant.id,
-										name: attribute.name,
-										value: attribute.value,
-									},
+						await tsx.variantAttribute.createMany({
+							data: variantDetail.attributes.map(
+								(attribute: VariantAttribute) => ({
+									variantId: productVariant.id,
+									name: attribute.name,
+									value: attribute.value,
 								}),
-						);
-						await Promise.all(attributePromises);
+							),
+						});
 					}
 
 					const updatedProduct = await tsx.product.findUnique({
@@ -824,91 +839,61 @@ export class ProductService {
 		};
 	}
 
-	private async generateSku(
+	private generateSkuOffline(
 		categoryName: string,
 		productName: string,
 		sequence: number,
 		storeId: string,
-		tsx?: Prisma.TransactionClient,
-	): Promise<string> {
-		const client = tsx || this.database.prisma;
-		const variantCount = await client.productVariant.count({
-			where: { storeId },
-		});
-
+	): string {
 		const catCode = categoryName
 			.replace(/[^a-zA-Z]/g, "")
 			.substring(0, 3)
-			.toUpperCase()
-			.padEnd(3, "X");
+			.toUpperCase();
 
 		const prodCode = productName
 			.replace(/[^a-zA-Z0-9]/g, "")
 			.substring(0, 4)
-			.toUpperCase()
-			.padEnd(4, "0");
+			.toUpperCase();
 
-		let currentSequence = sequence;
-		let attempts = 0;
-		while (attempts < 10) {
-			const uniqueId = (variantCount + (currentSequence || 0) + 1)
-				.toString()
-				.padStart(6, "0");
-			const sku = `${catCode}-${prodCode}-${uniqueId}`;
+		const storeSuffix = storeId.substring(0, 4).toUpperCase();
 
-			const existing = await client.productVariant.findFirst({
-				where: { storeId, sku },
-			});
+		const sequenceStr = sequence.toString();
+		const randomSuffix = Math.random()
+			.toString(36)
+			.substring(2, 7)
+			.toUpperCase();
 
-			if (!existing) return sku;
-			currentSequence++;
-			attempts++;
-		}
-
-		// Fallback to random if sequence is exhausted
-		const random = Math.floor(Math.random() * 1000000)
-			.toString()
-			.padStart(6, "0");
-		return `${catCode}-${prodCode}-${random}`;
+		return `${catCode}-${prodCode}-${storeSuffix}-${sequenceStr}-${randomSuffix}`;
 	}
 
-	private async generateUniqueBarcode(
-		storeId: string,
-		tsx?: Prisma.TransactionClient,
-	): Promise<string> {
-		const client = tsx || this.database.prisma;
-		let barcode: string;
-		let isUnique = false;
-		let attempts = 0;
-		const maxAttempts = 10;
-
-		while (!isUnique && attempts < maxAttempts) {
-			barcode = this.generateCandidateBarcode();
-
-			const exists = await client.productVariant.findUnique({
-				where: { storeId_barcode: { storeId, barcode } },
-			});
-
-			if (!exists) {
-				isUnique = true;
-			}
-
-			attempts++;
-		}
-
-		if (!isUnique) {
-			throw new Error("Failed to generate unique barcode");
-		}
-
-		return barcode!;
-	}
-
-	private generateCandidateBarcode(): string {
+	private generateBarcodeOffline(storeId: string, sku: string): string {
 		const timestamp = Date.now().toString().slice(-9);
+
+		const storeHash = this.simpleHash(storeId)
+			.toString(36)
+			.substring(0, 4)
+			.toUpperCase();
+
+		const skuHash = this.simpleHash(sku)
+			.toString(36)
+			.substring(0, 3)
+			.toUpperCase();
+
 		const random = Math.floor(Math.random() * 10000)
 			.toString()
 			.padStart(4, "0");
-		return `INT${timestamp}${random}`;
+
+		return `INT${timestamp}${storeHash}${skuHash}${random}`.toUpperCase();
+	}
+
+	private simpleHash(str: string): number {
+		let hash = 0;
+		for (let i = 0; i < str.length; i++) {
+			const char = str.charCodeAt(i);
+			hash = (hash << 5) - hash + char;
+			hash = hash & hash; // Convert to 32-bit integer
+		}
+		return Math.abs(hash);
 	}
 
 	private formatProduct(product: any, lowStockThreshold?: number): any {
@@ -939,10 +924,12 @@ export class ProductService {
 				id: v.id,
 				sku: v.sku,
 				barcode: v.barcode,
-				attributes: v.attributes ? v.attributes.map((attr: VariantAttribute) => ({
-					name: attr.name,
-					value: attr.value,
-				})) : [],
+				attributes: v.attributes
+					? v.attributes.map((attr: VariantAttribute) => ({
+							name: attr.name,
+							value: attr.value,
+						}))
+					: [],
 				price: Number(v.sellingPrice),
 				costPrice: Number(v.costPrice),
 				sellingPrice: Number(v.sellingPrice),
