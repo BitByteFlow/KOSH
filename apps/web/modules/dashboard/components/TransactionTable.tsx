@@ -267,7 +267,7 @@ export function TransactionTable() {
 									return (
 										<TableRow
 											key={transaction.id}
-											className="border-b border-border/50 hover:bg-muted/30 transition-colors hover:bg-blue-100 rounded-lg"
+											className="border-b border-border/50 transition-colors hover:bg-blue-100 rounded-lg"
 										>
 											<TableCell>
 												{format(
@@ -353,7 +353,7 @@ export function TransactionTable() {
 				open={!!editingTransaction}
 				onOpenChange={(open) => !open && setEditingTransaction(null)}
 			>
-				<DialogContent className="sm:max-w-[425px]">
+				<DialogContent className="sm:max-w-106.25">
 					<DialogHeader>
 						<DialogTitle>Edit Transaction</DialogTitle>
 						<DialogDescription>

@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Search, SlidersHorizontal, Upload } from "lucide-react";
+import {
+	Search,
+	SlidersHorizontal,
+	Upload,
+	ChevronLeft,
+	ChevronRight,
+} from "lucide-react";
 import {
 	Table,
 	TableBody,
@@ -31,8 +37,16 @@ import { getDateRange } from "@/lib/date-utils";
 import { parseGraphQLListResponse } from "@/lib/graphql/utils";
 import { SaleReport, SaleReportFilter, PaymentType } from "@/gql/graphql";
 import { GET_SALES_REPORT } from "@/services/reportsAnalytics.service";
+import { formatCurrency } from "@/lib/utils";
 
-// interface SalesReportTableProps { }
+interface SalesReportMeta {
+	total: number;
+	page: number;
+	limit: number;
+	totalPages: number;
+	hasNext: boolean;
+	hasPrev: boolean;
+}
 
 export function SalesReportTable() {
 	const [dateRange, setDateRange] = useState("This Month");
@@ -40,6 +54,8 @@ export function SalesReportTable() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [isFilterOpen, setIsFilterOpen] = useState(false);
+	const [page, setPage] = useState(1);
+	const [pageSize, setPageSize] = useState(10);
 
 	const [appliedFilters, setAppliedFilters] = useState({
 		paymentMethods: [] as PaymentType[],
@@ -77,6 +93,8 @@ export function SalesReportTable() {
 						? appliedFilters.statuses
 						: undefined,
 				searchQuery: debouncedSearch || undefined,
+				page,
+				limit: pageSize,
 			} as SaleReportFilter,
 		},
 	});
@@ -87,6 +105,13 @@ export function SalesReportTable() {
 	);
 
 	const filteredSales = salesResponse.data || [];
+	const meta = salesResponse.meta as SalesReportMeta | undefined;
+
+	const handlePageChange = (newPage: number) => {
+		if (newPage >= 1 && newPage <= (meta?.totalPages || 1)) {
+			setPage(newPage);
+		}
+	};
 
 	if (loading) {
 		return (
@@ -106,8 +131,8 @@ export function SalesReportTable() {
 			sale.id,
 			sale.date,
 			sale.customer,
-			sale.items,
-			sale.total,
+			sale.items.toString(),
+			formatCurrency(sale.total),
 			sale.payment,
 			sale.status,
 		]);
@@ -145,6 +170,7 @@ export function SalesReportTable() {
 		if (!tempDateRange) return;
 		setAppliedFilters(tempFilters);
 		setDateRange(tempDateRange);
+		setPage(1);
 		setIsFilterOpen(false);
 	};
 
@@ -157,6 +183,7 @@ export function SalesReportTable() {
 		setAppliedFilters(defaultFilters);
 		setTempDateRange("This Month");
 		setDateRange("This Month");
+		setPage(1);
 		setIsFilterOpen(false);
 	};
 
@@ -240,13 +267,17 @@ export function SalesReportTable() {
 									<TableCell>{sale.date}</TableCell>
 									<TableCell>{sale.customer}</TableCell>
 									<TableCell>{sale.items}</TableCell>
-									<TableCell>{sale.total}</TableCell>
+									<TableCell className="font-medium">
+										{formatCurrency(sale.total)}
+									</TableCell>
 									<TableCell>{sale.payment}</TableCell>
 									<TableCell>
 										<Badge
-											variant={sale.status === "Paid" ? "default" : "secondary"}
+											variant={
+												sale.status === "Completed" ? "default" : "secondary"
+											}
 											className={
-												sale.status === "Paid"
+												sale.status === "Completed"
 													? "bg-green-100 text-green-700 hover:bg-green-100 border-0"
 													: "bg-orange-100 text-orange-700 hover:bg-orange-100 border-0"
 											}
@@ -261,11 +292,86 @@ export function SalesReportTable() {
 				</Table>
 			</div>
 
+			{meta && meta.totalPages > 1 && (
+				<div className="flex items-center justify-between p-4 border-t border-border bg-gray-50 rounded-lg">
+					<div className="text-sm text-muted-foreground">
+						Showing {meta.total === 0 ? 0 : (page - 1) * pageSize + 1} to{" "}
+						{Math.min(page * pageSize, meta.total)} of {meta.total} results
+					</div>
+					<div className="flex items-center gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => handlePageChange(1)}
+							disabled={!meta.hasPrev}
+							className="h-8"
+						>
+							First
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => handlePageChange(page - 1)}
+							disabled={!meta.hasPrev}
+							className="h-8 w-8 p-0"
+						>
+							<ChevronLeft className="h-4 w-4" />
+						</Button>
+
+						<div className="flex items-center gap-1">
+							{Array.from({ length: Math.min(5, meta.totalPages) }, (_, i) => {
+								let pageNum: number;
+								if (meta.totalPages <= 5) {
+									pageNum = i + 1;
+								} else if (page <= 3) {
+									pageNum = i + 1;
+								} else if (page >= meta.totalPages - 2) {
+									pageNum = meta.totalPages - 4 + i;
+								} else {
+									pageNum = page - 2 + i;
+								}
+
+								return (
+									<Button
+										key={pageNum}
+										variant={pageNum === page ? "default" : "outline"}
+										size="sm"
+										className="w-8 h-8"
+										onClick={() => handlePageChange(pageNum)}
+									>
+										{pageNum}
+									</Button>
+								);
+							})}
+						</div>
+
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => handlePageChange(page + 1)}
+							disabled={!meta.hasNext}
+							className="h-8 w-8 p-0"
+						>
+							<ChevronRight className="h-4 w-4" />
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => handlePageChange(meta.totalPages)}
+							disabled={!meta.hasNext}
+							className="h-8"
+						>
+							Last
+						</Button>
+					</div>
+				</div>
+			)}
+
 			<Dialog
 				open={isFilterOpen}
 				onOpenChange={setIsFilterOpen}
 			>
-				<DialogContent className="sm:max-w-[600px]">
+				<DialogContent className="sm:max-w-150">
 					<DialogHeader>
 						<DialogTitle>Filter Sales</DialogTitle>
 						<DialogDescription>

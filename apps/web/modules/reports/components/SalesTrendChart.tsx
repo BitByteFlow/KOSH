@@ -44,7 +44,7 @@ export function SalesTrendChart({ dateRange }: SalesTrendChartProps) {
 
 	if (trendLoading) {
 		return (
-			<div className="flex h-[400px] w-full items-center justify-center rounded-lg border border-border bg-card">
+			<div className="flex h-100 w-full items-center justify-center rounded-lg border border-border bg-card">
 				<div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
 			</div>
 		);

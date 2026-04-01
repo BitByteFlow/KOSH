@@ -9,7 +9,7 @@ const faqData = [
 			{
 				question: "Is there a free trial available?",
 				answer:
-					"Yes, we offer a 14-day trial for all new accounts. You get full access to all features, including advanced analytics and multi-user support, with no credit card required upfront.",
+					"Yes, we offer a free trial for all new accounts. You get full access to all features, including advanced analytics and multi-user support, with no credit card required upfront.",
 				isOpen: true,
 			},
 			{
@@ -22,34 +22,34 @@ const faqData = [
 	{
 		title: "Inventory & Catalog",
 		items: [
-			{
-				question: "How do I bulk import products?",
-				answer:
-					'You can import products using our CSV template. Navigate to the Catalog section, click "Actions", and select "Import CSV". We support up to 10,000 SKUs per import file.',
-				isOpen: true,
-			},
+			// {
+			// 	question: "How do I bulk import products?",
+			// 	answer:
+			// 		'Right now, We You can import products using our CSV template. Navigate to the Catalog section, click "Actions", and select "Import CSV". We support up to 10,000 SKUs per import file.',
+			// 	isOpen: true,
+			// },
 			{
 				question: "Does KOSH support low stock alerts?",
 				answer:
-					"Yes. You can set individual reorder points for each SKU. When stock falls below your threshold, we will send a notification via email, and highlight the item on your dashboard.",
+					"Yes. When stock falls below your threshold, we will send a notification via email, and highlight the item on your dashboard.",
 			},
 		],
 	},
-	{
-		title: "Billing & Plans",
-		items: [
-			{
-				question: "How does billing work?",
-				answer:
-					"We bill monthly or annually. Annual plans come with a 20% discount. You can pay via any major payment method. Invoices are sent to your account email automatically.",
-			},
-			{
-				question: "Can I change my plan later?",
-				answer:
-					"Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we will prorate any charges or credits accordingly.",
-			},
-		],
-	},
+	// {
+	// 	title: "Billing & Plans",
+	// 	items: [
+	// 		{
+	// 			question: "How does billing work?",
+	// 			answer:
+	// 				"We bill monthly or annually. Annual plans come with a 20% discount. You can pay via any major payment method. Invoices are sent to your account email automatically.",
+	// 		},
+	// 		{
+	// 			question: "Can I change my plan later?",
+	// 			answer:
+	// 				"Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we will prorate any charges or credits accordingly.",
+	// 		},
+	// 	],
+	// },
 ];
 
 export default function FAQPage() {
