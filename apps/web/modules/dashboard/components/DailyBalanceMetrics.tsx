@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { MetricCard } from "./MetricCard";
 import {
 	Wallet,
@@ -8,6 +8,8 @@ import {
 	TrendingUp,
 	ShoppingCart,
 	TrendingDown,
+	ChevronDown,
+	ChevronUp,
 } from "lucide-react";
 import type { MetricCardProps } from "@/types/dashboard";
 import { formatCurrency } from "@/lib/utils";
@@ -45,6 +47,7 @@ const DEFAULT_BALANCE = {
 
 const DailyBalanceMetrics = () => {
 	const { data: rawData, loading, error, refetch } = useQuery(GET_DAILY_METRICS);
+	const [showExtra, setShowExtra] = useState(false);
 
 	const metricsResponse = useMemo(() =>
 		parseGraphQLResponse(rawData?.getCurrentCashBalance, DEFAULT_BALANCE),
@@ -115,38 +118,75 @@ const DailyBalanceMetrics = () => {
 			// iconColor: "text-destructive",
 			sublabel: "Total expenses",
 		},
-		// {
-		// 	label: "Cash Out",
-		// 	value: formatCurrency(metrics.totalCashOut),
-		// 	gradient: "gradient-orange",
-		// 	icon: TrendingDown,
-		// 	sublabel: "Total outflows",
-		// 	// iconColor: "text-destructive",
-		// },
-		// {
-		// 	label: "Closing Cash",
-		// 	value: formatCurrency(metrics.closingCash),
-		// 	gradient: "gradient-pink",
-		// 	icon: Wallet,
-		// 	sublabel: "Cash in hand",
-		// 	// iconColor: "text-info",
-		// },
+	];
+
+	const extraMetrics: MetricCardProps[] = [
+		{
+			label: "Cash Out",
+			value: formatCurrency(metrics.totalCashOut),
+			gradient: "gradient-orange",
+			icon: TrendingDown,
+			sublabel: "Total outflows",
+		},
+		{
+			label: "Closing Cash",
+			value: formatCurrency(metrics.closingCash),
+			gradient: "gradient-pink",
+			icon: Wallet,
+			sublabel: "Cash in hand",
+		},
 	];
 
 	return (
-		<div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-			{metricCardValues.map((item) => (
-				<MetricCard
-					label={item.label}
-					value={item.value}
-					change={item.change}
-					icon={item.icon}
-					key={item.label}
-					sublabel={item.sublabel}
-					// iconColor={item.iconColor}
-					gradient={item.gradient}
-				/>
-			))}
+		<div className="space-y-4">
+			<div className="grid grid-cols-2 xl:grid-cols-4 gap-6">
+				{metricCardValues.map((item) => (
+					<MetricCard
+						label={item.label}
+						value={item.value}
+						change={item.change}
+						icon={item.icon}
+						key={item.label}
+						sublabel={item.sublabel}
+						gradient={item.gradient}
+					/>
+				))}
+				{showExtra &&
+					extraMetrics.map((item) => (
+						<div
+							key={item.label}
+							className="animate-in fade-in slide-in-from-top-2 duration-300"
+						>
+							<MetricCard
+								label={item.label}
+								value={item.value}
+								change={item.change}
+								icon={item.icon}
+								sublabel={item.sublabel}
+								gradient={item.gradient}
+							/>
+						</div>
+					))}
+			</div>
+			
+			<div className="flex justify-center mt-2">
+				<Button
+					variant="ghost"
+					size="sm"
+					onClick={() => setShowExtra(!showExtra)}
+					className="text-muted-foreground hover:bg-muted/50 text-xs h-8 px-4 rounded-full transition-all"
+				>
+					{showExtra ? (
+						<>
+							Show Less <ChevronUp className="w-3 h-3 ml-1.5" />
+						</>
+					) : (
+						<>
+							Show More Details <ChevronDown className="w-3 h-3 ml-1.5" />
+						</>
+					)}
+				</Button>
+			</div>
 		</div>
 	);
 };

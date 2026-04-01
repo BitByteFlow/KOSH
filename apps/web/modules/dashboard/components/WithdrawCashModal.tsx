@@ -77,11 +77,11 @@ export const WithdrawCashModal = () => {
 	return (
 		<Dialog open={isOpen} onOpenChange={setIsOpen}>
 			<DialogTrigger asChild>
-				<Button size="lg" variant="secondary" className="text-base hover rounded-xl shadow-lg shadow-secondary/20 transition-all hover:scale-105 active:scale-95 hover:cursor-pointer">
+				<Button size="lg" variant="ghost" className="text-base hover rounded-xl shadow-lg shadow-secondary/20 transition-all hover:scale-105 active:scale-95 hover:cursor-pointer">
 					Withdraw Cash
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="sm:max-w-[425px]">
+			<DialogContent className="sm:max-w-106.25">
 				<DialogHeader>
 					<DialogTitle className="text-xl tracking-tighter">Withdraw Cash / Expenses</DialogTitle>
 				</DialogHeader>

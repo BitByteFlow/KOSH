@@ -5,10 +5,6 @@ import {
 	Search,
 	SlidersHorizontal,
 	Upload,
-	Eye,
-	MoreHorizontal,
-	X,
-	Printer,
 } from "lucide-react";
 import {
 	Table,
@@ -21,14 +17,6 @@ import {
 import { Badge } from "@kosh/ui/components/badge";
 import { Button } from "@kosh/ui/components/button";
 import { Input } from "@kosh/ui/components/input";
-import { Label } from "@kosh/ui/components/label";
-import { Checkbox } from "@kosh/ui/components/checkbox";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@kosh/ui/components/dropdown-menu";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import { TransactionTableSkeleton } from "@/components/TableSkeleton";
@@ -38,6 +26,18 @@ import { parseGraphQLListResponse } from "@/lib/graphql/utils";
 import SalesFilter, { SalesFilters } from "./SalesFilter";
 import SalesExportDialog from "./SalesExportDialog";
 import { useDebounce } from "@/hooks/useDebounce";
+
+const PAYMENT_TYPE_CONFIG: Record<
+	string,
+	{
+		label: string;
+		variant: "default" | "secondary" | "destructive" | "outline";
+	}
+> = {
+	CASH: { label: "Cash", variant: "default" },
+	ONLINE: { label: "Online", variant: "secondary" },
+	CREDIT: { label: "Credit", variant: "destructive" },
+};
 
 const GET_SALES_HISTORY = gql(`
 	query getSalesHistory{
@@ -200,17 +200,17 @@ export function SalesHistoryTable() {
 				</div>
 			</div>
 
-			<div className="bg-gray-100/60 rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-x-auto">
+			<div className=" rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-x-auto">
 				<Table>
 					<TableHeader className="bg-muted/50">
 						<TableRow className="border-border">
-							<TableHead className="w-[120px] text-base font-semibold text-foreground">Invoice</TableHead>
+							<TableHead className="w-30 text-base font-semibold text-foreground">Invoice</TableHead>
 							<TableHead className="text-base font-semibold text-foreground">Date</TableHead>
 							<TableHead className="text-center text-base font-semibold text-foreground">Items</TableHead>
 							<TableHead className="text-base font-semibold text-foreground">Payment</TableHead>
 							<TableHead className="text-right text-base font-semibold text-foreground">Total</TableHead>
 							<TableHead className="text-right text-base font-semibold text-foreground">Profit</TableHead>
-							<TableHead className="w-[50px]"></TableHead>
+							<TableHead className="w-12.5"></TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -229,7 +229,7 @@ export function SalesHistoryTable() {
 									key={sale.id}
 									className="hover:bg-muted/30 border-border/50 transition-colors"
 								>
-									<TableCell className="font-medium text-xs truncate max-w-[120px] py-6">
+									<TableCell className="font-medium text-xs truncate max-w-30 py-6">
 										#{sale.id.slice(0, 8)}
 									</TableCell>
 									<TableCell className="text-muted-foreground text-xs">
@@ -239,12 +239,20 @@ export function SalesHistoryTable() {
 										{sale.items.length}
 									</TableCell>
 									<TableCell>
-										<Badge
-											variant="secondary"
-											className="font-normal text-[10px] px-2 py-0"
-										>
-											{sale.paymentType}
-										</Badge>
+										{(() => {
+											const typeConfig = PAYMENT_TYPE_CONFIG[sale.paymentType] || {
+												label: sale.paymentType,
+												variant: "outline" as const,
+											};
+											return (
+												<Badge
+													variant={typeConfig.variant}
+													className="font-semibold text-sm px-2 py-1"
+												>
+													{typeConfig.label}
+												</Badge>
+											);
+										})()}
 									</TableCell>
 									<TableCell className="text-right font-medium text-sm">
 										{formatCurrency(sale.total)}
