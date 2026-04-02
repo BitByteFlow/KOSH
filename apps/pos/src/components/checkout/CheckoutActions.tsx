@@ -36,7 +36,7 @@ export const CheckoutActions: React.FC<CheckoutActionsProps> = React.memo(
 
 				<Button
 					onClick={onSearchClick}
-					variant={isSearching ? "secondary" : "outline"}
+					variant={isSearching ? "ghost" : "outline"}
 					size="lg"
 					className={`flex-1 h-16 sm:h-20 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 sm:gap-4 text-sm sm:text-lg font-bold border-2 ${
 						isSearching

@@ -62,10 +62,6 @@ export class ApiClient {
 		return url.toString();
 	}
 
-	private getAuthToken(): string | null {
-		return localStorage.getItem("kosh_pos_token");
-	}
-
 	private getStoreId(): string | null {
 		const store = localStorage.getItem("kosh_pos_store");
 		if (store) {
@@ -80,12 +76,10 @@ export class ApiClient {
 	}
 
 	private createHeaders(customHeaders?: HeadersInit): HeadersInit {
-		const token = this.getAuthToken();
 		const storeId = this.getStoreId();
 
 		return {
 			"Content-Type": "application/json",
-			...(token && { Authorization: `Bearer ${token}` }),
 			...(storeId && { "x-store-id": storeId }),
 			...customHeaders,
 		};
@@ -106,8 +100,16 @@ export class ApiClient {
 		error.response = response;
 		error.endpoint = endpoint;
 		error.method = method;
+
+		if (status === 401) {
+			localStorage.removeItem("kosh_pos_user");
+			localStorage.removeItem("kosh_pos_store");
+			localStorage.removeItem("kosh_pos_token");
+		}
+
 		return error;
 	}
+
 	private async handleResponse<T>(
 		response: Response,
 		endpoint: string,
@@ -171,6 +173,7 @@ export class ApiClient {
 				method,
 				headers: this.createHeaders(headers),
 				signal: controller.signal,
+				credentials: "include",
 				...initConfig,
 				body: initConfig.body ? JSON.stringify(initConfig.body) : undefined,
 			});

@@ -3,19 +3,10 @@ import { setContext } from '@apollo/client/link/context';
 
 const httpLink = createHttpLink({
   uri: import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:5000/graphql',
-});
-
-const authLink = setContext((_, { headers }) => {
-  const token = localStorage.getItem('kosh_pos_token');
-  return {
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : '',
-    },
-  };
+  credentials: 'include',
 });
 
 export const client = new ApolloClient({
-  link: authLink.concat(httpLink),
+  link: httpLink,
   cache: new InMemoryCache(),
 });
