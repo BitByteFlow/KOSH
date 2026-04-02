@@ -5,6 +5,7 @@ import {
 	SentryService,
 	PrismaErrorHandler,
 } from "./common/observability";
+import { HealthModule } from "./common/health";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { GraphQLModule } from "@nestjs/graphql";
@@ -36,6 +37,7 @@ import type { Request } from "express";
 			isGlobal: true,
 		}),
 		ObservabilityModule,
+		HealthModule,
 		GraphQLModule.forRoot<ApolloDriverConfig>({
 			driver: ApolloDriver,
 			autoSchemaFile: true,

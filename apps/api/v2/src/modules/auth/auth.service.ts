@@ -54,7 +54,6 @@ export class AuthService {
 
 			if (isCashier) {
 				return {
-					token: token,
 					user: {
 						id: user.id,
 						email: user.email,
@@ -77,7 +76,6 @@ export class AuthService {
 			})
 
 			return {
-				token: token,
 				user: {
 					id: user.id,
 					email: user.email,
@@ -138,7 +136,6 @@ export class AuthService {
 		});
 
 		return {
-			token: token,
 			user: {
 				id: existinguser.id,
 				email: existinguser.email,
