@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useMutation, useQuery, useApolloClient } from "@apollo/client/react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
 	CREATE_SALE,
@@ -10,7 +10,7 @@ import {
 import { toast } from "sonner";
 import { getUserFriendlyErrorMessage } from "@/lib/api/errors";
 import { accountKeys } from "@/modules/dashboard/hooks/useAccount";
-import {
+import type {
 	Sale,
 	SaleResponse,
 	SalesMetricsResponse,
@@ -26,11 +26,35 @@ export const salesKeys = {
 
 export function useCreateSale() {
 	const queryClient = useQueryClient();
+	const apolloClient = useApolloClient();
 
 	return useMutation<{ createSale: SaleResponse }, { input: CreateSaleInput }>(CREATE_SALE, {
 		onCompleted: (data) => {
 			if (data.createSale?.success) {
 				toast.success(data.createSale.message || "Sale completed successfully!");
+
+				// Update Apollo cache to immediately show the new sale in the UI
+				apolloClient.cache.updateQuery<{ getSales: SaleResponse }>(
+					{ query: GET_SALES },
+					(prev) => {
+						if (!prev?.getSales?.data) {
+							return prev;
+						}
+
+						const newSaleData = data.createSale.data;
+						if (!newSaleData || newSaleData.length === 0) {
+							return prev;
+						}
+
+						return {
+							getSales: {
+								...prev.getSales,
+								data: [...newSaleData, ...prev.getSales.data],
+							},
+						};
+					}
+				);
+
 				// Invalidate React Query caches for related data
 				queryClient.invalidateQueries({ queryKey: salesKeys.list() });
 				queryClient.invalidateQueries({ queryKey: accountKeys.balance() });

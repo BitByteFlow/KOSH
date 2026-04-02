@@ -79,7 +79,7 @@ export interface CreateTransactionRequest {
 export interface Transaction {
 	id: string;
 	type: string;
-	amount: string;
+	amount: number;
 	note: string | null;
 	createdAt: string;
 	updatedAt: string;

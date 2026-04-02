@@ -44,8 +44,8 @@ const topics = [
 	},
 	{
 		icon: Code2,
-		title: "Developer API",
-		description: "API references, webhooks, and integration guides.",
+		title: "News and Updates",
+		description: "News and updates related to kosh.",
 	},
 ];
 

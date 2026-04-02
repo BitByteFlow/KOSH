@@ -6,6 +6,7 @@ import {
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
+	DialogDescription,
 	DialogTrigger,
 	DialogFooter,
 } from "@kosh/ui/components/dialog";
@@ -84,6 +85,9 @@ export const OpeningCashModal = () => {
 			<DialogContent className="sm:max-w-[425px]">
 				<DialogHeader>
 					<DialogTitle className="text-xl tracking-tighter">Add Cash</DialogTitle>
+					<DialogDescription>
+						Add cash to your business account
+					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
 					<div className="grid gap-2">

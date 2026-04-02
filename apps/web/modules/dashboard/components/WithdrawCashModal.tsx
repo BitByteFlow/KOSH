@@ -6,6 +6,7 @@ import {
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
+	DialogDescription,
 	DialogTrigger,
 	DialogFooter,
 } from "@kosh/ui/components/dialog";
@@ -54,7 +55,7 @@ export const WithdrawCashModal = () => {
 
 	const onSubmit = async (data: FormData) => {
 		const amountValue = parseFloat(data.amount);
-		if (isNaN(amountValue) || amountValue <= 0) {
+		if (Number.isNaN(amountValue) || amountValue <= 0) {
 			return;
 		}
 
@@ -75,19 +76,37 @@ export const WithdrawCashModal = () => {
 	};
 
 	return (
-		<Dialog open={isOpen} onOpenChange={setIsOpen}>
+		<Dialog
+			open={isOpen}
+			onOpenChange={setIsOpen}
+		>
 			<DialogTrigger asChild>
-				<Button size="lg" variant="ghost" className="text-base hover rounded-xl shadow-lg shadow-secondary/20 transition-all hover:scale-105 active:scale-95 hover:cursor-pointer">
+				<Button
+					size="lg"
+					variant="ghost"
+					className="text-base hover rounded-xl shadow-lg shadow-secondary/20 transition-all hover:scale-105 active:scale-95 hover:cursor-pointer"
+				>
 					Withdraw Cash
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-106.25">
 				<DialogHeader>
-					<DialogTitle className="text-xl tracking-tighter">Withdraw Cash / Expenses</DialogTitle>
+					<DialogTitle className="text-xl tracking-tighter">
+						Withdraw Cash / Expenses
+					</DialogTitle>
+					<DialogDescription>
+						Record cash withdrawals or business expenses
+					</DialogDescription>
 				</DialogHeader>
-				<form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
+				<form
+					onSubmit={handleSubmit(onSubmit)}
+					className="grid gap-4 py-4"
+				>
 					<div className="grid gap-2">
-						<label htmlFor="type" className="text-base font-medium leading-none">
+						<label
+							htmlFor="type"
+							className="text-base font-medium leading-none"
+						>
 							Transaction Type
 						</label>
 						<Controller
@@ -104,7 +123,10 @@ export const WithdrawCashModal = () => {
 									</SelectTrigger>
 									<SelectContent>
 										{TRANSACTION_TYPES.map((t) => (
-											<SelectItem key={t.value} value={t.value}>
+											<SelectItem
+												key={t.value}
+												value={t.value}
+											>
 												{t.label}
 											</SelectItem>
 										))}
@@ -114,7 +136,10 @@ export const WithdrawCashModal = () => {
 						/>
 					</div>
 					<div className="grid gap-2">
-						<label htmlFor="amount" className="text-base font-medium leading-none">
+						<label
+							htmlFor="amount"
+							className="text-base font-medium leading-none"
+						>
 							Amount
 						</label>
 						<Input
@@ -128,7 +153,10 @@ export const WithdrawCashModal = () => {
 						/>
 					</div>
 					<div className="grid gap-2">
-						<label htmlFor="note" className="text-base font-medium leading-none">
+						<label
+							htmlFor="note"
+							className="text-base font-medium leading-none"
+						>
 							Note (Optional)
 						</label>
 						<Input
@@ -140,7 +168,10 @@ export const WithdrawCashModal = () => {
 						/>
 					</div>
 					<DialogFooter>
-						<Button type="submit" disabled={isSubmitting}>
+						<Button
+							type="submit"
+							disabled={isSubmitting}
+						>
 							{isSubmitting ? "Processing..." : "Confirm"}
 						</Button>
 					</DialogFooter>

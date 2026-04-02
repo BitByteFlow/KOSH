@@ -105,6 +105,58 @@ const makeClient = (accessToken?: string, storeId?: string) => {
 						notifications: {
 							merge: (_existing, incoming) => incoming,
 						},
+						// Custom merge function for getAccountTransactions to prevent cache data loss warning
+						getAccountTransactions: {
+							merge: (_existing, incoming) => incoming,
+						},
+						// Custom merge function for listProductsWithFilter (paginated products)
+						listProductsWithFilter: {
+							merge: (_existing, incoming) => incoming,
+						},
+						// Custom merge functions for sales queries
+						getSales: {
+							merge: (_existing, incoming) => incoming,
+						},
+						getSalesMetrics: {
+							merge: (_existing, incoming) => incoming,
+						},
+						// Custom merge functions for member request queries
+						getPendingJoinRequests: {
+							merge: (_existing, incoming) => incoming,
+						},
+						getAllJoinRequests: {
+							merge: (_existing, incoming) => incoming,
+						},
+						getUserJoinRequest: {
+							merge: (_existing, incoming) => incoming,
+						},
+						// Custom merge function for settings
+						settings: {
+							merge: (_existing, incoming) => incoming,
+						},
+						// Custom merge function for categories
+						getCategories: {
+							merge: (_existing, incoming) => incoming,
+						},
+						// Custom merge functions for analytics/report queries
+						getAnalyticsMetrics: {
+							merge: (_existing, incoming) => incoming,
+						},
+						getSalesTrend: {
+							merge: (_existing, incoming) => incoming,
+						},
+						getTopProducts: {
+							merge: (_existing, incoming) => incoming,
+						},
+						getProductPerformance: {
+							merge: (_existing, incoming) => incoming,
+						},
+						getAnalyticsTransactions: {
+							merge: (_existing, incoming) => incoming,
+						},
+						getInventoryReport: {
+							merge: (_existing, incoming) => incoming,
+						},
 					},
 				},
 			},
