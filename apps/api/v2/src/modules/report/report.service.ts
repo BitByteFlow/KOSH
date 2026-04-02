@@ -1,18 +1,40 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
 import { AnalyticsMetricsResponse } from "./entities/analyticsMetrics.entity";
-import { AnalyticsTrend, AnalyticsTrendResponse } from "./entities/analyticsTrend.entity";
+import {
+	AnalyticsTrend,
+	AnalyticsTrendResponse,
+} from "./entities/analyticsTrend.entity";
 import { TopProduct, TopProductResponse } from "./entities/topProduct.entity";
-import { SaleReportFilter, SaleReportResponse } from "./entities/saleReport.entity";
-import { ProductPerformanceFilter, ProductPerformanceResult, ProductPerformance } from "./entities/productPerformance.entity";
-import { InventoryReportFilter, InventoryReportResult, InventoryReport } from "./entities/inventoryReport.entity";
-import { AnalyticsTransactionFilter, AnalyticsTransactionResult, AnalyticsTransaction } from "./entities/analyticsTransaction.entity";
+import {
+	SaleReportFilter,
+	SaleReportResponse,
+} from "./entities/saleReport.entity";
+import {
+	ProductPerformanceFilter,
+	ProductPerformanceResult,
+	ProductPerformance,
+} from "./entities/productPerformance.entity";
+import {
+	InventoryReportFilter,
+	InventoryReportResult,
+	InventoryReport,
+} from "./entities/inventoryReport.entity";
+import {
+	AnalyticsTransactionFilter,
+	AnalyticsTransactionResult,
+	AnalyticsTransaction,
+} from "./entities/analyticsTransaction.entity";
 
 @Injectable()
 export class ReportService {
-	constructor(private readonly database: DatabaseService) { }
+	constructor(private readonly database: DatabaseService) {}
 
-	async getAnalyticsMetrics(storeId: string, startDate: string | Date, endDate: string | Date): Promise<AnalyticsMetricsResponse> {
+	async getAnalyticsMetrics(
+		storeId: string,
+		startDate: string | Date,
+		endDate: string | Date,
+	): Promise<AnalyticsMetricsResponse> {
 		const start = new Date(startDate);
 		const end = new Date(endDate);
 		try {
@@ -22,7 +44,11 @@ export class ReportService {
 			const prevEndDate = new Date(start);
 			const prevStartDate = new Date(start.getTime() - duration);
 
-			const prevMetrics = await this.calculateMetrics(storeId, prevStartDate, prevEndDate);
+			const prevMetrics = await this.calculateMetrics(
+				storeId,
+				prevStartDate,
+				prevEndDate,
+			);
 
 			return {
 				success: true,
@@ -31,14 +57,20 @@ export class ReportService {
 					{
 						label: "TOTAL SALES",
 						value: currentMetrics.totalSales,
-						trend: this.calculateTrend(currentMetrics.totalSales, prevMetrics.totalSales),
+						trend: this.calculateTrend(
+							currentMetrics.totalSales,
+							prevMetrics.totalSales,
+						),
 						trendLabel: `vs. Rs. ${prevMetrics.totalSales.toLocaleString()} last period`,
 						isPositive: currentMetrics.totalSales >= prevMetrics.totalSales,
 					},
 					{
 						label: "TOTAL PROFIT",
 						value: currentMetrics.totalProfit,
-						trend: this.calculateTrend(currentMetrics.totalProfit, prevMetrics.totalProfit),
+						trend: this.calculateTrend(
+							currentMetrics.totalProfit,
+							prevMetrics.totalProfit,
+						),
 						trendLabel: `Net profit margin: ${currentMetrics.totalSales > 0 ? Math.round((currentMetrics.totalProfit / currentMetrics.totalSales) * 100) : 0}%`,
 						isPositive: currentMetrics.totalProfit >= prevMetrics.totalProfit,
 					},
@@ -51,15 +83,20 @@ export class ReportService {
 					{
 						label: "AVG BILL VALUE",
 						value: currentMetrics.avgBillValue,
-						trend: this.calculateTrend(currentMetrics.avgBillValue, prevMetrics.avgBillValue),
+						trend: this.calculateTrend(
+							currentMetrics.avgBillValue,
+							prevMetrics.avgBillValue,
+						),
 						trendLabel: "Per transaction",
 						isPositive: currentMetrics.avgBillValue >= prevMetrics.avgBillValue,
 					},
-				]
-			}
+				],
+			};
 		} catch (error) {
 			console.error("Error fetching analytics metrics:", error);
-			throw new InternalServerErrorException("Failed to fetch analytics metrics");
+			throw new InternalServerErrorException(
+				"Failed to fetch analytics metrics",
+			);
 		}
 	}
 
@@ -76,7 +113,10 @@ export class ReportService {
 		});
 
 		const totalSales = sales.reduce((acc, sale) => acc + Number(sale.total), 0);
-		const totalProfit = sales.reduce((acc, sale) => acc + Number(sale.profit), 0);
+		const totalProfit = sales.reduce(
+			(acc, sale) => acc + Number(sale.profit),
+			0,
+		);
 		const transactions = sales.length;
 		const avgBillValue = transactions > 0 ? totalSales / transactions : 0;
 
@@ -88,16 +128,32 @@ export class ReportService {
 		};
 	}
 
-	async getSalesTrend(storeId: string, startDate: string | Date, endDate: string | Date): Promise<AnalyticsTrendResponse> {
+	async getSalesTrend(
+		storeId: string,
+		startDate: string | Date,
+		endDate: string | Date,
+	): Promise<AnalyticsTrendResponse> {
 		const start = new Date(startDate);
 		const end = new Date(endDate);
+
+		if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+			throw new InternalServerErrorException("Invalid date range provided");
+		}
+
+		if (start > end) {
+			throw new InternalServerErrorException("Start date must be before end date");
+		}
+
 		try {
+			const normalizedStart = this.normalizeToStartOfDay(start);
+			const normalizedEnd = this.normalizeToEndOfDay(end);
+
 			const sales = await this.database.prisma.sale.findMany({
 				where: {
 					storeId,
 					createdAt: {
-						gte: start,
-						lte: end,
+						gte: normalizedStart,
+						lte: normalizedEnd,
 					},
 					deletedAt: null,
 				},
@@ -106,33 +162,27 @@ export class ReportService {
 					createdAt: true,
 				},
 				orderBy: {
-					createdAt: 'asc',
+					createdAt: "asc",
 				},
 			});
 
-			const salesMap = new Map<string, number>();
+			const salesByDate = new Map<string, number>();
 			sales.forEach((sale) => {
-				const dateKey = sale.createdAt.toISOString().split('T')[0];
-				salesMap.set(dateKey, (salesMap.get(dateKey) || 0) + Number(sale.total));
+				const dateKey = this.formatLocalDate(sale.createdAt);
+				const currentValue = salesByDate.get(dateKey) || 0;
+				salesByDate.set(dateKey, currentValue + Number(sale.total));
 			});
 
-			const trend: AnalyticsTrend[] = [];
-			const current = new Date(start);
-			const last = new Date(end);
-
-			while (current <= last) {
-				const dateKey = current.toISOString().split('T')[0];
-				trend.push({
-					label: dateKey,
-					value: salesMap.get(dateKey) || 0,
-				});
-				current.setDate(current.getDate() + 1);
-			}
+			const trend: AnalyticsTrend[] = this.generateDateRange(
+				normalizedStart,
+				normalizedEnd,
+				salesByDate,
+			);
 
 			return {
 				success: true,
 				message: "Sales trend fetched successfully",
-				data: trend
+				data: trend,
 			};
 		} catch (error) {
 			console.error("Error fetching sales trend:", error);
@@ -140,7 +190,50 @@ export class ReportService {
 		}
 	}
 
-	async getTopProducts(storeId: string, startDate: string | Date, endDate: string | Date): Promise<TopProductResponse> {
+	private normalizeToStartOfDay(date: Date): Date {
+		const normalized = new Date(date);
+		normalized.setHours(0, 0, 0, 0);
+		return normalized;
+	}
+
+	private normalizeToEndOfDay(date: Date): Date {
+		const normalized = new Date(date);
+		normalized.setHours(23, 59, 59, 999);
+		return normalized;
+	}
+
+	private formatLocalDate(date: Date): string {
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, "0");
+		const day = String(date.getDate()).padStart(2, "0");
+		return `${year}-${month}-${day}`;
+	}
+
+	private generateDateRange(
+		start: Date,
+		end: Date,
+		salesByDate: Map<string, number>,
+	): AnalyticsTrend[] {
+		const trend: AnalyticsTrend[] = [];
+		const current = new Date(start);
+
+		while (current <= end) {
+			const dateKey = this.formatLocalDate(current);
+			trend.push({
+				label: dateKey,
+				value: salesByDate.get(dateKey) || 0,
+			});
+			current.setDate(current.getDate() + 1);
+		}
+
+		return trend;
+	}
+
+	async getTopProducts(
+		storeId: string,
+		startDate: string | Date,
+		endDate: string | Date,
+	): Promise<TopProductResponse> {
 		const start = new Date(startDate);
 		const end = new Date(endDate);
 		try {
@@ -168,7 +261,10 @@ export class ReportService {
 			saleItems.forEach((item) => {
 				const productName = item.variant.product.name;
 				const revenue = Number(item.sellPrice) * item.quantity;
-				aggregation.set(productName, (aggregation.get(productName) || 0) + revenue);
+				aggregation.set(
+					productName,
+					(aggregation.get(productName) || 0) + revenue,
+				);
 			});
 
 			const topProducts: TopProduct[] = Array.from(aggregation.entries())
@@ -192,9 +288,20 @@ export class ReportService {
 		}
 	}
 
-	async getSalesReport(storeId: string, filters: SaleReportFilter): Promise<SaleReportResponse> {
+	async getSalesReport(
+		storeId: string,
+		filters: SaleReportFilter,
+	): Promise<SaleReportResponse> {
 		try {
-			const { startDate, endDate, paymentMethods, statuses, searchQuery } = filters;
+			const {
+				startDate,
+				endDate,
+				paymentMethods,
+				statuses,
+				searchQuery,
+				page = 1,
+				limit = 10,
+			} = filters;
 
 			const where: any = {
 				storeId,
@@ -222,11 +329,7 @@ export class ReportService {
 
 				if (statusConditions.length > 0) {
 					if (where.OR) {
-						// Merge with existing search OR if necessary, but simpler to just use AND for status
-						where.AND = [
-							{ OR: where.OR },
-							{ OR: statusConditions }
-						];
+						where.AND = [{ OR: where.OR }, { OR: statusConditions }];
 						delete where.OR;
 					} else {
 						where.OR = statusConditions;
@@ -236,63 +339,79 @@ export class ReportService {
 
 			if (searchQuery) {
 				const searchOR = [
-					{ id: { contains: searchQuery, mode: 'insensitive' } },
+					{ id: { contains: searchQuery, mode: "insensitive" } },
 					{
 						credit: {
-							customerName: { contains: searchQuery, mode: 'insensitive' }
-						}
-					}
+							customerName: { contains: searchQuery, mode: "insensitive" },
+						},
+					},
 				];
 				if (where.AND) {
 					where.AND.push({ OR: searchOR });
 				} else if (where.OR) {
-					// This would be the status OR, so we need to AND it
 					const statusOR = where.OR;
 					delete where.OR;
-					where.AND = [
-						{ OR: statusOR },
-						{ OR: searchOR }
-					];
+					where.AND = [{ OR: statusOR }, { OR: searchOR }];
 				} else {
 					where.OR = searchOR;
 				}
 			}
 
-			const sales = await this.database.prisma.sale.findMany({
-				where,
-				include: {
-					credit: true,
-					_count: {
-						select: { items: true }
-					}
-				},
-				orderBy: {
-					createdAt: 'desc',
-				},
-			});
+			const skip = (page - 1) * limit;
+
+			const [sales, totalCount] = await Promise.all([
+				this.database.prisma.sale.findMany({
+					where,
+					skip,
+					take: limit,
+					include: {
+						credit: true,
+						_count: {
+							select: { items: true },
+						},
+					},
+					orderBy: {
+						createdAt: "desc",
+					},
+				}),
+				this.database.prisma.sale.count({ where }),
+			]);
+
+			const totalPages = Math.ceil(totalCount / limit);
 
 			const saleReportData = sales.map((sale) => ({
 				id: sale.id,
-				date: sale.createdAt.toISOString().split('T')[0],
+				date: sale.createdAt.toISOString().split("T")[0],
 				customer: sale.credit?.customerName || "Walk-in Customer",
 				items: sale._count.items,
 				total: Number(sale.total),
 				payment: sale.paymentType,
-				status: sale.creditId ? "Pending" : "Completed", // Simplified status logic
-			})
-			);
+				status: sale.creditId ? "Pending" : "Completed",
+			}));
+
 			return {
 				success: true,
 				message: "Sales report fetched successfully",
-				data: saleReportData
-			}
+				data: saleReportData,
+				meta: {
+					total: totalCount,
+					page,
+					limit,
+					totalPages,
+					hasNext: page < totalPages,
+					hasPrev: page > 1,
+				},
+			};
 		} catch (error) {
 			console.error("Error fetching sales report:", error);
 			throw new InternalServerErrorException("Failed to fetch sales report");
 		}
 	}
 
-	async getProductPerformance(storeId: string, filters: ProductPerformanceFilter): Promise<ProductPerformanceResult> {
+	async getProductPerformance(
+		storeId: string,
+		filters: ProductPerformanceFilter,
+	): Promise<ProductPerformanceResult> {
 		try {
 			const {
 				startDate,
@@ -303,7 +422,7 @@ export class ReportService {
 				maxSold,
 				searchQuery,
 				skip,
-				take
+				take,
 			} = filters;
 
 			const where: any = {
@@ -313,20 +432,20 @@ export class ReportService {
 
 			if (searchQuery) {
 				where.OR = [
-					{ name: { contains: searchQuery, mode: 'insensitive' } },
-					{ sku: { contains: searchQuery, mode: 'insensitive' } },
+					{ name: { contains: searchQuery, mode: "insensitive" } },
+					{ sku: { contains: searchQuery, mode: "insensitive" } },
 				];
 			}
 
 			if (categories && categories.length > 0) {
 				where.category = {
-					name: { in: categories }
+					name: { in: categories },
 				};
 			}
 
 			// Status filter needs to handle "Active" / "Out of Stock"
 			// This depends on how status is defined in your DB, assuming a 'status' field or similar
-			// If it's derived, we might need more complex logic. 
+			// If it's derived, we might need more complex logic.
 			// For now assuming a direct 'status' field if provided, otherwise generic filtering.
 			if (statuses && statuses.length > 0) {
 				// Adjust based on actual DB schema. If status is a field:
@@ -346,35 +465,38 @@ export class ReportService {
 										createdAt: {
 											gte: startDate ? new Date(startDate) : undefined,
 											lte: endDate ? new Date(endDate) : undefined,
-										}
-									}
+										},
+									},
 								},
 								include: {
-									sale: true
-								}
-							}
-						}
-					}
+									sale: true,
+								},
+							},
+						},
+					},
 				},
 				orderBy: {
-					name: 'asc'
-				}
+					name: "asc",
+				},
 			});
 
-			let performanceData: ProductPerformance[] = products.map(product => {
+			let performanceData: ProductPerformance[] = products.map((product) => {
 				let totalSold = 0;
 				let totalRevenue = 0;
 				let totalCost = 0;
 
-				product.variants.forEach(variant => {
-					variant.saleItems.forEach(item => {
+				product.variants.forEach((variant) => {
+					variant.saleItems.forEach((item) => {
 						totalSold += item.quantity;
 						totalRevenue += Number(item.sellPrice) * item.quantity;
 						totalCost += Number(item.costPrice) * item.quantity;
 					});
 				});
 
-				const margin = totalRevenue > 0 ? ((totalRevenue - totalCost) / totalRevenue) * 100 : 0;
+				const margin =
+					totalRevenue > 0
+						? ((totalRevenue - totalCost) / totalRevenue) * 100
+						: 0;
 
 				return {
 					id: product.id,
@@ -390,10 +512,10 @@ export class ReportService {
 
 			// Post-fetch filters for aggregated values
 			if (minSold !== undefined) {
-				performanceData = performanceData.filter(p => p.sold >= minSold);
+				performanceData = performanceData.filter((p) => p.sold >= minSold);
 			}
 			if (maxSold !== undefined) {
-				performanceData = performanceData.filter(p => p.sold <= maxSold);
+				performanceData = performanceData.filter((p) => p.sold <= maxSold);
 			}
 
 			const totalCount = performanceData.length;
@@ -401,16 +523,20 @@ export class ReportService {
 
 			return {
 				items: paginatedItems,
-				totalCount
+				totalCount,
 			};
-
 		} catch (error) {
 			console.error("Error fetching product performance:", error);
-			throw new InternalServerErrorException("Failed to fetch product performance");
+			throw new InternalServerErrorException(
+				"Failed to fetch product performance",
+			);
 		}
 	}
 
-	async getInventoryReport(storeId: string, filters: InventoryReportFilter): Promise<InventoryReportResult> {
+	async getInventoryReport(
+		storeId: string,
+		filters: InventoryReportFilter,
+	): Promise<InventoryReportResult> {
 		try {
 			const {
 				categories,
@@ -419,7 +545,7 @@ export class ReportService {
 				maxStock,
 				searchQuery,
 				skip,
-				take
+				take,
 			} = filters;
 
 			const where: any = {
@@ -429,14 +555,18 @@ export class ReportService {
 
 			if (searchQuery) {
 				where.OR = [
-					{ name: { contains: searchQuery, mode: 'insensitive' } },
-					{ variants: { some: { sku: { contains: searchQuery, mode: 'insensitive' } } } },
+					{ name: { contains: searchQuery, mode: "insensitive" } },
+					{
+						variants: {
+							some: { sku: { contains: searchQuery, mode: "insensitive" } },
+						},
+					},
 				];
 			}
 
 			if (categories && categories.length > 0) {
 				where.category = {
-					name: { in: categories }
+					name: { in: categories },
 				};
 			}
 
@@ -448,18 +578,26 @@ export class ReportService {
 					variants: true,
 				},
 				orderBy: {
-					name: 'asc'
-				}
+					name: "asc",
+				},
 			});
 
-			let reportData: InventoryReport[] = products.map(product => {
-				const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
-				const totalValue = product.variants.reduce((sum, v) => sum + (v.stock * Number(v.costPrice)), 0);
+			let reportData: InventoryReport[] = products.map((product) => {
+				const totalStock = product.variants.reduce(
+					(sum, v) => sum + v.stock,
+					0,
+				);
+				const totalValue = product.variants.reduce(
+					(sum, v) => sum + v.stock * Number(v.costPrice),
+					0,
+				);
 
 				// Determine status based on variants
 				let status = "In Stock";
-				const hasLowStock = product.variants.some(v => v.lowStock || (v.stock <= 5 && v.stock > 0));
-				const isOutOfStock = product.variants.every(v => v.stock === 0);
+				const hasLowStock = product.variants.some(
+					(v) => v.lowStock || (v.stock <= 5 && v.stock > 0),
+				);
+				const isOutOfStock = product.variants.every((v) => v.stock === 0);
 
 				if (isOutOfStock) {
 					status = "Out of Stock";
@@ -480,15 +618,17 @@ export class ReportService {
 
 			// Filter by status (client-side for derived statuses)
 			if (statuses && statuses.length > 0) {
-				reportData = reportData.filter(item => statuses.includes(item.status));
+				reportData = reportData.filter((item) =>
+					statuses.includes(item.status),
+				);
 			}
 
 			// Filter by stock range
 			if (minStock !== undefined) {
-				reportData = reportData.filter(item => item.stock >= minStock);
+				reportData = reportData.filter((item) => item.stock >= minStock);
 			}
 			if (maxStock !== undefined) {
-				reportData = reportData.filter(item => item.stock <= maxStock);
+				reportData = reportData.filter((item) => item.stock <= maxStock);
 			}
 
 			const totalCount = reportData.length;
@@ -498,16 +638,20 @@ export class ReportService {
 				success: true,
 				message: "Inventory report fetched successfully",
 				data: paginatedItems,
-				totalCount
+				totalCount,
 			};
-
 		} catch (error) {
 			console.error("Error fetching inventory report:", error);
-			throw new InternalServerErrorException("Failed to fetch inventory report");
+			throw new InternalServerErrorException(
+				"Failed to fetch inventory report",
+			);
 		}
 	}
 
-	async getAnalyticsTransactions(storeId: string, filters: AnalyticsTransactionFilter): Promise<AnalyticsTransactionResult> {
+	async getAnalyticsTransactions(
+		storeId: string,
+		filters: AnalyticsTransactionFilter,
+	): Promise<AnalyticsTransactionResult> {
 		try {
 			const {
 				startDate,
@@ -518,7 +662,7 @@ export class ReportService {
 				maxAmount,
 				searchQuery,
 				skip,
-				take
+				take,
 			} = filters;
 
 			const where: any = {
@@ -537,7 +681,7 @@ export class ReportService {
 			}
 
 			if (searchQuery) {
-				where.id = { contains: searchQuery, mode: 'insensitive' };
+				where.id = { contains: searchQuery, mode: "insensitive" };
 			}
 
 			if (status && status !== "all") {
@@ -559,23 +703,29 @@ export class ReportService {
 					where,
 					skip,
 					take,
-					orderBy: { createdAt: 'desc' },
+					orderBy: { createdAt: "desc" },
 					include: {
 						items: true,
-					}
+					},
 				}),
-				this.database.prisma.sale.count({ where })
+				this.database.prisma.sale.count({ where }),
 			]);
 
-			const reportData: AnalyticsTransaction[] = items.map(sale => {
+			const reportData: AnalyticsTransaction[] = items.map((sale) => {
 				const profit = sale.items.reduce((sum, item) => {
-					return sum + (Number(item.sellPrice) - Number(item.costPrice)) * item.quantity;
+					return (
+						sum +
+						(Number(item.sellPrice) - Number(item.costPrice)) * item.quantity
+					);
 				}, 0);
 
 				return {
 					id: sale.id,
 					date: sale.createdAt.toLocaleDateString(),
-					time: sale.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+					time: sale.createdAt.toLocaleTimeString([], {
+						hour: "2-digit",
+						minute: "2-digit",
+					}),
 					paymentType: sale.paymentType,
 					amount: Number(sale.total),
 					profit: Number(profit),
@@ -587,12 +737,13 @@ export class ReportService {
 				success: true,
 				message: "Analytics transactions fetched successfully",
 				data: reportData,
-				totalCount
+				totalCount,
 			};
-
 		} catch (error) {
 			console.error("Error fetching analytics transactions:", error);
-			throw new InternalServerErrorException("Failed to fetch analytics transactions");
+			throw new InternalServerErrorException(
+				"Failed to fetch analytics transactions",
+			);
 		}
 	}
 

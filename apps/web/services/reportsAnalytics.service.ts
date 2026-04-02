@@ -92,6 +92,14 @@ export const GET_SALES_REPORT = gql(`
         payment
         status
       }
+      meta {
+        total
+        page
+        limit
+        totalPages
+        hasNext
+        hasPrev
+      }
     }
   }
 `);

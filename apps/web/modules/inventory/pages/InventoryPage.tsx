@@ -198,7 +198,7 @@ const InventoryPage = () => {
 						<TransactionTableSkeleton />
 					) : (
 						<div className="bg-card rounded-xl border border-border overflow-x-auto shadow-sm">
-							<Table className="bg-gray-100/60">
+							<Table>
 								<TableHeader className="bg-muted/50">
 									<TableRow className="border-border">
 										<TableHead className="w-12 pl-6 text-center">

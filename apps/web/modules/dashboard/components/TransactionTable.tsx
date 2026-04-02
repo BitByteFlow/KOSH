@@ -39,7 +39,6 @@ import {
 } from "@kosh/ui/components/select";
 import { toast } from "sonner";
 
-
 const TRANSACTION_TYPE_CONFIG: Record<
 	string,
 	{
@@ -56,6 +55,7 @@ const TRANSACTION_TYPE_CONFIG: Record<
 	EXPENSES: { label: "Expenses", variant: "destructive" },
 	DEBT_PAID: { label: "Debt Paid", variant: "destructive" },
 	DEBT: { label: "Debt", variant: "outline" },
+	CREDIT: { label: "Credit", variant: "destructive" },
 };
 
 const GET_TRANSACTIONS = gql(`
@@ -81,7 +81,7 @@ const GET_TRANSACTIONS = gql(`
 			}
 		}
 	}
-`)
+`);
 
 const UPDATE_ACCOUNT_TRANSACTION = gql(`
 	mutation UpdateAccountTransactions($transactionId: String!, $updateTransactionInput: UpdateTransactionInput!) {
@@ -97,7 +97,7 @@ const UPDATE_ACCOUNT_TRANSACTION = gql(`
 			}
 		}
 	}
-`)
+`);
 
 const DEFAULT_TRANSACTIONS_DATA = {
 	data: [] as AccountTransaction[],
@@ -115,10 +115,19 @@ export function TransactionTable() {
 	const [page, setPage] = useState(1);
 	const limit = 10;
 
-	const [editingTransaction, setEditingTransaction] = useState<AccountTransaction | null>(null);
-	const [editFormState, setEditFormState] = useState({ amount: 0, note: "", type: "" });
+	const [editingTransaction, setEditingTransaction] =
+		useState<AccountTransaction | null>(null);
+	const [editFormState, setEditFormState] = useState({
+		amount: 0,
+		note: "",
+		type: "",
+	});
 
-	const { data: rawData, loading, error } = useQuery(GET_TRANSACTIONS, {
+	const {
+		data: rawData,
+		loading,
+		error,
+	} = useQuery(GET_TRANSACTIONS, {
 		variables: {
 			page,
 			limit,
@@ -128,14 +137,19 @@ export function TransactionTable() {
 	});
 
 	const { data: transactions, meta } = useMemo(() => {
-		const result = parseGraphQLResponse(rawData?.getAccountTransactions, [] as AccountTransaction[]);
+		const result = parseGraphQLResponse(
+			rawData?.getAccountTransactions,
+			[] as AccountTransaction[],
+		);
 		return {
 			data: result.data || [],
-			meta: result.meta || DEFAULT_TRANSACTIONS_DATA.meta
+			meta: result.meta || DEFAULT_TRANSACTIONS_DATA.meta,
 		};
 	}, [rawData?.getAccountTransactions]);
 
-	const [updateTransaction, { loading: updating }] = useMutation(UPDATE_ACCOUNT_TRANSACTION);
+	const [updateTransaction, { loading: updating }] = useMutation(
+		UPDATE_ACCOUNT_TRANSACTION,
+	);
 
 	const handleEditClick = (transaction: AccountTransaction) => {
 		setEditingTransaction(transaction);
@@ -161,10 +175,14 @@ export function TransactionTable() {
 			});
 
 			if (data?.updateAccountTransactions?.success) {
-				toast.success(data.updateAccountTransactions.message || "Updated successfully");
+				toast.success(
+					data.updateAccountTransactions.message || "Updated successfully",
+				);
 				setEditingTransaction(null);
 			} else {
-				toast.error(data?.updateAccountTransactions?.message || "Failed to update");
+				toast.error(
+					data?.updateAccountTransactions?.message || "Failed to update",
+				);
 			}
 		} catch (error) {
 			toast.error("An error occurred");
@@ -249,7 +267,7 @@ export function TransactionTable() {
 									return (
 										<TableRow
 											key={transaction.id}
-											className="border-b border-border/50 hover:bg-muted/30 transition-colors hover:bg-blue-100 rounded-lg"
+											className="border-b border-border/50 transition-colors hover:bg-blue-100 rounded-lg"
 										>
 											<TableCell>
 												{format(
@@ -258,7 +276,10 @@ export function TransactionTable() {
 												)}
 											</TableCell>
 											<TableCell>
-												<Badge variant={typeConfig.variant} className="px-4 py-2 text-md">
+												<Badge
+													variant={typeConfig.variant}
+													className="px-4 py-2 text-md"
+												>
 													{typeConfig.label}
 												</Badge>
 											</TableCell>
@@ -328,8 +349,11 @@ export function TransactionTable() {
 				)}
 			</div>
 
-			<Dialog open={!!editingTransaction} onOpenChange={(open) => !open && setEditingTransaction(null)}>
-				<DialogContent className="sm:max-w-[425px]">
+			<Dialog
+				open={!!editingTransaction}
+				onOpenChange={(open) => !open && setEditingTransaction(null)}
+			>
+				<DialogContent className="sm:max-w-106.25">
 					<DialogHeader>
 						<DialogTitle>Edit Transaction</DialogTitle>
 						<DialogDescription>
@@ -341,17 +365,24 @@ export function TransactionTable() {
 							<Label htmlFor="type">Transaction Type</Label>
 							<Select
 								value={editFormState.type}
-								onValueChange={(value) => setEditFormState({ ...editFormState, type: value })}
+								onValueChange={(value) =>
+									setEditFormState({ ...editFormState, type: value })
+								}
 							>
 								<SelectTrigger id="type">
 									<SelectValue placeholder="Select type" />
 								</SelectTrigger>
 								<SelectContent>
-									{Object.entries(TRANSACTION_TYPE_CONFIG).map(([key, config]) => (
-										<SelectItem key={key} value={key}>
-											{config.label}
-										</SelectItem>
-									))}
+									{Object.entries(TRANSACTION_TYPE_CONFIG).map(
+										([key, config]) => (
+											<SelectItem
+												key={key}
+												value={key}
+											>
+												{config.label}
+											</SelectItem>
+										),
+									)}
 								</SelectContent>
 							</Select>
 						</div>
@@ -361,7 +392,12 @@ export function TransactionTable() {
 								id="amount"
 								type="number"
 								value={editFormState.amount}
-								onChange={(e) => setEditFormState({ ...editFormState, amount: Number(e.target.value) })}
+								onChange={(e) =>
+									setEditFormState({
+										...editFormState,
+										amount: Number(e.target.value),
+									})
+								}
 							/>
 						</div>
 						<div className="space-y-2">
@@ -369,7 +405,9 @@ export function TransactionTable() {
 							<Input
 								id="note"
 								value={editFormState.note}
-								onChange={(e) => setEditFormState({ ...editFormState, note: e.target.value })}
+								onChange={(e) =>
+									setEditFormState({ ...editFormState, note: e.target.value })
+								}
 							/>
 						</div>
 					</div>
@@ -381,7 +419,10 @@ export function TransactionTable() {
 						>
 							Cancel
 						</Button>
-						<Button onClick={handleUpdateSubmit} disabled={updating}>
+						<Button
+							onClick={handleUpdateSubmit}
+							disabled={updating}
+						>
 							{updating ? "Saving..." : "Save changes"}
 						</Button>
 					</DialogFooter>

@@ -22,15 +22,45 @@ export class SentryModule {
 		Sentry.init({
 			dsn: process.env.SENTRY_DSN,
 			environment: process.env.NODE_ENV ?? "development",
-			// release: process.env.GITHUB_SHA ?? "unversioned",
+			tracesSampleRate: isProd
+				? parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE || "0.1")
+				: 1.0,
 
-			tracesSampleRate: isProd ? 0.1 : 1.0,
-			profilesSampleRate: 0, 
+			profilesSampleRate: isProd
+				? parseFloat(process.env.SENTRY_PROFILES_SAMPLE_RATE || "0.1")
+				: 0,
 
 			integrations: [
 				Sentry.httpIntegration(),
 				Sentry.prismaIntegration(),
+				Sentry.graphqlIntegration(),
+				Sentry.postgresIntegration(),
 			],
+
+			beforeSendTransaction(event) {
+				const transactionName = event.transaction || "";
+
+				if (
+					transactionName.includes("IntrospectionQuery") ||
+					transactionName.includes("__schema") ||
+					transactionName.includes("__type")
+				) {
+					return null;
+				}
+
+				if (
+					transactionName.includes("health") ||
+					transactionName.includes("ping")
+				) {
+					return null;
+				}
+
+				if (event.contexts?.trace?.data?.["http.method"] === "OPTIONS") {
+					return null;
+				}
+
+				return event;
+			},
 
 			beforeSend(event, hint) {
 				try {
@@ -48,6 +78,7 @@ export class SentryModule {
 									"authorization",
 									"set-cookie",
 									"x-api-key",
+									"x-store-id",
 								],
 							});
 						}
@@ -86,33 +117,37 @@ export class SentryModule {
 				}
 			},
 
-			beforeSendTransaction(event) {
-				if (
-					event.transaction?.includes("IntrospectionQuery") ||
-					event.transaction?.includes("__schema") ||
-					event.transaction?.includes("__type")
-				) {
-					return null;
-				}
-
-				if (
-					event.transaction?.includes("health") ||
-					event.transaction?.includes("ping")
-				) {
-					return null;
-				}
-
-				return event;
-			},
-
+			// Redact breadcrumbs
 			beforeBreadcrumb(breadcrumb) {
 				if (breadcrumb.data) {
 					breadcrumb.data = redactSensitiveData(breadcrumb.data);
 				}
 				return breadcrumb;
 			},
+
+			ignoreErrors: [
+				/top.*extensions.*content.*script/i,
+				/can't find variable: gwt/i,
+				/Non-Error promise rejection captured/i,
+				/Loading chunk/i,
+				/Loading module/i,
+				/NetworkError/i,
+				/Network request failed/i,
+				/Failed to fetch/i,
+				/Unknown type/i,
+			],
+
+			tracePropagationTargets: [
+				"localhost",
+				/https:\/\/.*\.sentry\.io\/sentry/,
+			],
+
+			sendDefaultPii: false,
 		});
 
 		console.log("[Sentry] Initialized successfully");
+		console.log(`[Sentry] Environment: ${process.env.NODE_ENV ?? "development"}`);
+		console.log(`[Sentry] Traces Sample Rate: ${isProd ? process.env.SENTRY_TRACES_SAMPLE_RATE || "0.1" : "1.0"}`);
+		console.log(`[Sentry] Profiles Sample Rate: ${isProd ? process.env.SENTRY_PROFILES_SAMPLE_RATE || "0.1" : "0"}`);
 	}
 }

@@ -15,7 +15,6 @@ export interface AuthStore {
 export interface AuthState {
   user: AuthUser | null;
   store: AuthStore | null;
-  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   needsOnboarding: boolean;
@@ -34,9 +33,9 @@ interface AuthContextValue extends AuthState {
   logout: () => void;
 }
 
-const TOKEN_KEY = 'kosh_pos_token';
 const USER_KEY = 'kosh_pos_user';
 const STORE_KEY = 'kosh_pos_store';
+const LEGACY_TOKEN_KEY = 'kosh_pos_token';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -46,15 +45,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [store, setStore] = useState<AuthStore | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+
   useEffect(() => {
     try {
-      const savedToken = localStorage.getItem(TOKEN_KEY);
+      // Purge any legacy token from localStorage
+      localStorage.removeItem(LEGACY_TOKEN_KEY);
+      
       const savedUser = localStorage.getItem(USER_KEY);
       const savedStore = localStorage.getItem(STORE_KEY);
 
-      if (savedToken && savedUser) {
-        setToken(savedToken);
+      if (savedUser) {
         setUser(JSON.parse(savedUser));
         if (savedStore) {
           setStore(JSON.parse(savedStore));
@@ -62,24 +62,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (e) {
       toast.error('Failed to load session. Please log in again.');
-      localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem(STORE_KEY);
+      localStorage.removeItem(LEGACY_TOKEN_KEY);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   const persistSession = useCallback((
-    newToken: string,
     newUser: AuthUser,
     newStore: AuthStore | null
   ) => {
-    setToken(newToken);
     setUser(newUser);
     setStore(newStore);
-    localStorage.setItem(TOKEN_KEY, newToken);
     localStorage.setItem(USER_KEY, JSON.stringify(newUser));
+    // Ensure token is never stored
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
     if (newStore) {
       localStorage.setItem(STORE_KEY, JSON.stringify(newStore));
     } else {
@@ -94,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: profile.email, googleId: profile.googleId, isCashier: true }),
+        credentials: 'include',
       });
 
       if (response.status === 401) {
@@ -107,6 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             image: profile.image,
             isCashier: true,
           }),
+          credentials: 'include',
         });
       }
 
@@ -117,13 +118,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const data = await response.json();
       const newUser: AuthUser = data.user;
-      const newToken: string = data.token;
 
       const newStore: AuthStore | null = data.store?.storeId
         ? { storeId: data.store.storeId, storeName: data.store.storeName }
         : null;
 
-      persistSession(newToken, newUser, newStore);
+      persistSession(newUser, newStore);
     } catch (err: any) {
       toast.error(err.message ?? 'Login failed. Please try again.');
       throw err;
@@ -142,24 +142,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // toast.success('Successfully connected to store!');
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
     setUser(null);
     setStore(null);
-    setToken(null);
-    localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(STORE_KEY);
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
     toast.success('Logged out successfully');
   }, []);
 
-  const isAuthenticated = !!user && !!token;
+  const isAuthenticated = !!user;
   const needsOnboarding = isAuthenticated && !store;
 
   return (
     <AuthContext.Provider value={{
       user,
       store,
-      token,
       isAuthenticated,
       isLoading,
       needsOnboarding,

@@ -17,15 +17,14 @@ const API_BASE = import.meta.env.VITE_API_URL;
 
 const validateStoreId = async (
 	storeId: string,
-	token: string,
 ): Promise<{ valid: boolean; error?: string }> => {
 	try {
 		const response = await fetch(`${API_BASE}/storeMember/onboarding`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
 			},
+			credentials: "include",
 			body: JSON.stringify({
 				storeId,
 			}),
@@ -53,7 +52,7 @@ const validateStoreId = async (
 type Step = "input" | "validating" | "success" | "error";
 
 const OnboardingPage: React.FC = () => {
-	const { user, token, logout } = useAuth();
+	const { user, logout } = useAuth();
 	const [storeId, setStoreId] = useState("");
 	const [step, setStep] = useState<Step>("input");
 	const [errorMsg, setErrorMsg] = useState("");
@@ -67,16 +66,10 @@ const OnboardingPage: React.FC = () => {
 			return;
 		}
 
-		if (!token) {
-			toast.error("Session expired. Please log in again.");
-			logout();
-			return;
-		}
-
 		setStep("validating");
 		setErrorMsg("");
 
-		const result = await validateStoreId(trimmedId, token);
+		const result = await validateStoreId(trimmedId);
 
 		if (!result.valid) {
 			setStep("error");

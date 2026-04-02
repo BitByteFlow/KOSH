@@ -1,37 +1,48 @@
 "use client";
 
-import { useQuery as useApolloQuery, useMutation as useApolloMutation } from "@apollo/client/react";
+import {
+	useQuery as useApolloQuery,
+	useMutation as useApolloMutation,
+	useApolloClient,
+} from "@apollo/client/react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
 	GET_CURRENT_CASH_BALANCE,
 	GET_ACCOUNT_TRANSACTIONS,
 	CREATE_TRANSACTION,
-	type GetTransactionsParams
+	type GetTransactionsParams,
+	Transaction,
 } from "@/services/account.service";
 import { toast } from "sonner";
 import {
 	BalanceResponse,
 	PaginatedTransactionsResponse,
 	AccountResponse,
-	CreateTransactionInput
+	CreateTransactionInput,
 } from "@/gql/graphql";
 
 export const accountKeys = {
 	all: ["account"] as const,
 	balance: () => [...accountKeys.all, "balance"] as const,
 	transactions: () => [...accountKeys.all, "transactions"] as const,
-	transactionList: (params: GetTransactionsParams) => [...accountKeys.transactions(), params] as const,
+	transactionList: (params: GetTransactionsParams) =>
+		[...accountKeys.transactions(), params] as const,
 };
 
 export function useAccountBalance() {
-	return useApolloQuery<{ getCurrentCashBalance: BalanceResponse }>(GET_CURRENT_CASH_BALANCE, {
-		fetchPolicy: "cache-and-network",
-		pollInterval: 5 * 60 * 1000,
-	});
+	return useApolloQuery<{ getCurrentCashBalance: BalanceResponse }>(
+		GET_CURRENT_CASH_BALANCE,
+		{
+			fetchPolicy: "cache-and-network",
+			pollInterval: 5 * 60 * 1000,
+		},
+	);
 }
 
 export function useAccountTransactions(params: GetTransactionsParams = {}) {
-	return useApolloQuery<{ getAccountTransactions: PaginatedTransactionsResponse }>(GET_ACCOUNT_TRANSACTIONS, {
+	return useApolloQuery<{
+		getAccountTransactions: PaginatedTransactionsResponse;
+	}>(GET_ACCOUNT_TRANSACTIONS, {
 		variables: {
 			page: params.page || 1,
 			limit: params.limit || 10,
@@ -44,24 +55,51 @@ export function useAccountTransactions(params: GetTransactionsParams = {}) {
 
 export function useCreateTransaction() {
 	const queryClient = useQueryClient();
+	const apolloClient = useApolloClient();
 
-	return useApolloMutation<{ createTransaction: AccountResponse }, { input: CreateTransactionInput }>(
-		CREATE_TRANSACTION,
-		{
-			onCompleted: (data: { createTransaction: AccountResponse }) => {
-				if (data.createTransaction.success) {
-					toast.success(data.createTransaction.message || "Transaction completed successfully!");
-					// Invalidate React Query caches for related data (to maintain sync with components not yet migrated)
-					queryClient.invalidateQueries({ queryKey: accountKeys.balance() });
-					queryClient.invalidateQueries({ queryKey: accountKeys.transactions() });
-				} else {
-					toast.error(data.createTransaction.message || "Transaction failed");
+	return useApolloMutation<
+		{ createTransaction: AccountResponse },
+		{ input: CreateTransactionInput }
+	>(CREATE_TRANSACTION, {
+		onCompleted: (data: { createTransaction: AccountResponse }) => {
+			if (data.createTransaction.success) {
+				toast.success(
+					data.createTransaction.message ||
+						"Transaction completed successfully!",
+				);
+
+				const newTransaction = data.createTransaction.data;
+
+				if (newTransaction) {
+					apolloClient.cache.updateQuery<{
+						getAccountTransactions: PaginatedTransactionsResponse;
+					}>({ query: GET_ACCOUNT_TRANSACTIONS }, (prev) => {
+						if (!prev?.getAccountTransactions?.data) {
+							return prev;
+						}
+
+						return {
+							getAccountTransactions: {
+								...prev.getAccountTransactions,
+								data: [
+									newTransaction as Transaction,
+									...prev.getAccountTransactions.data,
+								],
+							},
+						};
+					});
 				}
-			},
-			onError: (error: Error) => {
-				console.error("[useCreateTransaction] Error:", error);
-				toast.error(error.message || "Failed to create transaction");
-			},
-		}
-	);
+
+				// Invalidate React Query caches for related data (to maintain sync with components not yet migrated)
+				queryClient.invalidateQueries({ queryKey: accountKeys.balance() });
+				queryClient.invalidateQueries({ queryKey: accountKeys.transactions() });
+			} else {
+				toast.error(data.createTransaction.message || "Transaction failed");
+			}
+		},
+		onError: (error: Error) => {
+			console.error("[useCreateTransaction] Error:", error);
+			toast.error(error.message || "Failed to create transaction");
+		},
+	});
 }

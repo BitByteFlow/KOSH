@@ -71,7 +71,9 @@ const InventoryItem = ({
 	onToggleSelection,
 }: InventoryItemProps) => {
 	const [isExpanded, setIsExpanded] = useState(false);
-	const [editingVariant, setEditingVariant] = useState<ProductVariant | null>(null);
+	const [editingVariant, setEditingVariant] = useState<ProductVariant | null>(
+		null,
+	);
 	const [isSheetOpen, setIsSheetOpen] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -87,7 +89,7 @@ const InventoryItem = ({
 		console.log("Saving variant:", updatedVariant);
 
 		await onUpdateVariant?.(updatedVariant);
-		await new Promise(resolve => setTimeout(resolve, 500));
+		await new Promise((resolve) => setTimeout(resolve, 500));
 		setIsSheetOpen(false);
 		setEditingVariant(null);
 	};
@@ -116,12 +118,14 @@ const InventoryItem = ({
 
 				<TableCell>
 					<button
+						type="button"
 						onClick={() => setIsExpanded(!isExpanded)}
 						className="flex items-center gap-3 text-left w-full group"
 					>
 						<ChevronDown
-							className={`w-4 h-4 transition-transform text-muted-foreground group-hover:text-foreground ${isExpanded ? "rotate-180" : ""
-								}`}
+							className={`w-4 h-4 transition-transform text-muted-foreground group-hover:text-foreground ${
+								isExpanded ? "rotate-180" : ""
+							}`}
 						/>
 						<div>
 							<p className="font-semibold text-foreground">{productName}</p>
@@ -182,7 +186,7 @@ const InventoryItem = ({
 			</TableRow>
 
 			{isExpanded && (
-				<TableRow className="border-none bg-transparent hover:bg-transparent">
+				<TableRow className="bg-primary-foreground border-none hover:bg-transparent">
 					<TableCell
 						colSpan={6}
 						className="p-0"
@@ -221,19 +225,29 @@ const InventoryItem = ({
 				onSave={handleSaveVariant}
 			/>
 
-			<Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+			<Dialog
+				open={showDeleteDialog}
+				onOpenChange={setShowDeleteDialog}
+			>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Delete Product?</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to delete <strong>{productName}</strong>? This action cannot be undone.
+							Are you sure you want to delete <strong>{productName}</strong>?
+							This action cannot be undone.
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+						<Button
+							variant="outline"
+							onClick={() => setShowDeleteDialog(false)}
+						>
 							Cancel
 						</Button>
-						<Button variant="destructive" onClick={handleDelete}>
+						<Button
+							variant="destructive"
+							onClick={handleDelete}
+						>
 							Delete Product
 						</Button>
 					</DialogFooter>

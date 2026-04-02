@@ -12,7 +12,16 @@ export class JWTStrategy extends PassportStrategy(Strategy) {
 		@Inject(ConfigService) private readonly configService: ConfigService,
 	) {
 		super({
-			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+			jwtFromRequest: ExtractJwt.fromExtractors([
+				ExtractJwt.fromAuthHeaderAsBearerToken(),
+				(req) => {
+					let token = null;
+					if (req && req.cookies) {
+						token = req.cookies["kosh_access_token"];
+					}
+					return token;
+				},
+			]),
 			ignoreExpiration: false,
 			secretOrKey: configService.get<string>("JWT_SECRET") || "fallback-secret",
 		});

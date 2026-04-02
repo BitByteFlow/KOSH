@@ -21,6 +21,12 @@ export class SaleReportFilter {
 
 	@Field(() => String, { nullable: true })
 	searchQuery?: string;
+
+	@Field(() => Int, { nullable: true, defaultValue: 1 })
+	page?: number;
+
+	@Field(() => Int, { nullable: true, defaultValue: 10 })
+	limit?: number;
 }
 
 @ObjectType()
@@ -48,6 +54,27 @@ export class SaleReport {
 }
 
 @ObjectType()
+export class SaleReportMeta {
+	@Field(() => Int)
+	total: number;
+
+	@Field(() => Int)
+	page: number;
+
+	@Field(() => Int)
+	limit: number;
+
+	@Field(() => Int)
+	totalPages: number;
+
+	@Field(() => Boolean)
+	hasNext: boolean;
+
+	@Field(() => Boolean)
+	hasPrev: boolean;
+}
+
+@ObjectType()
 export class SaleReportResponse {
 	@Field(() => Boolean)
 	success: true
@@ -57,4 +84,7 @@ export class SaleReportResponse {
 
 	@Field(() => [SaleReport])
 	data: SaleReport[]
+
+	@Field(() => SaleReportMeta, { nullable: true })
+	meta?: SaleReportMeta
 }

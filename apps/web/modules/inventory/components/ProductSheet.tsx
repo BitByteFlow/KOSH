@@ -165,6 +165,7 @@ export function ProductSheet({
 
 	const form = useForm<CreateProductInput>({
 		resolver: zodResolver(createProductSchema),
+		mode: "onChange",
 		defaultValues: {
 			name: "",
 			categoryName: "",
@@ -188,6 +189,7 @@ export function ProductSheet({
 		register,
 		watch,
 		reset,
+		setValue,
 		formState: { errors, isDirty },
 	} = form;
 
@@ -215,6 +217,7 @@ export function ProductSheet({
 				reset({
 					name: "",
 					categoryId: "",
+					categoryName: "",
 					supplierName: "",
 					keepPurchaseRecord: false,
 					variants: [
@@ -229,6 +232,16 @@ export function ProductSheet({
 			}
 		}
 	}, [isOpen, product, reset]);
+
+	const selectedCategoryId = watch("categoryId");
+	useEffect(() => {
+		if (selectedCategoryId && categories.length > 0) {
+			const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
+			if (selectedCategory) {
+				setValue("categoryName", selectedCategory.name);
+			}
+		}
+	}, [selectedCategoryId, categories, setValue]);
 
 	const {
 		fields: variantFields,
@@ -287,6 +300,7 @@ export function ProductSheet({
 				const { data: createResult } = await createProductMutation({
 					variables: {
 						input: {
+							categoryName: basePayload.name,
 							name: basePayload.name,
 							categoryId: basePayload.categoryId,
 							variants: basePayload.variants.map((v: any) => ({
@@ -305,22 +319,25 @@ export function ProductSheet({
 						},
 					},
 				});
+
 				if (createResult?.createProduct?.success) {
 					toast.success("Product created successfully");
-				} else {
-					toast.error(
-						createResult?.createProduct?.message || "Failed to create product",
-					);
 				}
 			}
 			setIsOpen(false);
 			reset();
 		} catch (error: any) {
+			console.error("[ProductSheet] Error:", error);
 			toast.error(
 				error.message ||
 					(product ? "Failed to update product" : "Failed to create product"),
 			);
 		}
+	};
+
+	const onFormSubmit = (data: CreateProductInput) => {
+		console.log("[ProductSheet] onFormSubmit called");
+		onSubmit(data);
 	};
 
 	if (categoriesLoading) {
@@ -484,7 +501,7 @@ export function ProductSheet({
 										<div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-50">
 											<div className="space-y-2">
 												<Label className="text-sm font-bold text-muted-foreground">
-													Cost Price
+													Cost Price *
 												</Label>
 												<div className="relative group/input">
 													<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">
@@ -492,7 +509,7 @@ export function ProductSheet({
 													</span>
 													<Input
 														type="number"
-														min="0"
+														min="0.01"
 														step="0.01"
 														placeholder="0.00"
 														className={cn(
@@ -502,6 +519,11 @@ export function ProductSheet({
 														)}
 														{...register(`variants.${index}.costPrice`, {
 															valueAsNumber: true,
+															required: "Cost price is required",
+															min: {
+																value: 0.01,
+																message: "Cost price must be greater than 0",
+															},
 														})}
 													/>
 												</div>
@@ -514,7 +536,7 @@ export function ProductSheet({
 
 											<div className="space-y-2">
 												<Label className="text-sm font-bold text-muted-foreground">
-													Sale Price
+													Sale Price *
 												</Label>
 												<div className="relative">
 													<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">
@@ -522,7 +544,7 @@ export function ProductSheet({
 													</span>
 													<Input
 														type="number"
-														min="0"
+														min="0.01"
 														step="0.01"
 														placeholder="0.00"
 														className={cn(
@@ -532,6 +554,11 @@ export function ProductSheet({
 														)}
 														{...register(`variants.${index}.sellingPrice`, {
 															valueAsNumber: true,
+															required: "Selling price is required",
+															min: {
+																value: 0.01,
+																message: "Selling price must be greater than 0",
+															},
 														})}
 													/>
 												</div>
@@ -544,7 +571,7 @@ export function ProductSheet({
 											</div>
 											<div className="space-y-2">
 												<Label className="text-sm font-bold text-muted-foreground">
-													Stock
+													Stock *
 												</Label>
 												<Input
 													type="number"
@@ -556,6 +583,11 @@ export function ProductSheet({
 													)}
 													{...register(`variants.${index}.stock`, {
 														valueAsNumber: true,
+														required: "Stock is required",
+														min: {
+															value: 0,
+															message: "Stock cannot be negative",
+														},
 													})}
 												/>
 
@@ -644,7 +676,7 @@ export function ProductSheet({
 						<Button
 							type="submit"
 							disabled={!!(isCreating || isUpdating || (product && !isDirty))}
-							className="rounded-xl px-8 shadow-md shadow-primary/20 gap-2 min-w-[140px]"
+							className="rounded-xl px-8 shadow-md shadow-primary/20 gap-2 min-w-35"
 						>
 							{isCreating || isUpdating ? (
 								<div className="flex items-center gap-2">
