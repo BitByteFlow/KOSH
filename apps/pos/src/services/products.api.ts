@@ -52,11 +52,22 @@ export const productsApi = {
 		);
 
 		const product = response.data.data?.[0];
-		const variant = product?.variants?.find((v: any) => v.barcode === barcode);
+		if (!product) {
+			return null;
+		}
+
+		// The API now returns only the matching variant in the variants array
+		const variant = product.variants?.[0];
 		if (variant) {
 			return {
-				...variant,
-				product: { id: product.id, name: product.productName },
+				id: variant.id,
+				sku: variant.sku,
+				barcode: variant.barcode,
+				sellingPrice: variant.sellingPrice,
+				costPrice: variant.costPrice,
+				stock: variant.stock,
+				status: variant.status,
+				product: { id: product.id, productName: product.productName },
 			};
 		}
 		return null;

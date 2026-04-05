@@ -51,7 +51,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
 
 	return {
 		server: {
-			allowedHosts: ["a233-103-225-244-105.ngrok-free.app"],
+			allowedHosts: ["https://cpc183c5-5173.inc1.devtunnels.ms/"],
 		},
 		build: {
 			minify: "terser",
@@ -65,6 +65,15 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
 			reportCompressedSize: true,
 			chunkSizeWarningLimit: 500,
 			rollupOptions: {
+				onwarn(warning, warn) {
+					if (
+						warning.code === "SOURCEMAP_ERROR" &&
+						warning.message.includes("@zxing")
+					) {
+						return;
+					}
+					warn(warning);
+				},
 				output: {
 					manualChunks: {
 						"react-vendor": ["react", "react-dom", "react-router-dom"],

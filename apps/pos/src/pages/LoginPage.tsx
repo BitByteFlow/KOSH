@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
@@ -11,6 +11,8 @@ const LoginPage: React.FC = () => {
 	const { loginWithGoogle, isAuthenticated, needsOnboarding } = useAuth();
 	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
+	const [googleReady, setGoogleReady] = useState(false);
+	const initializedRef = useRef(false);
 
 	const handleGoogleResponse = useCallback(
 		async (response: CredentialResponse) => {
@@ -39,6 +41,14 @@ const LoginPage: React.FC = () => {
 
 	const handleError = useCallback(() => {
 		toast.error("Google Sign-In failed. Please try again.");
+	}, []);
+
+	// Prevent double-initialization in StrictMode
+	useEffect(() => {
+		if (!initializedRef.current && GOOGLE_CLIENT_ID) {
+			initializedRef.current = true;
+			setGoogleReady(true);
+		}
 	}, []);
 
 	useEffect(() => {
@@ -115,18 +125,18 @@ const LoginPage: React.FC = () => {
 									exit={{ opacity: 0 }}
 									className="flex flex-col items-center gap-4 w-full"
 								>
-									{GOOGLE_CLIENT_ID ? (
+									{GOOGLE_CLIENT_ID && googleReady ? (
 										<GoogleLogin
 											onSuccess={handleGoogleResponse}
 											onError={handleError}
-											useOneTap
+											useOneTap={false}
 											theme="filled_blue"
 											size="large"
 											text="signin_with"
 											shape="pill"
 											width={300}
 										/>
-									) : (
+									) : GOOGLE_CLIENT_ID ? null : (
 										<p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-center">
 											⚠️ Set{" "}
 											<code className="font-mono">VITE_GOOGLE_CLIENT_ID</code>{" "}
