@@ -43,7 +43,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
 		isLoading: loading,
 		// error,
 	} = useProductSearch(
-		{ search: debouncedSearch || undefined, page: 1, limit: 20 },
+		{ search: debouncedSearch || undefined, page: 1, limit: 10 },
 		!!debouncedSearch,
 	);
 
@@ -126,7 +126,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
 													Price
 												</p>
 												<p className="text-base font-black text-slate-900">
-													Rs. 
+													Rs.
 													{Math.min(
 														...product.variants.map((v: any) => v.sellingPrice),
 													).toFixed(2)}

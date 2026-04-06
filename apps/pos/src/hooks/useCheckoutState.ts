@@ -56,6 +56,7 @@ export const useCheckoutState = (
 				price: variant.sellingPrice,
 				variantId: variant.id,
 				costPrice: variant.costPrice,
+				stock: variant.stock || 0,
 			});
 
 			toast.success(`${productName} added to cart`);
@@ -81,6 +82,7 @@ export const useCheckoutState = (
 				price: variant.sellingPrice,
 				variantId: variant.id,
 				costPrice: variant.costPrice,
+				stock: variant.stock,
 			});
 			setScannedBarcode(null);
 			toast.success(`${productName} added to cart`);

@@ -25,7 +25,7 @@ const Cart: React.FC = () => {
 
 	const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = parseFloat(e.target.value);
-		if (!isNaN(value) && value >= 0 && value <= 100) {
+		if (!Number.isNaN(value) && value >= 0 && value <= 100) {
 			setDiscount(value);
 		} else if (e.target.value === "") {
 			setDiscount(0);
@@ -52,13 +52,13 @@ const Cart: React.FC = () => {
 	}
 
 	return (
-		<div className="flex flex-col h-full bg-white border-l border-slate-200">
-			<div className="p-5 border-b border-slate-100 flex items-center justify-between">
-				<h3 className="font-bold text-slate-800 flex items-center gap-2">
+		<div className="flex flex-col h-full bg-white border-l border-slate-200 overflow-y-auto">
+			<div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between shrink-0">
+				<h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
 					Current Sale
 					<Badge
 						variant="default"
-						className="rounded-full h-5 px-1.5 min-w-5 justify-center text-[10px]"
+						className="rounded-full h-4 px-1.5 min-w-4 justify-center text-[9px]"
 					>
 						{items.length}
 					</Badge>
@@ -66,82 +66,98 @@ const Cart: React.FC = () => {
 				<Button
 					variant="ghost"
 					onClick={clearCart}
-					className="text-red-500 hover:text-red-600 hover:bg-red-50 text-xs font-bold h-7 uppercase tracking-wider"
+					className="text-red-500 hover:text-red-600 hover:bg-red-50 text-[10px] font-bold h-6 uppercase tracking-wider"
 				>
 					Clear
 				</Button>
 			</div>
 
-			<div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 custom-scrollbar">
+			<div className="flex-1 px-3 py-2 space-y-1.5 custom-scrollbar">
 				<AnimatePresence mode="popLayout">
-					{items.map((item) => (
-						<motion.div
-							key={item.variantId}
-							layout
-							initial={{ x: 10, opacity: 0 }}
-							animate={{ x: 0, opacity: 1 }}
-							exit={{ x: -10, opacity: 0 }}
-						>
-							<div className="flex flex-col gap-2 p-3 rounded-xl border border-slate-100 hover:border-slate-200 transition-all bg-slate-50/50">
-								<div className="flex items-center gap-3">
-									<div className="flex-1">
-										<h4 className="font-bold text-normal text-slate-900 leading-tight">
-											{item.name}
-										</h4>
-										<p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">
-											{item.sku}
-										</p>
-									</div>
+					{items.map((item) => {
+						const isMaxQuantity = item.quantity >= item.stock;
+						const isLowStock = item.stock > 0 && item.stock <= 5;
+						// const isOutOfStock = item.stock === 0;
 
-									<Button
-										size="icon"
-										variant="ghost"
-										onClick={() => removeItem(item.variantId)}
-										className="h-8 w-8 rounded-full hover:bg-red-50 text-slate-400 hover:text-red-500"
-									>
-										<Trash2 size={14} />
-									</Button>
-								</div>
+						return (
+							<motion.div
+								key={item.variantId}
+								layout
+								initial={{ x: 10, opacity: 0 }}
+								animate={{ x: 0, opacity: 1 }}
+								exit={{ x: -10, opacity: 0 }}
+							>
+								<div className="flex flex-col gap-1.5 p-2.5 rounded-lg border border-slate-100 hover:border-slate-200 transition-all bg-slate-50/50">
+									<div className="flex items-center gap-2">
+										<div className="flex-1 min-w-0">
+											<h4 className="font-semibold text-sm text-slate-900 leading-tight truncate">
+												{item.name}
+											</h4>
+											<p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide mt-0.5">
+												{item.sku}
+											</p>
+										</div>
 
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-1 bg-white rounded-lg border border-slate-200 p-0.5">
 										<Button
 											size="icon"
 											variant="ghost"
-											onClick={() =>
-												updateQuantity(item.variantId, item.quantity - 1)
-											}
-											className="h-7 w-7 rounded-md hover:bg-slate-50"
+											onClick={() => removeItem(item.variantId)}
+											className="h-6 w-6 rounded-md hover:bg-red-50 text-slate-400 hover:text-red-500 shrink-0"
 										>
-											<Minus size={14} />
-										</Button>
-										<span className="w-8 text-center font-bold text-sm text-slate-800">
-											{item.quantity}
-										</span>
-										<Button
-											size="icon"
-											variant="ghost"
-											onClick={() =>
-												updateQuantity(item.variantId, item.quantity + 1)
-											}
-											className="h-7 w-7 rounded-md hover:bg-slate-50 text-primary"
-										>
-											<Plus size={14} />
+											<Trash2 size={12} />
 										</Button>
 									</div>
 
-									<div className="text-right">
-										<p className="font-semibold text-slate-500 text-sm">
-											Rs. {item.price.toFixed(2)} each
-										</p>
-										<p className="font-black text-slate-900 mt-1">
-											Rs. {(item.price * item.quantity).toFixed(2)}
-										</p>
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-0.5 bg-white rounded-md border border-slate-200 p-0.5">
+											<Button
+												size="icon"
+												variant="ghost"
+												onClick={() =>
+													updateQuantity(item.variantId, item.quantity - 1)
+												}
+												className="h-6 w-6 rounded-sm hover:bg-slate-50"
+											>
+												<Minus size={12} />
+											</Button>
+											<div className="w-10 text-center font-bold text-xs text-slate-800 flex flex-col items-center leading-tight">
+												<span>{item.quantity}</span>
+												<span className="text-[7px] text-slate-400 font-normal leading-none">
+													/ {item.stock}
+												</span>
+											</div>
+											<Button
+												size="icon"
+												variant="ghost"
+												disabled={isMaxQuantity}
+												onClick={() =>
+													updateQuantity(item.variantId, item.quantity + 1)
+												}
+												className={`h-6 w-6 rounded-sm transition-all ${
+													isMaxQuantity
+														? "opacity-30 cursor-not-allowed text-slate-300"
+														: "hover:bg-slate-50 text-primary"
+												}`}
+											>
+												<Plus size={12} />
+											</Button>
+										</div>
+
+										<div className="text-right">
+											<p className="font-bold text-slate-900 text-sm">
+												Rs. {(item.price * item.quantity).toFixed(2)}
+											</p>
+											{isLowStock && (
+												<p className="text-[9px] text-orange-500 font-medium">
+													{item.stock} left
+												</p>
+											)}
+										</div>
 									</div>
 								</div>
-							</div>
-						</motion.div>
-					))}
+							</motion.div>
+						);
+					})}
 				</AnimatePresence>
 			</div>
 
@@ -201,7 +217,7 @@ const Cart: React.FC = () => {
 							<p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">
 								Total
 							</p>
-							<p className="text-2xl font-black text-slate-900 drop-shadow-sm">
+							<p className="text-xl font-bold text-slate-900 drop-shadow-sm">
 								Rs. {total.toFixed(2)}
 							</p>
 						</div>

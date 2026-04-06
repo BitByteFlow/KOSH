@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { toast } from "sonner";
 
 export interface CartItem {
 	id: string;
@@ -8,6 +9,7 @@ export interface CartItem {
 	quantity: number;
 	variantId: string;
 	costPrice: number;
+	stock: number;
 }
 
 interface CartStore {
@@ -33,6 +35,12 @@ export const useCart = create<CartStore>((set, get) => ({
 		);
 
 		if (existingItem) {
+			// Check if adding one more would exceed stock
+			if (existingItem.quantity + 1 > product.stock) {
+				toast.error(`Only ${product.stock} item(s) available in stock`);
+				return;
+			}
+
 			set({
 				items: items.map((item) =>
 					item.variantId === product.variantId
@@ -52,9 +60,21 @@ export const useCart = create<CartStore>((set, get) => ({
 			get().removeItem(variantId);
 			return;
 		}
+
+		const items = get().items;
+		const item = items.find((i) => i.variantId === variantId);
+		
+		if (!item) return;
+
+		// Check if requested quantity exceeds stock
+		if (quantity > item.stock) {
+			toast.error(`Only ${item.stock} item(s) available in stock`);
+			return;
+		}
+
 		set({
-			items: get().items.map((item) =>
-				item.variantId === variantId ? { ...item, quantity } : item,
+			items: items.map((i) =>
+				i.variantId === variantId ? { ...i, quantity } : i,
 			),
 		});
 	},
