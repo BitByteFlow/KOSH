@@ -31,11 +31,11 @@ export const productsApi = {
 		);
 
 		return {
-			data: response.data || [],
-			total: response.meta?.total || 0,
-			page: response.meta?.page || params.page || 1,
-			limit: response.meta?.limit || params.limit || 10,
-			totalPages: response.meta?.totalPages || 0,
+			data: response.data.data || [],
+			total: response.data.meta?.total || 0,
+			page: response.data.meta?.page || params.page || 1,
+			limit: response.data.meta?.limit || params.limit || 10,
+			totalPages: response.data.meta?.totalPages || 0,
 		};
 	},
 
@@ -46,7 +46,7 @@ export const productsApi = {
 
 	getVariantByBarcode: async (
 		barcode: string,
-	): Promise<ProductVariantResponse> => {
+	): Promise<ProductVariantResponse | null> => {
 		const response = await apiClient.get<ApiProductResponse>(
 			`/products/variant/${encodeURIComponent(barcode)}`,
 		);
@@ -73,7 +73,7 @@ export const productsApi = {
 		return null;
 	},
 
-	getVariantById: async (id: string): Promise<ProductVariantResponse> => {
+	getVariantById: async (id: string): Promise<ProductVariantResponse | null> => {
 		const response = await apiClient.get<ApiProductResponse>(
 			`/products/variant/id/${id}`,
 		);

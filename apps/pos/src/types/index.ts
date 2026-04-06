@@ -23,6 +23,9 @@ export interface ProductVariant {
 		name: string;
 		value: string;
 	}>;
+	product: {
+		name: string
+	}
 }
 
 export interface SaleItemInput {

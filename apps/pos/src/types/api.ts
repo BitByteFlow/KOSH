@@ -22,9 +22,20 @@ export interface ProductFilterParams {
 	inStock?: boolean;
 }
 
-export interface ProductListResponse extends ApiListResponse<Product> {}
+export interface ProductListResponse extends ApiListResponse<Product> {
+	total: number;
+	page: number;
+	limit: number;
+	totalPages: number;
+}
 
-export interface ProductVariantResponse extends ProductVariant {}
+export interface ProductVariantResponse extends ProductVariant {
+	product: {
+		id: string;
+		name: string;
+	};
+	status?: string;
+}
 
 export interface SaleItem {
 	id: string;

@@ -30,7 +30,6 @@ const CheckoutPage: React.FC = () => {
 		setIsSearching,
 		isScanning,
 		setIsScanning,
-		scannedBarcode,
 		selectedProduct,
 		setSelectedProduct,
 		isVariantModalOpen,
@@ -40,6 +39,7 @@ const CheckoutPage: React.FC = () => {
 		handleVariantSelect,
 		handleProductSelect,
 		handleScanComplete,
+		handleSearchToggle,
 	} = useCheckoutState();
 
 	const {
@@ -72,10 +72,6 @@ const CheckoutPage: React.FC = () => {
 		setIsCreditModalOpen(false);
 		resetForm();
 	}, [setIsCreditModalOpen, resetForm]);
-
-	const handleSearchToggle = useCallback(() => {
-		setIsSearching((prev) => !prev);
-	}, [setIsSearching]);
 
 	const handleProductSelected = useCallback(
 		(product: Product) => {
@@ -110,7 +106,6 @@ const CheckoutPage: React.FC = () => {
 									<ProductCatalogHeader />
 									<ProductSearch
 										onProductSelect={handleProductSelected}
-										externalSearch={scannedBarcode || undefined}
 									/>
 								</div>
 							) : (
@@ -123,9 +118,7 @@ const CheckoutPage: React.FC = () => {
 				<CartLayout
 					onCreditCheckoutRequest={() => setIsCreditModalOpen(true)}
 					onCheckoutComplete={() => {
-						if (scannedBarcode) {
-							setIsSearching(false);
-						}
+						setIsSearching(false);
 					}}
 				/>
 			</div>
@@ -171,7 +164,6 @@ const CheckoutPage: React.FC = () => {
 
 									<ProductSearch
 										onProductSelect={handleProductSelected}
-										externalSearch={scannedBarcode || undefined}
 									/>
 								</div>
 							) : (
@@ -219,9 +211,7 @@ const CheckoutPage: React.FC = () => {
 										}}
 										onCheckoutComplete={() => {
 											setIsCartOpen(false);
-											if (scannedBarcode) {
-												setIsSearching(false);
-											}
+											setIsSearching(false);
 										}}
 									/>
 								</div>
