@@ -15,12 +15,12 @@ export interface ApiResponse<T = unknown> {
 	message: string;
 	data: T;
 	meta?: {
-		total: number;
-		hasNext: number;
-		hasPrev: number;
 		page: number;
 		limit: number;
+		total: number;
 		totalPages: number;
+		hasNext: boolean;
+		hasPrev: boolean;
 	};
 }
 
@@ -104,7 +104,6 @@ export class ApiClient {
 		if (status === 401) {
 			localStorage.removeItem("kosh_pos_user");
 			localStorage.removeItem("kosh_pos_store");
-			localStorage.removeItem("kosh_pos_token");
 		}
 
 		return error;

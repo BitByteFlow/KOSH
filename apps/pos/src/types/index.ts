@@ -18,14 +18,12 @@ export interface ProductVariant {
 	sellingPrice: number;
 	costPrice: number;
 	stock: number;
+	status: string;
 	attributes?: Array<{
 		id: string;
 		name: string;
 		value: string;
 	}>;
-	product: {
-		name: string
-	}
 }
 
 export interface SaleItemInput {

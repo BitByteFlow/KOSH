@@ -38,6 +38,8 @@ const STORE_KEY = 'kosh_pos_store';
 const LEGACY_TOKEN_KEY = 'kosh_pos_token';
 
 const API_BASE = import.meta.env.VITE_API_URL;
+// const API_BASE = "/api/v2"
+
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -48,7 +50,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     try {
-      // Purge any legacy token from localStorage
       localStorage.removeItem(LEGACY_TOKEN_KEY);
       
       const savedUser = localStorage.getItem(USER_KEY);

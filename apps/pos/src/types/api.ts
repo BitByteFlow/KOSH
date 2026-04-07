@@ -34,7 +34,6 @@ export interface ProductVariantResponse extends ProductVariant {
 		id: string;
 		name: string;
 	};
-	status?: string;
 }
 
 export interface SaleItem {
