@@ -174,7 +174,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label }) => (
 				>
 					{icon}
 				</div>
-				<span className="text-xs font-bold uppercase tracking-wider">
+				<span className="text-xs font-semibold tracking-wider">
 					{label}
 				</span>
 			</>

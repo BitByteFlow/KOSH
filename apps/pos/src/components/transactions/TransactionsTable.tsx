@@ -80,10 +80,10 @@ const TransactionRow = React.memo(
 						</span>
 					</div>
 				</TableCell>
-				<TableCell>
+				<TableCell className="p-0">
 					<Badge
 						variant="outline"
-						className="bg-white border-slate-100 text-slate-500 font-bold px-1.5"
+						className="bg-white border-slate-100 text-slate-500 font-bold"
 					>
 						{transaction.items?.length || 0} items
 					</Badge>
@@ -128,31 +128,31 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = React.memo(
 				<TableHeader className="bg-slate-50/50">
 					<TableRow className="hover:bg-transparent border-slate-100">
 						<TableHead
-							className="w-30 font-bold text-[10px] uppercase tracking-wider text-slate-400 py-4 pl-6"
+							className="font-bold text-xs uppercase tracking-wider text-slate-400 py-4 pl-6"
 							scope="col"
 						>
 							ID
 						</TableHead>
 						<TableHead
-							className="font-bold text-[10px] uppercase tracking-wider text-slate-400"
+							className="font-bold text-xs uppercase tracking-wider text-slate-400"
 							scope="col"
 						>
 							Date & Time
 						</TableHead>
 						<TableHead
-							className="font-bold text-[10px] uppercase tracking-wider text-slate-400"
+							className="font-bold text-xs uppercase tracking-wider text-slate-400"
 							scope="col"
 						>
 							Items
 						</TableHead>
 						<TableHead
-							className="font-bold text-[10px] uppercase tracking-wider text-slate-400"
+							className="font-bold text-xs uppercase tracking-wider text-slate-400"
 							scope="col"
 						>
 							Method
 						</TableHead>
 						<TableHead
-							className="text-right font-bold text-[10px] uppercase tracking-wider text-slate-400 pr-6"
+							className="font-bold text-xs uppercase tracking-wider text-slate-400 pr-6"
 							scope="col"
 						>
 							Amount

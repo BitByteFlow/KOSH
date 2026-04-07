@@ -74,7 +74,7 @@ const TransactionsPage: React.FC = () => {
 		searchTerm.length > 0 || selectedPaymentType !== "ALL";
 
 	return (
-		<main
+		<section
 			className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500"
 			aria-label="Transactions history"
 		>
@@ -102,7 +102,7 @@ const TransactionsPage: React.FC = () => {
 					</div>
 				</CardHeader>
 
-				<CardContent className="p-0">
+				<CardContent className="p-2">
 					{hasResults ? (
 						<TransactionsTable
 							transactions={filteredTransactions}
@@ -117,7 +117,7 @@ const TransactionsPage: React.FC = () => {
 					)}
 				</CardContent>
 			</Card>
-		</main>
+		</section>
 	);
 };
 

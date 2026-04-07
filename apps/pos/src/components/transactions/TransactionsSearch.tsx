@@ -19,7 +19,7 @@ export const TransactionsSearch: React.FC<TransactionsSearchProps> =
 				/>
 				<Input
 					placeholder={placeholder || "Search transactions..."}
-					className="pl-10 bg-white border-slate-200 h-10"
+					className="pl-10 bg-white border-slate-200 h-10 text-sm"
 					value={searchTerm}
 					onChange={onSearchChange}
 					aria-label="Search transactions by ID, payment type, or customer name"

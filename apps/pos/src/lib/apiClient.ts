@@ -77,9 +77,11 @@ export class ApiClient {
 
 	private createHeaders(customHeaders?: HeadersInit): HeadersInit {
 		const storeId = this.getStoreId();
+		const isDev = import.meta.env.DEV;
 
 		return {
 			"Content-Type": "application/json",
+			...(isDev && { "ngrok-skip-browser-warning": "true" }),
 			...(storeId && { "x-store-id": storeId }),
 			...customHeaders,
 		};

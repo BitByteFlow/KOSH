@@ -25,7 +25,7 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(
 					>
 						<Scan
 							size={40}
-							className="text-slate-200 group-hover:text-primary transition-colors"
+							className="text-black group-hover:text-white transition-colors group-hover:bg-primary"
 							aria-hidden="true"
 						/>
 					</Button>

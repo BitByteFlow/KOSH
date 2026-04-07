@@ -20,10 +20,10 @@ export const TransactionsStatsLegend: React.FC<TransactionsStatsLegendProps> =
 			return `Rs. ${amount.toFixed(2)}`;
 		};
 
-		const getPercentage = (amount: number) => {
-			if (!stats?.totalRevenue) return 0;
-			return Math.round((amount / stats.totalRevenue) * 100);
-		};
+		// const getPercentage = (amount: number) => {
+		// 	if (!stats?.totalRevenue) return 0;
+		// 	return Math.round((amount / stats.totalRevenue) * 100);
+		// };
 
 		const StatItem = ({
 			type,
@@ -49,12 +49,6 @@ export const TransactionsStatsLegend: React.FC<TransactionsStatsLegendProps> =
 				aria-pressed={selectedPaymentType === type}
 				aria-label={`Filter by ${label} ${revenue ? `(${formatCurrency(revenue)})` : ""}`}
 			>
-				<div
-					className={`w-2.5 h-2.5 rounded-full ${
-						selectedPaymentType === type ? color : bgColor
-					}`}
-					aria-hidden="true"
-				/>
 				<span
 					className={`text-sm font-bold ${
 						selectedPaymentType === type ? color : "text-slate-400"
@@ -79,21 +73,21 @@ export const TransactionsStatsLegend: React.FC<TransactionsStatsLegendProps> =
 					type="CASH"
 					label="Cash"
 					color="text-green-600"
-					bgColor="bg-green-500"
+					bgColor="bg-white"
 					revenue={stats?.cashRevenue}
 				/>
 				<StatItem
 					type="ONLINE"
 					label="Online"
 					color="text-blue-600"
-					bgColor="bg-blue-500"
+					bgColor="bg-white"
 					revenue={stats?.onlineRevenue}
 				/>
 				<StatItem
 					type="CREDIT"
 					label="Credit"
 					color="text-orange-600"
-					bgColor="bg-orange-500"
+					bgColor="bg-white"
 					revenue={stats?.creditRevenue}
 				/>
 				<StatItem

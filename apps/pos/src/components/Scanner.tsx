@@ -48,7 +48,6 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, onClose }) => {
 
 				console.log("📷 Starting camera...");
 
-				// Request camera permissions first
 				try {
 					const stream = await navigator.mediaDevices.getUserMedia({
 						video: {
@@ -65,7 +64,6 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, onClose }) => {
 						return;
 					}
 
-					// Set the stream to video element
 					videoElement.srcObject = stream;
 					await videoElement.play();
 					console.log("📹 Camera stream active");
@@ -169,7 +167,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, onClose }) => {
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
-			className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-4"
+			className="fixed inset-0 z-100 bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-4"
 		>
 			<div className="relative w-full max-w-lg aspect-square sm:aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl border-4 border-white/10">
 				<video
@@ -179,8 +177,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, onClose }) => {
 					playsInline
 				/>
 
-				{/* Overlay scanning effect */}
-				<div className="absolute inset-0 border-[40px] border-black/40 pointer-events-none">
+				<div className="absolute inset-0 border-40 border-black/40 pointer-events-none">
 					<div className="w-full h-full border-2 border-primary/50 relative">
 						<div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-lg" />
 						<div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-lg" />
@@ -193,45 +190,6 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, onClose }) => {
 							className="absolute left-0 right-0 h-0.5 bg-primary/80 shadow-[0_0_15px_rgba(59,130,246,0.8)]"
 						/>
 					</div>
-				</div>
-
-				{/* Test barcode for debugging */}
-				<div className="absolute top-4 left-4 bg-white p-2 rounded-lg z-20">
-					<svg
-						width="200"
-						height="60"
-						viewBox="0 0 130 60"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<title>test barcode</title>
-						<rect
-							width="100%"
-							height="100%"
-							fill="white"
-						/>
-						{[
-							0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34,
-							36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66,
-							68, 70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90, 92, 94, 96, 98,
-							100, 102, 104, 106, 108, 110, 112, 114, 116, 118, 120, 122, 124,
-							126, 128,
-						].map((i) => (
-							<rect
-								key={i}
-								x={i}
-								y="0"
-								width="1"
-								height="50"
-								fill={i % 2 === 0 ? "black" : "white"}
-							/>
-						))}
-					</svg>
-					<p className="text-black text-xs font-mono text-center mt-1">
-						Test: 1234567890128
-					</p>
-					<p className="text-gray-500 text-[10px] text-center">
-						Hold phone near screen
-					</p>
 				</div>
 
 				{isLoading && !error && (
@@ -266,7 +224,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, onClose }) => {
 
 			<div className="mt-12 flex flex-col items-center gap-6 w-full max-w-md px-4">
 				<div className="text-center space-y-2">
-					<h2 className="text-white text-2xl font-black tracking-tight uppercase">
+					<h2 className="text-white text-2xl font-black tracking-tight ">
 						Ready to Scan
 					</h2>
 					<p className="text-slate-400 text-sm font-medium">

@@ -6,10 +6,6 @@ interface UseTransactionsFilterOptions {
 	initialPaymentType?: "CASH" | "ONLINE" | "CREDIT" | "ALL";
 }
 
-/**
- * Hook to manage transactions filtering and search
- * Provides debounced search and payment type filtering
- */
 export const useTransactionsFilter = (
 	options?: UseTransactionsFilterOptions,
 ) => {
