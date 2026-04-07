@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
 	useAllTransactions,
 	useCreateTransaction,
@@ -270,6 +270,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
 const DailyTransactionsPage: React.FC = () => {
 	const [showAddForm, setShowAddForm] = useState(false);
 	const { data, isLoading: loading, error, refetch } = useAllTransactions();
+	const formRef = useRef<HTMLDivElement>(null);
 
 	const transactions = (data as AccountTransaction[]) ?? [];
 	const today = format(new Date(), "yyyy-MM-dd");
@@ -291,6 +292,17 @@ const DailyTransactionsPage: React.FC = () => {
 		setShowAddForm(false);
 		refetch();
 	};
+
+	useEffect(() => {
+		if (showAddForm && formRef.current) {
+			setTimeout(() => {
+				formRef.current?.scrollIntoView({
+					behavior: "smooth",
+					block: "start",
+				});
+			}, 100);
+		}
+	}, [showAddForm]);
 
 	if (error)
 		return (
@@ -319,11 +331,11 @@ const DailyTransactionsPage: React.FC = () => {
 		<div className="p-6 max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 			<div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
 				<div>
-					<p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+					<p className="text-xs font-semibold text-slate-600 tracking-widest">
 						{format(new Date(), "EEEE, MMMM d, yyyy")}
 					</p>
-					<h1 className="text-4xl font-black text-slate-900 tracking-tight mt-1 pt-2">
-						DAILY LEDGER
+					<h1 className="text-3xl font-black text-slate-900 tracking-tight mt-1 pt-2">
+						Daily Ledger
 					</h1>
 					<p className="text-slate-500 font-medium mt-1">
 						Record and track today's cash movements.
@@ -369,10 +381,12 @@ const DailyTransactionsPage: React.FC = () => {
 
 			<AnimatePresence>
 				{showAddForm && (
-					<AddEntryForm
-						onSuccess={handleSuccess}
-						onCancel={() => setShowAddForm(false)}
-					/>
+					<div ref={formRef}>
+						<AddEntryForm
+							onSuccess={handleSuccess}
+							onCancel={() => setShowAddForm(false)}
+						/>
+					</div>
 				)}
 			</AnimatePresence>
 
