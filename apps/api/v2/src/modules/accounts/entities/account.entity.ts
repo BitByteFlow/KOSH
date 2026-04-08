@@ -4,7 +4,7 @@ import { AccountTransaction } from "./transaction.entity";
 @ObjectType()
 export class AccountResponse {
 	@Field(() => Boolean)
-	success: boolean
+	success!: boolean
 
 	@Field(() => String, { nullable: true })
 	message?: string
@@ -16,7 +16,7 @@ export class AccountResponse {
 @ObjectType()
 export class UpdateAccountTransactionResponse {
 	@Field(() => Boolean)
-	success: boolean
+	success!: boolean
 
 	@Field(() => String, { nullable: true })
 	message?: string

@@ -4,10 +4,10 @@ import { Notification } from './notification.entity';
 @ObjectType()
 export class NotificationResponse {
 	@Field(() => Boolean)
-	success: boolean;
+	success!: boolean;
 
 	@Field()
-	message: string;
+	message!: string;
 
 	@Field(() => [Notification], { nullable: true })
 	data?: Notification[];

@@ -14,19 +14,19 @@ registerEnumType(MemberRole, {
 @ObjectType()
 export class StoreMember {
 	@Field(() => ID)
-	id: string;
+	id!: string;
 
 	@Field(() => ID)
-	storeId: string;
+	storeId!: string;
 
 	@Field(() => ID)
-	userId: string;
+	userId!: string;
 
 	@Field(() => MemberRole)
-	role: MemberRole;
+	role!: MemberRole;
 
 	@Field()
-	isActive: boolean;
+	isActive!: boolean;
 
 	@Field(() => User, { nullable: true })
 	user?: User;
@@ -35,16 +35,16 @@ export class StoreMember {
 @ObjectType()
 export class StoreInfo {
 	@Field(() => ID)
-	storeId: string;
+	storeId!: string;
 
 	@Field(() => String)
-	storeName: string;
+	storeName!: string;
 }
 
 @ObjectType()
 export class StoreMemberResponse {
 	@Field()
-	success: boolean;
+	success!: boolean;
 
 	@Field()
 	message?: string;
@@ -59,10 +59,10 @@ export class StoreMemberResponse {
 @ObjectType()
 export class StoreMembersResponse {
 	@Field()
-	success: boolean;
+	success!: boolean;
 
 	@Field()
-	message: string;
+	message!: string;
 
 	@Field(() => [StoreMember], { nullable: true })
 	data?: StoreMember[];

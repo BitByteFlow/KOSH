@@ -167,7 +167,7 @@ export class AccountsService {
 					timeout: 10000,
 				},
 			);
-		} catch (error) {
+		} catch (error: any) {
 			if (error.code === "P2002") {
 				throw new ConflictException(
 					"Daily balance record already exists. Please refresh and retry.",
@@ -366,7 +366,7 @@ export class AccountsService {
 					type: updatedTransaction.type,
 				},
 			};
-		} catch (error) {
+		} catch (error: any) {
 			console.error("Error updating transaction:", error);
 			if (
 				error instanceof NotFoundException ||

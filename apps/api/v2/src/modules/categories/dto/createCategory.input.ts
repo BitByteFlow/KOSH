@@ -4,6 +4,6 @@ import { Field, InputType } from '@nestjs/graphql';
 
 @InputType()
 export class CreateCategoryInput extends createZodDto(createCategorySchema) {
-	@Field()
-	name: string;
+	@Field(() => String)
+	name!: string;
 }

@@ -15,22 +15,22 @@ registerEnumType(JoinRequestStatus, {
 @ObjectType()
 export class StoreJoinRequest {
 	@Field(() => ID)
-	id: string;
+	id!: string;
 
 	@Field(() => ID)
-	storeId: string;
+	storeId!: string;
 
 	@Field(() => ID)
-	userId: string;
+	userId!: string;
 
 	@Field(() => JoinRequestStatus)
-	status: JoinRequestStatus;
+	status!: JoinRequestStatus;
 
 	@Field(() => String)
-	createdAt: string;
+	createdAt!: string;
 
 	@Field(() => String)
-	updatedAt: string;
+	updatedAt!: string;
 
 	@Field(() => User, { nullable: true })
 	user?: User;
@@ -42,7 +42,7 @@ export class StoreJoinRequest {
 @ObjectType()
 export class StoreJoinRequestResponse {
 	@Field()
-	success: boolean;
+	success!: boolean;
 
 	@Field(() => String, { nullable: true })
 	message?: string;
@@ -54,7 +54,7 @@ export class StoreJoinRequestResponse {
 @ObjectType()
 export class StoreJoinRequestsResponse {
 	@Field()
-	success: boolean;
+	success!: boolean;
 
 	@Field(() => String, { nullable: true })
 	message?: string;

@@ -3,26 +3,26 @@ import { ObjectType, Field, ID, Int } from '@nestjs/graphql';
 @ObjectType()
 export class Settings {
 	@Field(() => ID)
-	id: string;
+	id!: string;
 
 	@Field(() => ID)
-	storeId: string;
+	storeId!: string;
 
 	@Field(() => Int)
-	lowStockThreshold: number;
+	lowStockThreshold!: number;
 
 	@Field(() => Boolean)
-	autoArchive: boolean;
+	autoArchive!: boolean;
 
 	@Field(() => Boolean)
-	emailReports: boolean;
+	emailReports!: boolean;
 
 	@Field(() => Boolean)
-	pushNotifications: boolean;
+	pushNotifications!: boolean;
 
 	@Field()
-	createdAt: Date;
+	createdAt!: Date;
 
 	@Field()
-	updatedAt: Date;
+	updatedAt!: Date;
 }

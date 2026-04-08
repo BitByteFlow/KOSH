@@ -4,10 +4,10 @@ import { Settings } from './settings.entity';
 @ObjectType()
 export class SettingsResponse {
 	@Field()
-	success: boolean;
+	success!: boolean;
 
 	@Field()
-	message: string;
+	message!: string;
 
 	@Field(() => Settings, { nullable: true })
 	data?: Settings;

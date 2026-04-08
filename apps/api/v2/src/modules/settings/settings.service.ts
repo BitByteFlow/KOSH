@@ -31,7 +31,7 @@ export class SettingsService {
 				message: 'Settings fetched successfully',
 				data: settings,
 			};
-		} catch (error) {
+		} catch (error: any) {
 			return {
 				success: false,
 				message: `Failed to fetch settings: ${error.message}`,
@@ -63,7 +63,7 @@ export class SettingsService {
 				message: 'Settings updated successfully',
 				data: settings,
 			};
-		} catch (error) {
+		} catch (error: any) {
 			return {
 				success: false,
 				message: `Failed to update settings: ${error.message}`,

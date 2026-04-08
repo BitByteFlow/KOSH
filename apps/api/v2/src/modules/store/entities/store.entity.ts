@@ -3,10 +3,10 @@ import { ObjectType, Field, ID } from "@nestjs/graphql";
 @ObjectType()
 export class Store {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  name: string;
+  name!: string;
 
   @Field(() => String, { nullable: true })
   description?: string | null;
@@ -30,10 +30,10 @@ export class Store {
 @ObjectType()
 export class StoreResponse {
   @Field()
-  success: boolean;
+  success!: boolean;
 
   @Field()
-  message: string;
+  message!: string;
 
   @Field(() => Store, { nullable: true })
   data?: Store;
@@ -42,11 +42,11 @@ export class StoreResponse {
 @ObjectType()
 export class StoresResponse {
   @Field()
-  success: boolean;
+  success!: boolean;
 
   @Field()
-  message: string;
+  message!: string;
 
   @Field(() => [Store])
-  data: Store[];
+  data!: Store[];
 }

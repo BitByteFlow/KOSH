@@ -5,8 +5,8 @@ import { InputType, Field } from '@nestjs/graphql';
 @InputType()
 export class AttributeInput extends createZodDto(attributeSchema) {
   @Field(() => String)
-  name: string;
+  name!: string;
 
   @Field(() => String)
-  value: string;
+  value!: string;
 }

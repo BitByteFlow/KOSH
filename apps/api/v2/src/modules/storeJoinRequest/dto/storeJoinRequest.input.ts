@@ -8,7 +8,7 @@ export class HandleJoinRequestInput extends createZodDto(
 	HandleJoinRequestSchema,
 ) {
 	@Field(() => JoinRequestStatus)
-	status: JoinRequestStatus;
+	status!: JoinRequestStatus;
 	@Field(() => String)
-	storeId: string;
+	storeId!: string;
 }

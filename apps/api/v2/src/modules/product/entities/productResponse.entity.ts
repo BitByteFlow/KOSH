@@ -5,10 +5,10 @@ import { PaginationMeta } from 'src/modules/accounts/entities/paginatedTransacti
 @ObjectType()
 export class ProductResponse {
   @Field(() => Boolean)
-  success: boolean;
+  success!: boolean;
 
   @Field()
-  message: string;
+  message!: string;
 
   @Field(() => [Product], { nullable: true })
   data?: Product[];

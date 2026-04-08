@@ -32,58 +32,58 @@ export class SaleReportFilter {
 @ObjectType()
 export class SaleReport {
 	@Field(() => String)
-	id: string;
+	id!: string;
 
 	@Field(() => String)
-	date: string;
+	date!: string;
 
 	@Field(() => String)
-	customer: string;
+	customer!: string;
 
 	@Field(() => Int)
-	items: number;
+	items!: number;
 
 	@Field(() => Float)
-	total: number;
+	total!: number;
 
 	@Field(() => PaymentType)
-	payment: PaymentType;
+	payment!: PaymentType;
 
 	@Field(() => String)
-	status: string;
+	status!: string;
 }
 
 @ObjectType()
 export class SaleReportMeta {
 	@Field(() => Int)
-	total: number;
+	total!: number;
 
 	@Field(() => Int)
-	page: number;
+	page!: number;
 
 	@Field(() => Int)
-	limit: number;
+	limit!: number;
 
 	@Field(() => Int)
-	totalPages: number;
+	totalPages!: number;
 
 	@Field(() => Boolean)
-	hasNext: boolean;
+	hasNext!: boolean;
 
 	@Field(() => Boolean)
-	hasPrev: boolean;
+	hasPrev!: boolean;
 }
 
 @ObjectType()
 export class SaleReportResponse {
 	@Field(() => Boolean)
-	success: true
+	success!: true
 
 	@Field(() => String, { nullable: true })
 	message?: string
 
 	@Field(() => [SaleReport])
-	data: SaleReport[]
+	data!: SaleReport[]
 
 	@Field(() => SaleReportMeta, { nullable: true })
 	meta?: SaleReportMeta

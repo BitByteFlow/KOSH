@@ -1,22 +1,22 @@
-import { Field, ObjectType, ID, Float } from '@nestjs/graphql';
+import { Field, ObjectType, ID, Float } from "@nestjs/graphql";
 
 @ObjectType()
 export class AccountTransaction {
-  @Field(() => ID)
-  id: string;
+	@Field(() => ID)
+	id!: string;
 
-  @Field()
-  type: string;
+	@Field(() => String)
+	type!: string;
 
-  @Field(() => Float)
-  amount: number;
+	@Field(() => Float)
+	amount!: number;
 
-  @Field({ nullable: true })
-  note?: string;
+	@Field(() => String, { nullable: true })
+	note?: string;
 
-  @Field()
-  createdAt: Date;
+	@Field()
+	createdAt!: Date;
 
-  @Field()
-  updatedAt: Date;
+	@Field()
+	updatedAt!: Date;
 }

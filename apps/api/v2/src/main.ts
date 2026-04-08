@@ -46,6 +46,7 @@ function setupSecurity(app: INestApplication, configService: ConfigService) {
 	const allowedOrigins = configService.get<string>("ALLOWED_ORIGINS") || [
 		"http://localhost:3000",
 	];
+	console.log("allowedOrigins", allowedOrigins);
 
 	app.enableCors({
 		origin: (
@@ -59,7 +60,7 @@ function setupSecurity(app: INestApplication, configService: ConfigService) {
 			if (allowedOrigins.includes(origin)) {
 				callback(null, true);
 			} else {
-				callback(new Error("Not allowed by CORS"));
+				callback(null, false);
 			}
 		},
 		credentials: true,
@@ -69,6 +70,7 @@ function setupSecurity(app: INestApplication, configService: ConfigService) {
 			"Authorization",
 			"X-Requested-With",
 			"X-Store-Id",
+			"ngrok-skip-browser-warning",
 		],
 		exposedHeaders: ["Content-Range", "X-Content-Range"],
 		maxAge: 600,
@@ -81,20 +83,18 @@ async function bootstrap() {
 	app.setGlobalPrefix("/api/v2");
 
 	const configService = app.get(ConfigService);
+	app.use(cookieParser());
 
 	setupSecurity(app, configService);
-
-	app.use(cookieParser());
 
 	app.use(compression());
 	app.useGlobalPipes(new ZodValidationPipe());
 	app.useGlobalFilters(new SentryExceptionFilter());
 
 	app.enableShutdownHooks();
-
 	try {
 		const port = configService.get("PORT");
-		await app.listen(port);
+		await app.listen(port, "0.0.0.0");
 		console.log(`Application is running on: http://localhost:${port}`);
 	} catch (error) {
 		console.error("❌ Failed to start application:", error);

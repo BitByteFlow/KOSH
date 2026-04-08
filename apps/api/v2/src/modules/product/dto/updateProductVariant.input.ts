@@ -4,7 +4,7 @@ import { AttributeInput } from './attribute.input';
 @InputType()
 export class UpdateProductVariantInput {
   @Field(() => ID)
-  productId: string;
+  productId!: string;
 
   @Field(() => Float, { nullable: true })
   costPrice?: number;

@@ -3,20 +3,20 @@ import { Field, ObjectType, Float } from '@nestjs/graphql';
 @ObjectType()
 export class TopProduct {
 	@Field(() => String)
-	name: string;
+	name!: string;
 
 	@Field(() => String)
-	revenue: string;
+	revenue!: string;
 
 	@Field(() => Float)
-	value: number;
+	value!: number;
 }
 
 
 @ObjectType()
 export class TopProductResponse {
 	@Field(() => Boolean)
-	success: boolean
+	success!: boolean
 
 	@Field(() => String, { nullable: true })
 	message?: string

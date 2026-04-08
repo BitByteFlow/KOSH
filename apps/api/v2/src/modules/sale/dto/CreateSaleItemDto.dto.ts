@@ -5,14 +5,14 @@ import { InputType, Field } from "@nestjs/graphql";
 @InputType()
 export class CreateSaleItemInput extends createZodDto(createSaleItemSchema) {
 	@Field(() => String)
-	variantId: string;
+	variantId!: string;
 
 	@Field(() => Number)
-	quantity: number;
+	quantity!: number;
 
 	@Field(() => Number)
-	sellPrice: number;
+	sellPrice!: number;
 
 	@Field(() => Number)
-	costPrice: number;
+	costPrice!: number;
 }

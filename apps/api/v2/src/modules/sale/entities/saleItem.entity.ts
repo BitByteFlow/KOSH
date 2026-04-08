@@ -4,17 +4,17 @@ import { Field, ObjectType, ID, Float, Int } from '@nestjs/graphql';
 @ObjectType()
 export class SaleItem {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field(() => Int)
-  quantity: number;
+  quantity!: number;
 
   @Field(() => Float)
-  sellPrice: number;
+  sellPrice!: number;
 
   @Field(() => Float)
-  costPrice: number;
+  costPrice!: number;
 
   @Field(() => ID)
-  variantId: string;
+  variantId!: string;
 }

@@ -8,29 +8,29 @@ registerEnumType(NotificationType, {
 @ObjectType()
 export class Notification {
 	@Field(() => ID)
-	id: string;
+	id!: string;
 
 	@Field(() => ID, { nullable: true })
-	userId: string | null;
+	userId?: string | null;
 
 	@Field(() => NotificationType)
-	type: NotificationType;
+	type!: NotificationType;
 
 	@Field()
-	message: string;
+	message!: string;
 
 	@Field(() => Boolean)
-	isRead: boolean;
+	isRead!: boolean;
 
 	@Field(() => String, { nullable: true })
 	variantId?: string | null;
 
 	@Field(() => Boolean)
-	isGlobal: boolean;
+	isGlobal!: boolean;
 
 	@Field()
-	createdAt: Date;
+	createdAt!: Date;
 
 	@Field()
-	updatedAt: Date;
+	updatedAt!: Date;
 }

@@ -7,19 +7,19 @@ import { CreateSaleItemInput } from "./CreateSaleItemDto.dto";
 @InputType()
 export class CreateSaleInput extends createZodDto(createSaleSchema) {
 	@Field(() => String)
-	storeId: string;
+	storeId!: string;
 
 	@Field(() => Number)
-	discount: number;
+	discount!: number;
 
 	@Field(() => PaymentType)
-	paymentType: PaymentType;
+	paymentType!: PaymentType;
 
 	@Field(() => String, { nullable: true })
 	creditId?: string;
 
 	@Field(() => [CreateSaleItemInput])
-	items: CreateSaleItemInput[];
+	items!: CreateSaleItemInput[];
 
 	@Field(() => String, { nullable: true })
 	transactionNote?: string;

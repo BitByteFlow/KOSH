@@ -4,11 +4,11 @@ import { Field, Float, InputType } from "@nestjs/graphql"
 
 @InputType()
 export class CreateTransactionInput extends createZodDto(createTransactionSchema) {
-	@Field()
-	type: string;
+	@Field(() => String)
+	type!: string;
 
 	@Field(() => Float)
-	amount: number;
+	amount!: number;
 
 	@Field(() => String, { nullable: true })
 	note?: string;

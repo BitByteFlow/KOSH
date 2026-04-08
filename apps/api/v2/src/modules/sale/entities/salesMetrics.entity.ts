@@ -3,22 +3,22 @@ import { Field, ObjectType, Float, Int } from "@nestjs/graphql";
 @ObjectType()
 export class SalesMetrics {
 	@Field(() => Float)
-	totalTransactions: number;
+	totalTransactions!: number;
 
 	@Field(() => Float)
-	totalProfit: number;
+	totalProfit!: number;
 
 	@Field(() => Float)
-	totalSales: number;
+	totalSales!: number;
 
 	@Field(() => Float)
-	avgSaleValue: number;
+	avgSaleValue!: number;
 }
 
 @ObjectType()
 export class SalesMetricsResponse {
 	@Field(() => Boolean)
-	success: boolean;
+	success!: boolean;
 
 	@Field(() => String, { nullable: true })
 	message?: string;

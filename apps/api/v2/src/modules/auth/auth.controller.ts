@@ -5,6 +5,7 @@ import { AuthResponseDto } from "./dto/AuthResponseDto";
 import { CreateUserDto } from "./dto/CreateUserDto";
 import type { Response } from "express";
 
+//TODO: change the cookie config
 @Controller("auth")
 export class AuthController {
 	constructor(private authService: AuthService) {}
@@ -24,8 +25,8 @@ export class AuthController {
 		res.cookie("kosh_access_token", response.token, {
 			maxAge: 33333333,
 			httpOnly: true,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: "strict",
+			secure: true,
+			sameSite: "none",
 		});
 		return response;
 	}
@@ -43,15 +44,19 @@ export class AuthController {
 		res.cookie("kosh_access_token", response.token, {
 			maxAge: 33333333,
 			httpOnly: true,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: "strict",
+			secure: true,
+			sameSite: "none",
 		});
 		return response;
 	}
 
 	@Post("logout")
 	async logout(@Res({ passthrough: true }) res: Response) {
-		res.clearCookie("kosh_access_token");
+		res.clearCookie("kosh_access_token", {
+			httpOnly: true,
+			secure: true,
+			sameSite: "none",
+		});
 		return { message: "Logged out successfully" };
 	}
 }

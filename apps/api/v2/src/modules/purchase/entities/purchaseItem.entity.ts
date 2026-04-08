@@ -5,17 +5,18 @@ import { ProductVariant } from 'src/modules/product/entities/product.entity';
 @ObjectType()
 export class PurchaseItem {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field(() => Int)
-  quantity: number;
+  quantity!: number;
 
   @Field(() => Float)
-  price: Prisma.Decimal;
+  price!: Prisma.Decimal;
 
   @Field(() => ID)
-  variantId: string;
+  variantId!: string;
 
   @Field(() => ProductVariant)
-  variant: ProductVariant;
+  variant!: ProductVariant;
 }
+

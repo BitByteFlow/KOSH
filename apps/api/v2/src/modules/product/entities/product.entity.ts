@@ -14,31 +14,31 @@ registerEnumType(Status, {
 @ObjectType()
 export class Product {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field(() => String)
-  name: string;
+  name!: string;
 
   @Field(() => String)
-  productName: string;
+  productName!: string;
 
   @Field(() => String, { nullable: true })
   slug?: string;
 
   @Field(() => Category)
-  category: Category;
+  category!: Category;
 
   @Field()
-  totalStock: number
+  totalStock!: number
 
   @Field()
-  variantCount: number
+  variantCount!: number
 
   @Field(() => Status)
-  status: Status;
+  status!: Status;
 
   @Field(() => [ProductVariant])
-  variants: ProductVariant[];
+  variants!: ProductVariant[];
 }
 
 
@@ -47,35 +47,35 @@ import { Attribute } from './attribute.entity';
 @ObjectType()
 export class ProductVariant {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  sku: string;
+  sku!: string;
 
   @Field()
-  barcode: string;
+  barcode!: string;
 
   @Field(() => Float)
-  costPrice: number;
+  costPrice!: number;
 
   @Field(() => Float)
-  price: number;
+  price!: number;
 
   @Field(() => Float)
-  sellingPrice: number;
+  sellingPrice!: number;
 
   @Field(() => Int)
-  stock: number;
+  stock!: number;
 
   @Field(() => [Attribute], { nullable: true })
   attributes?: Attribute[];
 
   @Field()
-  status: string;
+  status!: string;
 
   @Field()
-  lowStock: boolean;
+  lowStock!: boolean;
 
   @Field(() => Product)
-  product: Product;
+  product!: Product;
 }

@@ -2,7 +2,7 @@ import { Field, InputType, Float } from "@nestjs/graphql";
 
 @InputType()
 export class UpdateTransactionInput {
-	@Field({ nullable: true })
+	@Field(() => String, { nullable: true })
 	type?: string;
 
 	@Field(() => Float, { nullable: true })

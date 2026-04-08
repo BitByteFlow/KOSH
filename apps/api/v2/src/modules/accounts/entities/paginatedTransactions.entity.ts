@@ -4,35 +4,35 @@ import { AccountTransaction } from './transaction.entity';
 @ObjectType()
 export class PaginationMeta {
   @Field(() => Int)
-  total: number;
+  total!: number;
 
   @Field(() => Int)
-  page: number;
+  page!: number;
 
   @Field(() => Int)
-  limit: number;
+  limit!: number;
 
   @Field(() => Int)
-  totalPages: number;
+  totalPages!: number;
 
   @Field()
-  hasNext: boolean;
+  hasNext!: boolean;
 
   @Field()
-  hasPrev: boolean;
+  hasPrev!: boolean;
 }
 
 @ObjectType()
 export class PaginatedTransactionsResponse {
   @Field(() => Boolean)
-  success: boolean
+  success!: boolean
 
   @Field(() => String, { nullable: true })
   message?: string
 
   @Field(() => [AccountTransaction])
-  data: AccountTransaction[];
+  data!: AccountTransaction[];
 
   @Field(() => PaginationMeta)
-  meta: PaginationMeta;
+  meta!: PaginationMeta;
 }

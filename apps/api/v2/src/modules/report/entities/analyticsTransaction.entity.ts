@@ -3,25 +3,25 @@ import { Field, Int, ObjectType, InputType, Float } from "@nestjs/graphql";
 @ObjectType()
 export class AnalyticsTransaction {
 	@Field()
-	id: string;
+	id!: string;
 
 	@Field()
-	date: string;
+	date!: string;
 
 	@Field()
-	time: string;
+	time!: string;
 
 	@Field()
-	paymentType: string;
+	paymentType!: string;
 
 	@Field(() => Float)
-	amount: number;
+	amount!: number;
 
 	@Field(() => Float)
-	profit: number;
+	profit!: number;
 
 	@Field()
-	status: string;
+	status!: string;
 }
 
 @InputType()
@@ -48,16 +48,16 @@ export class AnalyticsTransactionFilter {
 	searchQuery?: string;
 
 	@Field(() => Int, { defaultValue: 0 })
-	skip: number;
+	skip!: number;
 
 	@Field(() => Int, { defaultValue: 10 })
-	take: number;
+	take!: number;
 }
 
 @ObjectType()
 export class AnalyticsTransactionResult {
 	@Field(() => Boolean)
-	success: boolean;
+	success!: boolean;
 
 	@Field(() => String, { nullable: true })
 	message?: string;

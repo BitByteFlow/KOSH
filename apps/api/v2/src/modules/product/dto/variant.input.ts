@@ -10,13 +10,13 @@ export class VariantInput extends createZodDto(variantDtoSchema) {
   id?: string;
 
   @Field(() => Float)
-  costPrice: number;
+  costPrice!: number;
 
   @Field(() => Float)
-  sellingPrice: number;
+  sellingPrice!: number;
 
   @Field(() => Number, { defaultValue: 0 })
-  stock: number;
+  stock!: number;
 
   @Field(() => [AttributeInput], { nullable: true })
   attributes?: AttributeInput[];

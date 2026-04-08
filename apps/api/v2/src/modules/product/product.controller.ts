@@ -25,11 +25,7 @@ export class ProductController {
 		@Param("barcode") barcode: string,
 	) {
 		const storeId = req.storeId;
-		// Search by barcode - you may want to add a specific service method
-		return this.productService.listProductsWithFilters(storeId, {
-			search: barcode,
-			page: 1,
-			limit: 10,
-		});
+		console.log("barcode:", barcode);
+		return this.productService.getVariantByBarcode(storeId, barcode);
 	}
 }

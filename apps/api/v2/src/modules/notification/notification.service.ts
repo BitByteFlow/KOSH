@@ -24,7 +24,7 @@ export class NotificationService {
 				message: "Notifications retrieved successfully",
 				data: notifications
 			};
-		} catch (error) {
+		} catch (error: any) {
 			console.error(`Get Notifications Error: ${error.message}`);
 			throw new InternalServerErrorException("Failed to fetch notifications");
 		}
@@ -41,7 +41,7 @@ export class NotificationService {
 				success: true,
 				message: "All notifications marked as read"
 			};
-		} catch (error) {
+		} catch (error: any) {
 			console.error(`Mark All As Read Error: ${error.message}`);
 			throw new InternalServerErrorException("Failed to update notifications");
 		}

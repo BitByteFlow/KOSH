@@ -10,28 +10,28 @@ registerEnumType(PaymentType, {
 @ObjectType()
 export class Sale {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field(() => Float)
-  total: number;
+  total!: number;
 
   @Field(() => Float)
-  discount: number;
+  discount!: number;
 
   @Field(() => Float)
-  profit: number;
+  profit!: number;
 
   @Field(() => PaymentType)
-  paymentType: PaymentType;
+  paymentType!: PaymentType;
 
   @Field(() => [SaleItem])
-  items: SaleItem[];
+  items!: SaleItem[];
 
   @Field()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @Field({ nullable: true })
   deletedAt?: Date;
@@ -41,7 +41,7 @@ export class Sale {
 @ObjectType()
 export class SaleResponse {
   @Field(() => Boolean)
-  success: boolean;
+  success!: boolean;
 
   @Field(() => String, { nullable: true })
   message?: string;

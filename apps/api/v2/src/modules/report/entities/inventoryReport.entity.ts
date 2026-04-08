@@ -3,25 +3,25 @@ import { Field, Int, ObjectType, InputType, Float } from "@nestjs/graphql";
 @ObjectType()
 export class InventoryReport {
 	@Field()
-	id: string;
+	id!: string;
 
 	@Field()
-	name: string;
+	name!: string;
 
 	@Field()
-	sku: string;
+	sku!: string;
 
 	@Field()
-	category: string;
+	category!: string;
 
 	@Field(() => Int)
-	stock: number;
+	stock!: number;
 
 	@Field(() => Float)
-	value: number;
+	value!: number;
 
 	@Field()
-	status: string;
+	status!: string;
 }
 
 @InputType()
@@ -42,16 +42,16 @@ export class InventoryReportFilter {
 	searchQuery?: string;
 
 	@Field(() => Int, { defaultValue: 0 })
-	skip: number;
+	skip!: number;
 
 	@Field(() => Int, { defaultValue: 10 })
-	take: number;
+	take!: number;
 }
 
 @ObjectType()
 export class InventoryReportResult {
 	@Field(() => Boolean)
-	success: boolean;
+	success!: boolean;
 
 	@Field(() => String, { nullable: true })
 	message?: string;

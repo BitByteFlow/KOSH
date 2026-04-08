@@ -4,7 +4,7 @@ import { Category } from './category.entity';
 @ObjectType()
 export class CategoryResponse {
   @Field()
-  success: boolean
+  success!: boolean
 
   @Field(() => String, { nullable: true })
   message?: string;

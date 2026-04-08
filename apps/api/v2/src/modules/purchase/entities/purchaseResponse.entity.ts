@@ -4,7 +4,7 @@ import { Purchase } from './purchase.entity';
 @ObjectType()
 export class PurchaseResponse {
   @Field(() => Boolean)
-  success: boolean;
+  success!: boolean;
 
   @Field(() => String, { nullable: true })
   message?: string;

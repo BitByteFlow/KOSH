@@ -3,28 +3,28 @@ import { Field, Int, ObjectType, InputType, Float } from "@nestjs/graphql";
 @ObjectType()
 export class ProductPerformance {
 	@Field()
-	id: string;
+	id!: string;
 
 	@Field()
-	name: string;
+	name!: string;
 
 	@Field()
-	sku: string;
+	sku!: string;
 
 	@Field()
-	category: string;
+	category!: string;
 
 	@Field(() => Int)
-	sold: number;
+	sold!: number;
 
 	@Field(() => Float)
-	revenue: number;
+	revenue!: number;
 
 	@Field(() => Float)
-	margin: number;
+	margin!: number;
 
 	@Field()
-	status: string;
+	status!: string;
 }
 
 @InputType()
@@ -51,17 +51,17 @@ export class ProductPerformanceFilter {
 	searchQuery?: string;
 
 	@Field(() => Int, { defaultValue: 0 })
-	skip: number;
+	skip!: number;
 
 	@Field(() => Int, { defaultValue: 10 })
-	take: number;
+	take!: number;
 }
 
 @ObjectType()
 export class ProductPerformanceResult {
 	@Field(() => [ProductPerformance])
-	items: ProductPerformance[];
+	items!: ProductPerformance[];
 
 	@Field(() => Int)
-	totalCount: number;
+	totalCount!: number;
 }

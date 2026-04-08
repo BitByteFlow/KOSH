@@ -3,17 +3,17 @@ import { Field, ObjectType, Float } from '@nestjs/graphql';
 @ObjectType()
 export class AnalyticsTrend {
 	@Field(() => String)
-	label: string;
+	label!: string;
 
 	@Field(() => Float)
-	value: number;
+	value!: number;
 }
 
 
 @ObjectType()
 export class AnalyticsTrendResponse {
 	@Field(() => Boolean)
-	success: boolean
+	success!: boolean
 
 	@Field(() => String, { nullable: true })
 	message?: string

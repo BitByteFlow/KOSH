@@ -18,6 +18,7 @@ import { CreateProductInput } from "./dto/createProductInput";
 import { UpdateProductInput } from "./dto/updateProductInput";
 import { UpdateProductVariantInput } from "./dto/updateProductVariant.input";
 import { VariantInput } from "./dto/variant.input";
+import { AttributeInput } from "./dto/attribute.input";
 
 @Injectable()
 export class ProductService {
@@ -188,7 +189,7 @@ export class ProductService {
 					timeout: 10000, // 10 seconds max
 				},
 			);
-		} catch (error) {
+		} catch (error: any) {
 			if (error.code === "P2002") {
 				const fields = error.meta?.target as string[];
 				if (fields?.includes("sku")) {
@@ -422,7 +423,7 @@ export class ProductService {
 					};
 				},
 			);
-		} catch (error) {
+		} catch (error: any) {
 			console.error(`Update Product Error: ${error.message}`, error.stack);
 
 			if (error.code === "P2002") {
@@ -505,7 +506,7 @@ export class ProductService {
 					if (variantDetail.attributes && variantDetail.attributes.length > 0) {
 						await tsx.variantAttribute.createMany({
 							data: variantDetail.attributes.map(
-								(attribute: VariantAttribute) => ({
+								(attribute: AttributeInput) => ({
 									variantId: productVariant.id,
 									name: attribute.name,
 									value: attribute.value,
@@ -867,33 +868,37 @@ export class ProductService {
 	}
 
 	private generateBarcodeOffline(storeId: string, sku: string): string {
-		const timestamp = Date.now().toString().slice(-9);
-
-		const storeHash = this.simpleHash(storeId)
-			.toString(36)
-			.substring(0, 4)
-			.toUpperCase();
-
-		const skuHash = this.simpleHash(sku)
-			.toString(36)
-			.substring(0, 3)
-			.toUpperCase();
-
-		const random = Math.floor(Math.random() * 10000)
-			.toString()
-			.padStart(4, "0");
-
-		return `INT${timestamp}${storeHash}${skuHash}${random}`.toUpperCase();
+		
+		const storePrefix = this.numericHash(storeId).toString().padStart(4, "0").slice(0, 4);
+		
+		const skuSuffix = this.numericHash(sku).toString().padStart(6, "0").slice(0, 6);
+		
+		const randomDigits = Math.floor(Math.random() * 100).toString().padStart(2, "0");
+		
+		const code12 = `${storePrefix}${skuSuffix}${randomDigits}`;
+		
+	 const checkDigit = this.calculateEAN13CheckDigit(code12);
+		
+		return `${code12}${checkDigit}`;
 	}
 
-	private simpleHash(str: string): number {
+	private numericHash(str: string): number {
 		let hash = 0;
 		for (let i = 0; i < str.length; i++) {
 			const char = str.charCodeAt(i);
-			hash = (hash << 5) - hash + char;
-			hash = hash & hash; // Convert to 32-bit integer
+			hash = ((hash << 5) - hash) + char;
+			hash = hash & hash;
 		}
 		return Math.abs(hash);
+	}
+
+	private calculateEAN13CheckDigit(code12: string): number {
+		let sum = 0;
+		for (let i = 0; i < 12; i++) {
+			const digit = parseInt(code12[i], 10);
+			sum += i % 2 === 0 ? digit : digit * 3;
+		}
+		return (10 - (sum % 10)) % 10;
 	}
 
 	private formatProduct(product: any, lowStockThreshold?: number): any {
@@ -937,6 +942,43 @@ export class ProductService {
 				lowStock: v.stock < (lowStockThreshold || 10),
 				status: v.status,
 			})),
+		};
+	}
+
+	async getVariantByBarcode(
+		storeId: string,
+		barcode: string,
+	): Promise<ProductResponse> {
+		const product = await this.database.prisma.product.findFirst({
+			where: {
+				storeId,
+				deletedAt: null,
+				variants: {
+					some: {
+						barcode,
+					},
+				},
+			},
+			include: {
+				category: true,
+				variants: {
+					where: {
+						barcode,
+					},
+				},
+			},
+		});
+
+		if (!product) {
+			throw new NotFoundException(
+				`Product with barcode "${barcode}" not found`,
+			);
+		}
+
+		return {
+			success: true,
+			message: "Product found",
+			data: [this.formatProduct(product)],
 		};
 	}
 }

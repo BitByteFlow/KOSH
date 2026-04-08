@@ -28,10 +28,10 @@ import { Field, ObjectType, Float, Int } from '@nestjs/graphql';
 @ObjectType()
 export class AnalyticsMetrics {
   @Field(() => String)
-  label: string;
+  label!: string;
 
   @Field(() => Float)
-  value: number;
+  value!: number;
 
   @Field(() => Float, { nullable: true })
   trend?: number;
@@ -40,7 +40,7 @@ export class AnalyticsMetrics {
   trendLabel?: string;
 
   @Field(() => Boolean)
-  isPositive: boolean;
+  isPositive!: boolean;
 
   @Field(() => String, { nullable: true })
   subtitle?: string;
@@ -49,7 +49,7 @@ export class AnalyticsMetrics {
 @ObjectType()
 export class AnalyticsMetricsResponse {
   @Field(() => Boolean)
-  success: boolean
+  success!: boolean
 
   @Field(() => String, { nullable: true })
   message?: string

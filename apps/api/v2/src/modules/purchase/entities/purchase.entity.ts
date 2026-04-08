@@ -11,10 +11,10 @@ registerEnumType(PaymentStatus, {
 @ObjectType()
 export class Purchase {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  supplierName: string;
+  supplierName!: string;
 
   @Field(() => String, { nullable: true })
   email?: string | null;
@@ -23,29 +23,30 @@ export class Purchase {
   contact?: string | null;
 
   @Field(() => Float)
-  total: Prisma.Decimal;
+  total!: Prisma.Decimal;
 
   @Field(() => Float)
-  amountPaid: Prisma.Decimal;
+  amountPaid!: Prisma.Decimal;
 
   @Field(() => Float)
-  balanceDue: Prisma.Decimal;
+  balanceDue!: Prisma.Decimal;
 
   @Field(() => Date, { nullable: true })
   dueDate?: Date | null;
 
   @Field(() => PaymentStatus)
-  status: PaymentStatus;
+  status!: PaymentStatus;
 
   @Field(() => [PurchaseItem])
-  items: PurchaseItem[];
+  items!: PurchaseItem[];
 
   @Field()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @Field(() => Date, { nullable: true })
   deletedAt?: Date | null;
 }
+
