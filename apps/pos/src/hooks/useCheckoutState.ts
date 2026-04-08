@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, startTransition } from "react";
 import type { Product, ProductVariant } from "../types";
 import type { CheckoutState, CheckoutActions } from "../types/checkout";
 import { useCart } from "../store/useCart";
@@ -21,12 +21,16 @@ export const useCheckoutState = (
 	const [isBarcodeProcessing, setIsBarcodeProcessing] = useState(false);
 
 	const handleProductSelect = useCallback((product: Product) => {
-		setSelectedProduct(product);
-		setIsVariantModalOpen(true);
+		// Use startTransition for non-urgent UI updates
+		startTransition(() => {
+			setSelectedProduct(product);
+			setIsVariantModalOpen(true);
+		});
 	}, []);
 
 	const handleVariantSelect = useCallback(
 		(variant: ProductVariant, productName: string) => {
+			// Add item to cart synchronously (fast operation)
 			addItem({
 				id: variant.id,
 				name: productName,
@@ -36,7 +40,12 @@ export const useCheckoutState = (
 				costPrice: variant.costPrice,
 				stock: variant.stock,
 			});
-			toast.success(`${productName} added to cart`);
+			
+			// Use startTransition for non-urgent toast
+			startTransition(() => {
+				toast.success(`${productName} added to cart`);
+			});
+			
 			options?.onVariantSelect?.(variant, productName);
 		},
 		[addItem, options],
@@ -70,7 +79,9 @@ export const useCheckoutState = (
 					stock: variant.stock,
 				});
 
-				toast.success(`${productName} added to cart`);
+				startTransition(() => {
+					toast.success(`${productName} added to cart`);
+				});
 			} catch (error) {
 				console.error("❌ Barcode lookup failed:", error);
 				toast.error("Failed to look up product. Please try again.");

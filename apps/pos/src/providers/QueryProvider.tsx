@@ -30,13 +30,15 @@ interface QueryProviderProps {
 	children: ReactNode;
 }
 
+const isDev = import.meta.env.VITE_DEV;
+
 export const QueryProvider = ({ children }: QueryProviderProps) => {
 	const client = getQueryClient();
 
 	return (
 		<QueryClientProvider client={client}>
 			{children}
-			<ReactQueryDevtools initialIsOpen={false} />
+			{"development" === isDev && <ReactQueryDevtools initialIsOpen={true} />}
 		</QueryClientProvider>
 	);
 };

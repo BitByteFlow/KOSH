@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, memo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Package, TrendingUp, Circle } from "lucide-react";
+import { X, Check, Package, TrendingUp } from "lucide-react";
 import { Button } from "@kosh/ui/components/button";
 import { Badge } from "@kosh/ui/components/badge";
 import type { Product, ProductVariant } from "../types";
@@ -12,6 +12,117 @@ interface VariantSelectionModalProps {
 	onClose: () => void;
 	onSelectVariant: (variant: ProductVariant, productName: string) => void;
 }
+
+interface VariantItemProps {
+	variant: ProductVariant;
+	isSelected: boolean;
+	isLowStock: boolean;
+	isOutOfStock: boolean;
+	index: number;
+	onSelect: (variant: ProductVariant) => void;
+}
+
+const VariantItem = memo<VariantItemProps>(
+	({ variant, isSelected, isLowStock, isOutOfStock, index, onSelect }) => {
+		const handleClick = useCallback(() => {
+			if (!isOutOfStock) {
+				onSelect(variant);
+			}
+		}, [isOutOfStock, onSelect, variant]);
+
+		return (
+			<motion.div
+				key={variant.id}
+				initial={{ opacity: 0, x: -10 }}
+				animate={{ opacity: 1, x: 0 }}
+				transition={{ delay: Math.min(index * 0.02, 0.1) }}
+			>
+				<Button
+					onClick={handleClick}
+					disabled={isOutOfStock}
+					className={`w-full p-10 bg-slate-50 hover:bg-slate-50 rounded-2xl border-2 text-left transition-all duration-200 group ${
+						isSelected
+							? "border-primary shadow-md shadow-primary/10"
+							: isOutOfStock
+								? "border-slate-100 bg-slate-50 opacity-50 cursor-not-allowed"
+								: "border-slate-200 hover:border-primary "
+					}`}
+				>
+					<div className="w-full flex gap-4">
+						<div className="flex-1 min-w-0">
+							<div className="flex items-center gap-2 mb-1.5 flex-wrap">
+								{variant.attributes?.map((attr: any) => (
+									<Badge
+										key={attr.id}
+										className={`text-sm h-6 px-2.5 font-bold border-0 ${
+											isSelected
+												? "bg-primary text-white"
+												: "bg-slate-100 text-slate-700"
+										}`}
+									>
+										{attr.value}
+									</Badge>
+								))}
+							</div>
+
+							<div className="flex items-center gap-3 flex-wrap">
+								<span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+									{variant.sku}
+								</span>
+
+								<div
+									className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+										isOutOfStock
+											? "bg-red-100 text-red-700"
+											: isLowStock
+												? "bg-amber-100 text-amber-700"
+												: "bg-green-100 text-green-700"
+									}`}
+								>
+									<div
+										className={`w-1.5 h-1.5 rounded-full ${
+											isOutOfStock
+												? "bg-red-500"
+												: isLowStock
+													? "bg-amber-500"
+													: "bg-green-500"
+										}`}
+									/>
+									{isOutOfStock
+										? "Out of Stock"
+										: isLowStock
+											? `Only ${variant.stock} left`
+											: `In Stock (${variant.stock})`}
+								</div>
+							</div>
+						</div>
+
+						<div className="text-right shrink-0">
+							<p
+								className={`text-lg font-black ${
+									isOutOfStock
+										? "text-slate-300"
+										: isSelected
+											? "text-primary"
+											: "text-slate-900"
+								}`}
+							>
+								Rs. {variant.sellingPrice.toFixed(2)}
+							</p>
+							{isLowStock && !isOutOfStock && (
+								<p className="text-[9px] text-amber-600 font-bold mt-0.5">
+									Low stock
+								</p>
+							)}
+						</div>
+					</div>
+				</Button>
+			</motion.div>
+		);
+	},
+);
+
+VariantItem.displayName = "VariantItem";
 
 const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 	product,
@@ -31,14 +142,38 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 		}
 	}, [product]);
 
-	if (!product) return null;
+	const handleVariantSelect = useCallback(
+		(variant: ProductVariant) => {
+			setSelectedVariant(variant);
+		},
+		[],
+	);
 
-	const handleAddToCart = () => {
-		if (selectedVariant) {
+	const handleAddToCart = useCallback(() => {
+		if (selectedVariant && product) {
 			onSelectVariant(selectedVariant, product.productName);
 			onClose();
 		}
-	};
+	}, [selectedVariant, product, onSelectVariant, onClose]);
+
+	const handleClose = useCallback(() => {
+		onClose();
+	}, [onClose]);
+
+	const handleBackdropClick = useCallback(
+		(e: React.MouseEvent) => {
+			if (e.target === e.currentTarget) {
+				onClose();
+			}
+		},
+		[onClose],
+	);
+
+	const handleCardClick = useCallback((e: React.MouseEvent) => {
+		e.stopPropagation();
+	}, []);
+
+	if (!product) return null;
 
 	const lowStockThreshold = 10;
 
@@ -50,7 +185,8 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
-						onClick={onClose}
+						transition={{ duration: 0.1 }}
+						onClick={handleBackdropClick}
 						className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
 					/>
 
@@ -58,12 +194,12 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 						initial={{ opacity: 0, scale: 0.95, y: 20 }}
 						animate={{ opacity: 1, scale: 1, y: 0 }}
 						exit={{ opacity: 0, scale: 0.95, y: 20 }}
-						transition={{ type: "spring", duration: 0.1, damping: 25 }}
+						transition={{ type: "spring", stiffness: 400, damping: 30 }}
 						className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none p-4"
 					>
 						<Card
 							className="bg-white p-0 rounded-3xl shadow-2xl w-full max-w-lg mx-auto overflow-hidden pointer-events-auto border-0"
-							onClick={(e) => e.stopPropagation()}
+							onClick={handleCardClick}
 						>
 							<div className="bg-linear-to-r from-primary via-primary/90 to-primary/80 p-6 relative overflow-hidden">
 								<div className="absolute inset-0 opacity-10">
@@ -95,7 +231,7 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 											</p>
 										</div>
 										<Button
-											onClick={onClose}
+											onClick={handleClose}
 											variant="ghost"
 											size="icon"
 											className="text-white hover:bg-white/20 rounded-full h-10 w-10 shrink-0 transition-colors"
@@ -115,95 +251,15 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 										const isOutOfStock = variant.stock === 0;
 
 										return (
-											<motion.div
+											<VariantItem
 												key={variant.id}
-												initial={{ opacity: 0, x: -10 }}
-												animate={{ opacity: 1, x: 0 }}
-												transition={{ delay: index * 0.04 }}
-											>
-												<Button
-													onClick={() =>
-														!isOutOfStock && setSelectedVariant(variant)
-													}
-													disabled={isOutOfStock}
-													className={`w-full p-10 bg-slate-50 hover:bg-slate-50 rounded-2xl border-2 text-left transition-all duration-200 group ${
-														isSelected
-															? "border-primary shadow-md shadow-primary/10"
-															: isOutOfStock
-																? "border-slate-100 bg-slate-50 opacity-50 cursor-not-allowed"
-																: "border-slate-200 hover:border-primary "
-													}`}
-												>
-													<div className="w-full flex gap-4">
-														<div className="flex-1 min-w-0">
-															<div className="flex items-center gap-2 mb-1.5 flex-wrap">
-																{variant.attributes?.map((attr: any) => (
-																	<Badge
-																		key={attr.id}
-																		className={`text-sm h-6 px-2.5 font-bold border-0 ${
-																			isSelected
-																				? "bg-primary text-white"
-																				: "bg-slate-100 text-slate-700"
-																		}`}
-																	>
-																		{attr.value}
-																	</Badge>
-																))}
-															</div>
-
-															<div className="flex items-center gap-3 flex-wrap">
-																<span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
-																	{variant.sku}
-																</span>
-
-																<div
-																	className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-																		isOutOfStock
-																			? "bg-red-100 text-red-700"
-																			: isLowStock
-																				? "bg-amber-100 text-amber-700"
-																				: "bg-green-100 text-green-700"
-																	}`}
-																>
-																	<div
-																		className={`w-1.5 h-1.5 rounded-full ${
-																			isOutOfStock
-																				? "bg-red-500"
-																				: isLowStock
-																					? "bg-amber-500"
-																					: "bg-green-500 animate-pulse"
-																		}`}
-																	/>
-																	{isOutOfStock
-																		? "Out of Stock"
-																		: isLowStock
-																			? `Only ${variant.stock} left`
-																			: `In Stock (${variant.stock})`}
-																</div>
-															</div>
-														</div>
-
-														<div className="text-right shrink-0">
-															<p
-																className={`text-lg font-black ${
-																	isOutOfStock
-																		? "text-slate-300"
-																		: isSelected
-																			? "text-primary"
-																			: "text-slate-900"
-																}`}
-															>
-																Rs. {variant.sellingPrice.toFixed(2)}
-															</p>
-															{isLowStock && !isOutOfStock && (
-																<p className="text-[9px] text-amber-600 font-bold mt-0.5">
-																	Low stock
-																</p>
-															)}
-														</div>
-													</div>
-												</Button>
-											</motion.div>
+												variant={variant}
+												isSelected={isSelected}
+												isLowStock={isLowStock}
+												isOutOfStock={isOutOfStock}
+												index={index}
+												onSelect={handleVariantSelect}
+											/>
 										);
 									})}
 								</div>
@@ -214,6 +270,7 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 									<motion.div
 										initial={{ opacity: 0, y: 10 }}
 										animate={{ opacity: 1, y: 0 }}
+										transition={{ duration: 0.15 }}
 										className="mb-4 p-3.5 bg-linear-to-r from-primary/10 to-primary/5 rounded-2xl border border-primary/20"
 									>
 										<div className="flex items-center justify-between">
@@ -265,7 +322,7 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 										</span>
 									) : (
 										<span className="flex items-center gap-2 text-white/70">
-											<Circle size={18} />
+											<Package size={18} />
 											Select a variant above
 										</span>
 									)}

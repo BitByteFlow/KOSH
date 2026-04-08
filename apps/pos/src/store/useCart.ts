@@ -30,24 +30,23 @@ export const useCart = create<CartStore>((set, get) => ({
 	discount: 0,
 	addItem: (product) => {
 		const items = get().items;
-		const existingItem = items.find(
+		const existingIndex = items.findIndex(
 			(item) => item.variantId === product.variantId,
 		);
 
-		if (existingItem) {
-			// Check if adding one more would exceed stock
+		if (existingIndex !== -1) {
+			const existingItem = items[existingIndex];
 			if (existingItem.quantity + 1 > product.stock) {
 				toast.error(`Only ${product.stock} item(s) available in stock`);
 				return;
 			}
 
-			set({
-				items: items.map((item) =>
-					item.variantId === product.variantId
-						? { ...item, quantity: item.quantity + 1 }
-						: item,
-				),
-			});
+			const newItems = [...items];
+			newItems[existingIndex] = {
+				...existingItem,
+				quantity: existingItem.quantity + 1,
+			};
+			set({ items: newItems });
 		} else {
 			set({ items: [...items, { ...product, quantity: 1 }] });
 		}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { useCart } from "../store/useCart";
 import { ShoppingBag, Plus, Minus, Trash2, Percent } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -6,6 +6,108 @@ import { Button } from "@kosh/ui/components/button";
 import { Badge } from "@kosh/ui/components/badge";
 import { Input } from "@kosh/ui/components/input";
 import { Label } from "@kosh/ui/components/label";
+
+interface CartItemComponentProps {
+	item: {
+		variantId: string;
+		name: string;
+		sku: string;
+		price: number;
+		quantity: number;
+		stock: number;
+	};
+	updateQuantity: (variantId: string, quantity: number) => void;
+	removeItem: (variantId: string) => void;
+}
+
+const CartItemComponent = memo<CartItemComponentProps>(
+	({ item, updateQuantity, removeItem }) => {
+		const isMaxQuantity = item.quantity >= item.stock;
+		const isLowStock = item.stock > 0 && item.stock <= 5;
+
+		return (
+			<motion.div
+				key={item.variantId}
+				layout
+				initial={{ x: 10, opacity: 0 }}
+				animate={{ x: 0, opacity: 1 }}
+				exit={{ x: -10, opacity: 0 }}
+				transition={{ duration: 0.15 }}
+			>
+				<div className="flex flex-col gap-1.5 p-2.5 rounded-lg border border-slate-100 hover:border-slate-200 transition-all bg-slate-50/50">
+					<div className="flex items-center gap-2">
+						<div className="flex-1 min-w-0">
+							<h4 className="font-semibold text-sm text-slate-900 leading-tight truncate">
+								{item.name}
+							</h4>
+							<p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide mt-0.5">
+								{item.sku}
+							</p>
+						</div>
+
+						<Button
+							size="icon"
+							variant="ghost"
+							onClick={() => removeItem(item.variantId)}
+							className="h-6 w-6 rounded-md hover:bg-red-50 text-slate-400 hover:text-red-500 shrink-0"
+						>
+							<Trash2 size={12} />
+						</Button>
+					</div>
+
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-0.5 bg-white rounded-md border border-slate-200 p-0.5">
+							<Button
+								size="icon"
+								variant="ghost"
+								onClick={() =>
+									updateQuantity(item.variantId, item.quantity - 1)
+								}
+								className="h-6 w-6 rounded-sm hover:bg-slate-50"
+							>
+								<Minus size={12} />
+							</Button>
+							<div className="w-10 text-center font-bold text-xs text-slate-800 flex flex-col items-center leading-tight">
+								<span>{item.quantity}</span>
+								<span className="text-[7px] text-slate-400 font-normal leading-none">
+									/ {item.stock}
+								</span>
+							</div>
+							<Button
+								size="icon"
+								variant="ghost"
+								disabled={isMaxQuantity}
+								onClick={() =>
+									updateQuantity(item.variantId, item.quantity + 1)
+								}
+								className={`h-6 w-6 rounded-sm transition-all ${
+									isMaxQuantity
+										? "opacity-30 cursor-not-allowed text-slate-300"
+										: "hover:bg-slate-50 text-primary"
+								}`}
+							>
+								<Plus size={12} />
+							</Button>
+						</div>
+
+						<div className="text-right">
+							<p className="font-bold text-slate-900 text-sm">
+								Rs. {(item.price * item.quantity).toFixed(2)}
+							</p>
+							{isLowStock && (
+								<p className="text-[9px] text-orange-500 font-medium">
+									{item.stock} left
+								</p>
+							)}
+						</div>
+					</div>
+				</div>
+			</motion.div>
+		);
+	},
+);
+
+CartItemComponent.displayName = "CartItemComponent";
 
 const Cart: React.FC = () => {
 	const {
@@ -74,90 +176,14 @@ const Cart: React.FC = () => {
 
 			<div className="flex-1 px-3 py-2 space-y-1.5 custom-scrollbar">
 				<AnimatePresence mode="popLayout">
-					{items.map((item) => {
-						const isMaxQuantity = item.quantity >= item.stock;
-						const isLowStock = item.stock > 0 && item.stock <= 5;
-						// const isOutOfStock = item.stock === 0;
-
-						return (
-							<motion.div
-								key={item.variantId}
-								layout
-								initial={{ x: 10, opacity: 0 }}
-								animate={{ x: 0, opacity: 1 }}
-								exit={{ x: -10, opacity: 0 }}
-							>
-								<div className="flex flex-col gap-1.5 p-2.5 rounded-lg border border-slate-100 hover:border-slate-200 transition-all bg-slate-50/50">
-									<div className="flex items-center gap-2">
-										<div className="flex-1 min-w-0">
-											<h4 className="font-semibold text-sm text-slate-900 leading-tight truncate">
-												{item.name}
-											</h4>
-											<p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide mt-0.5">
-												{item.sku}
-											</p>
-										</div>
-
-										<Button
-											size="icon"
-											variant="ghost"
-											onClick={() => removeItem(item.variantId)}
-											className="h-6 w-6 rounded-md hover:bg-red-50 text-slate-400 hover:text-red-500 shrink-0"
-										>
-											<Trash2 size={12} />
-										</Button>
-									</div>
-
-									<div className="flex items-center justify-between">
-										<div className="flex items-center gap-0.5 bg-white rounded-md border border-slate-200 p-0.5">
-											<Button
-												size="icon"
-												variant="ghost"
-												onClick={() =>
-													updateQuantity(item.variantId, item.quantity - 1)
-												}
-												className="h-6 w-6 rounded-sm hover:bg-slate-50"
-											>
-												<Minus size={12} />
-											</Button>
-											<div className="w-10 text-center font-bold text-xs text-slate-800 flex flex-col items-center leading-tight">
-												<span>{item.quantity}</span>
-												<span className="text-[7px] text-slate-400 font-normal leading-none">
-													/ {item.stock}
-												</span>
-											</div>
-											<Button
-												size="icon"
-												variant="ghost"
-												disabled={isMaxQuantity}
-												onClick={() =>
-													updateQuantity(item.variantId, item.quantity + 1)
-												}
-												className={`h-6 w-6 rounded-sm transition-all ${
-													isMaxQuantity
-														? "opacity-30 cursor-not-allowed text-slate-300"
-														: "hover:bg-slate-50 text-primary"
-												}`}
-											>
-												<Plus size={12} />
-											</Button>
-										</div>
-
-										<div className="text-right">
-											<p className="font-bold text-slate-900 text-sm">
-												Rs. {(item.price * item.quantity).toFixed(2)}
-											</p>
-											{isLowStock && (
-												<p className="text-[9px] text-orange-500 font-medium">
-													{item.stock} left
-												</p>
-											)}
-										</div>
-									</div>
-								</div>
-							</motion.div>
-						);
-					})}
+					{items.map((item) => (
+						<CartItemComponent
+							key={item.variantId}
+							item={item}
+							updateQuantity={updateQuantity}
+							removeItem={removeItem}
+						/>
+					))}
 				</AnimatePresence>
 			</div>
 
