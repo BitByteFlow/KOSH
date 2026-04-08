@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, startTransition } from "react";
 import InventorySearch from "@/modules/inventory/components/InventorySearch";
 import InventoryItem from "@/modules/inventory/components/InventoryItem";
 import { InventoryPagination } from "@/modules/inventory/components/InventoryPagination";
@@ -96,7 +96,7 @@ const InventoryPage = () => {
 	const totalPages = meta.totalPages;
 	const totalItems = meta.total;
 
-	const handleToggleSelection = (id: string) => {
+	const handleToggleSelection = useCallback((id: string) => {
 		setSelectedProductIds((prev) => {
 			const newSet = new Set(prev);
 			if (newSet.has(id)) {
@@ -106,53 +106,72 @@ const InventoryPage = () => {
 			}
 			return newSet;
 		});
-	};
+	}, []);
 
-	const handleSelectAll = (checked: boolean) => {
-		if (checked) {
-			const allIds = products.map((p) => p.id);
-			setSelectedProductIds(
-				new Set([...Array.from(selectedProductIds), ...allIds]),
-			);
-		} else {
-			const currentIds = products.map((p) => p.id);
-			setSelectedProductIds((prev) => {
-				const newSet = new Set(prev);
-				currentIds.forEach((id: string) => {
-					newSet.delete(id);
+	const handleSelectAll = useCallback(
+		(checked: boolean) => {
+			if (checked) {
+				const allIds = products.map((p) => p.id);
+				setSelectedProductIds((prev) => new Set([...Array.from(prev), ...allIds]));
+			} else {
+				const currentIds = new Set(products.map((p) => p.id));
+				setSelectedProductIds((prev) => {
+					const newSet = new Set(prev);
+					currentIds.forEach((id: string) => {
+						newSet.delete(id);
+					});
+					return newSet;
 				});
-				return newSet;
-			});
-		}
-	};
+			}
+		},
+		[products],
+	);
 
-	const isAllSelected =
-		products.length > 0 && products.every((p) => selectedProductIds.has(p.id));
+	const isAllSelected = useMemo(
+		() => products.length > 0 && products.every((p) => selectedProductIds.has(p.id)),
+		[products, selectedProductIds],
+	);
 
 	const selectedProducts = useMemo(() => {
 		return products.filter((p) => selectedProductIds.has(p.id));
 	}, [products, selectedProductIds]);
 
-	const handleEditProduct = (id: string) => {
-		const product = products.find((p) => p.id === id);
-		if (product) setEditingProduct(product);
-	};
+	const handleHeaderCheckboxChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			handleSelectAll(e.target.checked);
+		},
+		[handleSelectAll],
+	);
 
-	const handleViewDetails = (id: string) => {
-		const product = products.find((p) => p.id === id);
-		if (product) setViewingProduct(product);
-	};
+	const handleEditProduct = useCallback(
+		(id: string) => {
+			const product = products.find((p) => p.id === id);
+			if (product) setEditingProduct(product);
+		},
+		[products],
+	);
 
-	const handleChangeCategory = (id: string) => {
-		const product = products.find((p) => p.id === id);
-		if (product) setCategoryProduct(product as Product);
-	};
+	const handleViewDetails = useCallback(
+		(id: string) => {
+			const product = products.find((p) => p.id === id);
+			if (product) setViewingProduct(product);
+		},
+		[products],
+	);
 
-	const handleDeleteProduct = (id: string) => {
+	const handleChangeCategory = useCallback(
+		(id: string) => {
+			const product = products.find((p) => p.id === id);
+			if (product) setCategoryProduct(product as Product);
+		},
+		[products],
+	);
+
+	const handleDeleteProduct = useCallback((id: string) => {
 		setProductToDelete(id);
-	};
+	}, []);
 
-	const confirmDelete = async () => {
+	const confirmDelete = useCallback(async () => {
 		if (productToDelete) {
 			try {
 				setIsDeleting(true);
@@ -173,10 +192,65 @@ const InventoryPage = () => {
 				setIsDeleting(false);
 			}
 		}
-	};
+	}, [productToDelete, deleteProductMutation]);
+
+	const handleSearch = useCallback((query: string) => {
+		// Use startTransition for non-urgent search updates
+		startTransition(() => {
+			setSearchQuery(query);
+		});
+	}, []);
+
+	const handleCategoryFilter = useCallback((categoryId: string | null) => {
+		startTransition(() => {
+			setCategoryFilter(categoryId);
+		});
+	}, []);
+
+	const handleStatusFilter = useCallback((status: string | null) => {
+		startTransition(() => {
+			setStatusFilter(status as Status | null);
+		});
+	}, []);
+
+	const handleUpdateVariant = useCallback(
+		async (productId: string, variant: ProductVariant) => {
+			try {
+				const result = await updateProductVariantMutation({
+					variables: {
+						variantId: variant.id,
+						input: {
+							productId,
+							costPrice: variant.costPrice,
+							sellingPrice: variant.sellingPrice,
+							stock: variant.stock,
+							status: variant.status,
+							attributes: variant.attributes?.map(
+								(attr: any) => ({
+									name: attr.name,
+									value: attr.value,
+								}),
+							),
+						},
+					},
+				});
+				if (result.data?.updateProductVariant.success) {
+					toast.success("Variant updated successfully");
+				}
+			} catch (_) {
+				toast.error("Failed to update variant");
+			}
+		},
+		[updateProductVariantMutation],
+	);
+
+	const handleItemsPerPageChange = useCallback((limit: number) => {
+		setItemsPerPage(limit);
+		setCurrentPage(1);
+	}, []);
 
 	return (
-		<div className="flex-1 flex flex-col min-h-0 bg-background">
+		<div className="flex-1 flex flex-col min-h-0 bg-background will-change-[opacity]">
 			<div className="px-4 md:px-8 py-6 flex items-center justify-between sticky top-0 bg-background z-10">
 				<h1 className="text-3xl font-bold tracking-tighter">Inventory</h1>
 			</div>
@@ -184,11 +258,9 @@ const InventoryPage = () => {
 			<div className="flex-1 overflow-auto px-4 md:px-8 py-6">
 				<div className="space-y-6">
 					<InventorySearch
-						onSearch={setSearchQuery}
-						onCategoryFilter={setCategoryFilter}
-						onStatusFilter={(status) =>
-							setStatusFilter(status as Status | null)
-						}
+						onSearch={handleSearch}
+						onCategoryFilter={handleCategoryFilter}
+						onStatusFilter={handleStatusFilter}
 						onGenerateBarcodes={() => setIsBarcodeDialogOpen(true)}
 						selectedCount={selectedProductIds.size}
 						activeCategoryId={categoryFilter}
@@ -239,33 +311,9 @@ const InventoryPage = () => {
 											onChangeCategory={handleChangeCategory}
 											onDelete={handleDeleteProduct}
 											onEditVariant={(id) => console.log("Edit variant:", id)}
-											onUpdateVariant={async (variant: ProductVariant) => {
-												try {
-													const result = await updateProductVariantMutation({
-														variables: {
-															variantId: variant.id,
-															input: {
-																productId: product.id,
-																costPrice: variant.costPrice,
-																sellingPrice: variant.sellingPrice,
-																stock: variant.stock,
-																status: variant.status,
-																attributes: variant.attributes?.map(
-																	(attr: any) => ({
-																		name: attr.name,
-																		value: attr.value,
-																	}),
-																),
-															},
-														},
-													});
-													if (result.data?.updateProductVariant.success) {
-														toast.success("Variant updated successfully");
-													}
-												} catch (_) {
-													toast.error("Failed to update variant");
-												}
-											}}
+											onUpdateVariant={(variant: ProductVariant) =>
+												handleUpdateVariant(product.id, variant)
+											}
 										/>
 									))}
 									{products.length === 0 && (
@@ -290,10 +338,7 @@ const InventoryPage = () => {
 							totalItems={totalItems}
 							itemsPerPage={itemsPerPage}
 							onPageChange={setCurrentPage}
-							onItemsPerPageChange={(limit) => {
-								setItemsPerPage(limit);
-								setCurrentPage(1);
-							}}
+							onItemsPerPageChange={handleItemsPerPageChange}
 						/>
 					)}
 				</div>

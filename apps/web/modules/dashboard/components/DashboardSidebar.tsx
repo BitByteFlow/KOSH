@@ -101,9 +101,9 @@ const DashboardSidebar = () => {
 			side="left"
 		>
 			<SidebarHeader className="gap-4">
-				<div className="flex items-center transition-all duration-300 ease-in-out group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:gap-0 group-data-[state=collapsed]:px-0">
+				<div className="flex items-center group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:gap-0 group-data-[state=collapsed]:px-0">
 					<Logo className="h-8 w-8" />
-					<div className="overflow-hidden transition-all duration-300 ease-in-out max-w-50 opacity-100 group-data-[state=collapsed]:max-w-0 group-data-[state=collapsed]:opacity-0">
+					<div className="overflow-hidden max-w-50 opacity-100 group-data-[state=collapsed]:max-w-0 group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-[max-width,opacity] duration-200 ease-linear">
 						<span className="text-xl italic font-semibold tracking-tight text-foreground whitespace-nowrap ml-1">
 							Kosh
 						</span>

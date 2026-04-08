@@ -42,7 +42,10 @@ export const categoryKeys = {
 export const useProductList = (params: ProductFilterInput = { page: 1, limit: 10 }) => {
 	return useApolloQuery<{ listProductsWithFilter: ProductResponse }>(LIST_PRODUCTS_WITH_FILTER, {
 		variables: { filterInput: params },
-		fetchPolicy: "cache-and-network",
+		// Use cache-first to avoid double renders during search
+		// The query will automatically refetch when variables change
+		fetchPolicy: "cache-first",
+		notifyOnNetworkStatusChange: false,
 	});
 };
 
