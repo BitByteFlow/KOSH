@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { startTransition } from "react";
 import {
 	LayoutGrid,
 	Layers,
@@ -38,7 +39,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@kosh/ui/components/dropdown-menu";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
 import Logo from "public/logo.svg";
@@ -94,6 +94,17 @@ const DashboardSidebar = () => {
 	const handleLogout = async () => {
 		await signOut({ redirect: true, redirectTo: "/auth/get-started" });
 	};
+
+	const handleNavigate = React.useCallback(
+		(url: string) => {
+			// Use startTransition to keep UI responsive during navigation
+			startTransition(() => {
+				router.push(url);
+			});
+		},
+		[router],
+	);
+
 	return (
 		<Sidebar
 			className="border-r border-sidebar-border bg-sidebar flex-col max-h-screen"
@@ -124,19 +135,19 @@ const DashboardSidebar = () => {
 									<SidebarMenuItem key={item.title}>
 										<SidebarMenuButton
 											className="mt-2 hover:cursor-pointer"
-											onClick={() => router.push(item.url)}
+											onClick={() => handleNavigate(item.url)}
 											isActive={isActive}
 											tooltip={item.title}
 										>
 											<item.icon
-												className={`h-5 w-5 transition-all duration-300 ease-in-out ${
+												className={`h-5 w-5 ${
 													isActive
 														? "text-primary scale-110"
 														: "text-muted-foreground hover:scale-110"
 												}`}
 											/>
 											<div
-												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-all duration-300 ease-in-out opacity-100 max-w-50 group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0 ${
+												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-[max-width,opacity,width,padding] duration-200 ease-linear opacity-100 max-w-50 group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0 ${
 													isActive
 														? "bg-accent text-accent-foreground font-semibold"
 														: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
@@ -169,18 +180,18 @@ const DashboardSidebar = () => {
 										<SidebarMenuButton
 											isActive={isActive}
 											className="mt-2 hover:cursor-pointer"
-											onClick={() => router.push(item.url)}
+											onClick={() => handleNavigate(item.url)}
 											tooltip={item.title}
 										>
 											<item.icon
-												className={`h-5 w-5 transition-all duration-300 ease-in-out ${
+												className={`h-5 w-5 ${
 													isActive
 														? "text-primary scale-110"
 														: "text-muted-foreground hover:scale-110"
 												}`}
 											/>
 											<div
-												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-all duration-300 ease-in-out opacity-100 max-w-50 group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0 ${
+												className={`flex items-center gap-3 py-2.5 px-2 w-full rounded-lg transition-[max-width,opacity,width,padding] duration-200 ease-linear opacity-100 max-w-50 group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0 ${
 													isActive
 														? "bg-accent text-accent-foreground font-semibold"
 														: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
