@@ -25,13 +25,12 @@ export function formatCurrency(amount: string | number) {
 
 export function buildUrl(endpoint: string, params?: Record<string, string | number | boolean>): string {
 	const url = new URL(endpoint, API_CONFIG.baseURL);
-	console.log("url on auth", url)
-	
+
 	if (params) {
 		Object.entries(params).forEach(([key, value]) => {
 			url.searchParams.append(key, String(value));
 		});
 	}
-	
+
 	return url.toString();
 }

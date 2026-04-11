@@ -6,8 +6,8 @@ import { Button } from "@kosh/ui/components/button";
 import { Card } from "@kosh/ui/components/card";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "sonner";
-import Logo from "public/logo.svg";
 
 const GetStartedPage = () => {
 	const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +32,15 @@ const GetStartedPage = () => {
 						href="/"
 						className="flex items-center gap-2 group"
 					>
-						<Logo className="h-10 w-10" />
+						<Image 
+							src="/logo.svg" 
+							alt="Kosh Logo" 
+							width={40}
+							height={40}
+							className="h-10 w-10"
+							loading="eager"
+							priority
+						/>
 						<span className="text-lg font-semibold tracking-tight">Kosh</span>
 					</Link>
 				</nav>

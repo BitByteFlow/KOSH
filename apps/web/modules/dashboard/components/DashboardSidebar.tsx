@@ -41,7 +41,7 @@ import {
 } from "@kosh/ui/components/dropdown-menu";
 import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
-import Logo from "public/logo.svg";
+import Image from "next/image";
 
 const menuItems = [
 	{ title: "Dashboard", icon: LayoutGrid, url: "/dashboard" },
@@ -113,7 +113,7 @@ const DashboardSidebar = () => {
 		>
 			<SidebarHeader className="gap-4">
 				<div className="flex items-center group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:gap-0 group-data-[state=collapsed]:px-0">
-					<Logo className="h-8 w-8" />
+					<Image src="/logo.svg" alt="Logo" width={32} height={32} className="h-8 w-8" loading="eager" priority />
 					<div className="overflow-hidden max-w-50 opacity-100 group-data-[state=collapsed]:max-w-0 group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-[max-width,opacity] duration-200 ease-linear">
 						<span className="text-xl italic font-semibold tracking-tight text-foreground whitespace-nowrap ml-1">
 							Kosh

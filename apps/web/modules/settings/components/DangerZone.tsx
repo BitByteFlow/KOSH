@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { SettingsSection } from "./SettingSection";
 import { AlertCircle } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 export function DangerZone() {
 	const [showConfirm, setShowConfirm] = useState(false);
@@ -10,7 +11,7 @@ export function DangerZone() {
 	};
 
 	const handleConfirmDelete = () => {
-		console.log("[v0] Delete account confirmed");
+		logger.warn("Delete account confirmed", "Settings");
 		setShowConfirm(false);
 	};
 

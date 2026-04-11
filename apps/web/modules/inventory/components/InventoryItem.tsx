@@ -7,6 +7,7 @@ import { Checkbox } from "@kosh/ui/components/checkbox";
 import { StatusBadge } from "./StatusBadge";
 import { VariantRow } from "./VariantRow";
 import { EditVariantSheet } from "./EditVariantSheet";
+import { logger } from "@/lib/logger";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -95,7 +96,7 @@ const InventoryItem = memo(
 
 		const handleSaveVariant = useCallback(
 			async (updatedVariant: any) => {
-				console.log("Saving variant:", updatedVariant);
+				logger.debug("Saving variant", "Inventory", updatedVariant);
 
 				await onUpdateVariant?.(updatedVariant);
 				await new Promise((resolve) => setTimeout(resolve, 500));

@@ -24,6 +24,7 @@ import {
 import { useDebounce } from "@/hooks/useDebounce";
 import { TransactionTableSkeleton } from "@/components/TableSkeleton";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 import {
 	Dialog,
 	DialogContent,
@@ -310,7 +311,7 @@ const InventoryPage = () => {
 											onViewDetails={handleViewDetails}
 											onChangeCategory={handleChangeCategory}
 											onDelete={handleDeleteProduct}
-											onEditVariant={(id) => console.log("Edit variant:", id)}
+											onEditVariant={(id) => logger.debug(`Edit variant: ${id}`, "Inventory")}
 											onUpdateVariant={(variant: ProductVariant) =>
 												handleUpdateVariant(product.id, variant)
 											}
@@ -361,7 +362,7 @@ const InventoryPage = () => {
 				onOpenChange={(open) => !open && setCategoryProduct(null)}
 				product={categoryProduct}
 				onSave={async (id, cat) => {
-					console.log("Category updated");
+					logger.info("Category updated", "Inventory");
 				}}
 			/>
 

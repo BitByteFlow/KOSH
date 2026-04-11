@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 export async function retryApiCall<T>(
 	fn: () => Promise<T>,
 	maxRetries = 2,
@@ -22,7 +24,7 @@ export async function retryApiCall<T>(
 			const delay =
 				Math.min(baseDelay * 2 ** i, 10000) + Math.random() * 1000;
 
-			console.log("thisis is in retry", error)
+			logger.warn(`Retry attempt ${i}/${maxRetries}`, "API", error);
 			await new Promise((resolve) => setTimeout(resolve, delay));
 		}
 	}
@@ -35,7 +37,7 @@ export class CircuitBreaker {
 	private lastFailureTime: number = 0;
 	private state: "CLOSED" | "OPEN" | "HALF_OPEN" = "CLOSED";
 	private readonly failureThreshold: number = 5;
-	private readonly timeout: number = 60000; 
+	private readonly timeout: number = 60000;
 
 	async call<T>(fn: () => Promise<T>): Promise<T> {
 		const now = Date.now();
@@ -60,7 +62,7 @@ export class CircuitBreaker {
 			if (this.failureCount >= this.failureThreshold) {
 				this.state = "OPEN";
 			}
-			console.log("thisis is in call", error)
+			logger.error("Circuit breaker error", "API", error);
 
 			throw error;
 		}

@@ -14,6 +14,7 @@ import {
 	useHandleJoinRequest,
 } from "@/modules/settings/hooks/useMemberRequests";
 import { Users, Check, X, Clock, AlertCircle } from "lucide-react";
+import { logger } from "@/lib/logger";
 import { useStore } from "@/context/StoreContext";
 
 interface MemberRequestData {
@@ -40,8 +41,6 @@ export function MemberRequests() {
 	const { mutate: handleRequest, loading: handling } = useHandleJoinRequest();
 	const [processingId, setProcessingId] = useState<string | null>(null);
 	const { activeStoreId } = useStore();
-
-	console.log("this is data response in request", response);
 
 	const requests: MemberRequestData[] =
 		response?.getPendingJoinRequests.data || [];

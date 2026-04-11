@@ -4,6 +4,9 @@ import {
 	ArgumentsHost,
 	HttpStatus,
 	BadRequestException,
+	UnauthorizedException,
+	ForbiddenException,
+	NotFoundException,
 } from "@nestjs/common";
 import { Response } from "express";
 import * as Sentry from "@sentry/nestjs";
@@ -16,7 +19,16 @@ export class SentryExceptionFilter implements ExceptionFilter {
 	catch(exception: unknown, host: ArgumentsHost) {
 		const ctx = host.switchToHttp();
 		const response = ctx.getResponse<Response>();
-		const request = ctx.getRequest();
+		const request: any = ctx.getRequest();
+
+		// Handle cases where request might not be properly formed
+		if (!request) {
+			response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+				error: "Internal server error",
+				timestamp: new Date().toISOString(),
+			});
+			return;
+		}
 
 		if (exception instanceof BadRequestException) {
 			return response.status(HttpStatus.BAD_REQUEST).json({
@@ -25,14 +37,44 @@ export class SentryExceptionFilter implements ExceptionFilter {
 			});
 		}
 
+		if (exception instanceof UnauthorizedException) {
+			const exceptionResponse = exception.getResponse();
+			const message = typeof exceptionResponse === 'object' && exceptionResponse !== null && 'message' in exceptionResponse
+				? (exceptionResponse as any).message
+				: 'Unauthorized';
+
+			return response.status(HttpStatus.UNAUTHORIZED).json({
+				error: message,
+				requestId: request.id || crypto.randomUUID(),
+				timestamp: new Date().toISOString(),
+			});
+		}
+
+		if (exception instanceof ForbiddenException) {
+			return response.status(HttpStatus.FORBIDDEN).json({
+				error: "Forbidden",
+				requestId: request.id || crypto.randomUUID(),
+				timestamp: new Date().toISOString(),
+			});
+		}
+
+		if (exception instanceof NotFoundException) {
+			return response.status(HttpStatus.NOT_FOUND).json({
+				error: "Not found",
+				requestId: request.id || crypto.randomUUID(),
+				timestamp: new Date().toISOString(),
+			});
+		}
+
 		const errorMetadata = this._getErrorMetadata(exception);
 
 		Sentry.withScope((scope) => {
-			if (request.user) {
+			if (request.user && typeof request.user === 'object') {
+				const user = request.user;
 				scope.setUser({
-					id: request.user.id,
-					email: request.user.email,
-					username: request.user.username,
+					id: user?.id,
+					email: user?.email,
+					username: user?.username,
 				});
 			}
 

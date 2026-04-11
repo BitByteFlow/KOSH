@@ -18,8 +18,9 @@ import { format } from "date-fns";
 import { TransactionTableSkeleton } from "@/components/TableSkeleton";
 import { gql } from "@/gql";
 import { useQuery, useMutation } from "@apollo/client/react";
+import { GET_ACCOUNT_TRANSACTIONS } from "@/services/account.service";
 import { parseGraphQLResponse } from "@/lib/graphql/utils";
-import { AccountTransaction } from "@/gql/graphql";
+import { AccountTransaction, PaginatedTransactionsResponse } from "@/gql/graphql";
 import {
 	Dialog,
 	DialogContent,
@@ -57,31 +58,6 @@ const TRANSACTION_TYPE_CONFIG: Record<
 	DEBT: { label: "Debt", variant: "outline" },
 	CREDIT: { label: "Credit", variant: "destructive" },
 };
-
-const GET_TRANSACTIONS = gql(`
-	query GetTransactions($page: Int, $limit: Int, $sortBy: String, $sortOrder: String) {
-		getAccountTransactions(page: $page, limit: $limit, sortBy: $sortBy, sortOrder: $sortOrder) {
-			success
-			message
-			data {
-				id
-				type
-				amount
-				note
-				createdAt
-				updatedAt
-			}
-			meta {
-				total
-				page
-				limit
-				totalPages
-				hasNext
-				hasPrev
-			}
-		}
-	}
-`);
 
 const UPDATE_ACCOUNT_TRANSACTION = gql(`
 	mutation UpdateAccountTransactions($transactionId: String!, $updateTransactionInput: UpdateTransactionInput!) {
@@ -127,7 +103,7 @@ export function TransactionTable() {
 		data: rawData,
 		loading,
 		error,
-	} = useQuery(GET_TRANSACTIONS, {
+	} = useQuery<{ getAccountTransactions: PaginatedTransactionsResponse }>(GET_ACCOUNT_TRANSACTIONS, {
 		variables: {
 			page,
 			limit,

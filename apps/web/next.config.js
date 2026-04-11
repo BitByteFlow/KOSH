@@ -4,7 +4,6 @@ const nextConfig = {
 	transpilePackages: ["@kosh/ui"],
     turbopack: {
       rules: {
-        // This tells Turbopack how to handle SVG files
         '*.svg': {
           loaders: [
             {
@@ -23,8 +22,6 @@ const nextConfig = {
         },
       },
     },
-  // Keep the webpack config as a fallback for production builds 
-  // (Next.js currently uses Webpack for 'next build' in some environments)
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/i,

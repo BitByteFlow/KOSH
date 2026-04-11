@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { baseApiClient } from "@/lib/api/baseRequest";
 import { API_ENDPOINTS } from "@/lib/api/config";
 import { ApiError } from "@/lib/api/errors";
+import { logger } from "@/lib/logger";
 
 const circuitBreaker = new CircuitBreaker();
 
@@ -79,7 +80,13 @@ const nextAuth = NextAuth({
 				console.error(`Login failed for user: ${googleProfile.email}`, error);
 
 				const statusCode = error instanceof ApiError ? error.statusCode : (error.response?.status || 500);
-				if (statusCode === 404 || statusCode === 400 || statusCode === 401) {
+				const errorMessage = error instanceof ApiError ? error.message : error.response?.error || '';
+				
+				// Trigger signup if user doesn't exist (401 or 404) or if error message indicates user not found
+				const shouldSignUp = statusCode === 401 || statusCode === 404 || 
+					errorMessage.includes("doesn't exist") || errorMessage.includes("not found");
+				
+				if (shouldSignUp) {
 					try {
 						const signUpData = await retryApiCall(() =>
 							circuitBreaker.call(() =>
@@ -97,7 +104,7 @@ const nextAuth = NextAuth({
 						user.storeId = signUpData.store.storeId
 						user.storeName = signUpData.store.storeName
 					} catch (registerError: any) {
-						console.log("Failed to signup user Email: ", googleProfile.email);
+						logger.error(`Failed to signup user: ${googleProfile.email}`, "Auth");
 						return false;
 					}
 				} else {

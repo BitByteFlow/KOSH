@@ -8,7 +8,7 @@ import { SentryExceptionFilter, SentryModule } from "./common/observability";
 import type { INestApplication } from "@nestjs/common";
 import compression from "compression";
 
-SentryModule.init();
+// SentryModule.init();
 
 function setupSecurity(app: INestApplication, configService: ConfigService) {
 	app.use(
@@ -89,7 +89,7 @@ async function bootstrap() {
 
 	app.use(compression());
 	app.useGlobalPipes(new ZodValidationPipe());
-	app.useGlobalFilters(new SentryExceptionFilter());
+	// app.useGlobalFilters(new SentryExceptionFilter());
 
 	app.enableShutdownHooks();
 	try {

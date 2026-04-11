@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/lib/query/providers";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -28,7 +29,9 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body className={`${inter.variable} antialiased`}>
-				<Providers>{children}</Providers>
+				<ErrorBoundary>
+					<Providers>{children}</Providers>
+				</ErrorBoundary>
 			</body>
 		</html>
 	);

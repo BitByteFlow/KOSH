@@ -44,6 +44,7 @@ import { LIST_PRODUCTS_WITH_FILTER } from "@/services/products.service";
 import { useQuery } from "@apollo/client/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 import { cn } from "@kosh/ui/lib/utils";
 import {
 	Product,
@@ -385,7 +386,7 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 
 				<form
 					onSubmit={handleSubmit(onSubmit, (errors) => {
-						console.log("form errors: ", errors);
+						logger.warn("Form validation errors", "CreateSale", errors);
 						toast.error("Please fix the errors in the form before submitting.");
 					})}
 					className="flex-1 overflow-hidden flex flex-col"

@@ -11,7 +11,6 @@ import {
 	GET_ACCOUNT_TRANSACTIONS,
 	CREATE_TRANSACTION,
 	type GetTransactionsParams,
-	Transaction,
 } from "@/services/account.service";
 import { toast } from "sonner";
 import {
@@ -71,22 +70,30 @@ export function useCreateTransaction() {
 				const newTransaction = data.createTransaction.data;
 
 				if (newTransaction) {
-					apolloClient.cache.updateQuery<{
-						getAccountTransactions: PaginatedTransactionsResponse;
-					}>({ query: GET_ACCOUNT_TRANSACTIONS }, (prev) => {
-						if (!prev?.getAccountTransactions?.data) {
-							return prev;
-						}
+					// Use cache.modify to update all cached queries that contain getAccountTransactions
+					// This works regardless of which query document was used to fetch the data
+					apolloClient.cache.modify({
+						fields: {
+							getAccountTransactions: (existing, { toReference }) => {
+								if (!existing || !existing.data) {
+									return existing;
+								}
 
-						return {
-							getAccountTransactions: {
-								...prev.getAccountTransactions,
-								data: [
-									newTransaction as Transaction,
-									...prev.getAccountTransactions.data,
-								],
+								const newRef = toReference(newTransaction);
+								if (!newRef) return existing;
+
+								// Check for duplicates
+								const exists = existing.data.some(
+									(item: any) => item.__ref === newRef.__ref,
+								);
+								if (exists) return existing;
+
+								return {
+									...existing,
+									data: [newRef, ...existing.data],
+								};
 							},
-						};
+						},
 					});
 				}
 

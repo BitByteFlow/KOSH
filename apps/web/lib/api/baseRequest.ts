@@ -2,18 +2,17 @@ import type { RequestOptions } from "./types";
 import { API_CONFIG } from "./config";
 import { createErrorFromResponse, NetworkError } from "./errors";
 import { buildUrl } from "../utils";
+import { logger } from "../logger";
 
 function logRequest(method: string, url: string, options?: RequestOptions) {
-	console.log("log request")
 	if (process.env.NODE_ENV === "development") {
-		console.log(`[API] ${method} ${url}`, options?.body ? JSON.parse(options.body as string) : "");
+		logger.api.request(method, url, "API", options?.body ? JSON.parse(options.body as string) : undefined);
 	}
 }
 
 function logResponse(method: string, url: string, status: number, data?: unknown) {
-	console.log("log response")
 	if (process.env.NODE_ENV === "development") {
-		console.log(`[API] ${method} ${url} - ${status}`, data);
+		logger.api.response(method, url, status, "API", data);
 	}
 }
 

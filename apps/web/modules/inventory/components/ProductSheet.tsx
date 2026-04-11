@@ -38,6 +38,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createProductSchema, type CreateProductInput } from "@kosh/validation";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 import { Product } from "@/gql/graphql";
 
 interface AttributeListProps {
@@ -319,10 +320,6 @@ export function ProductSheet({
 						},
 					},
 				});
-
-				if (createResult?.createProduct?.success) {
-					toast.success("Product created successfully");
-				}
 			}
 			setIsOpen(false);
 			reset();
@@ -336,7 +333,7 @@ export function ProductSheet({
 	};
 
 	const onFormSubmit = (data: CreateProductInput) => {
-		console.log("[ProductSheet] onFormSubmit called");
+		logger.info("Product form submitted", "ProductSheet", { productId: product?.id });
 		onSubmit(data);
 	};
 

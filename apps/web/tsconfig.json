@@ -6,7 +6,6 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",
     "paths": {
       "@kosh/ui/*": [
         "../../packages/ui/src/*"
@@ -24,6 +23,6 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
   ]
 }
