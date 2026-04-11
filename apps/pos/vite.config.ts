@@ -75,13 +75,21 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
 					warn(warning);
 				},
 				output: {
-					manualChunks: {
-						"react-vendor": ["react", "react-dom", "react-router-dom"],
-						"query-vendor": ["@tanstack/react-query"],
-						"animation-vendor": ["framer-motion"],
-						"ui-vendor": ["@kosh/ui"],
-						"state-vendor": ["zustand"],
-						"scanner-vendor": ["@zxing/browser"],
+					manualChunks(id: string) {
+						if (id.includes("node_modules")) {
+							if (
+								id.includes("react") ||
+								id.includes("react-dom") ||
+								id.includes("react-router")
+							)
+								return "react-vendor";
+							if (id.includes("@tanstack/react-query"))
+								return "query-vendor";
+							if (id.includes("framer-motion")) return "animation-vendor";
+							if (id.includes("@kosh/ui")) return "ui-vendor";
+							if (id.includes("zustand")) return "state-vendor";
+							if (id.includes("@zxing/browser")) return "scanner-vendor";
+						}
 					},
 					chunkFileNames: "assets/js/[name]-[hash].js",
 					entryFileNames: "assets/js/[name]-[hash].js",

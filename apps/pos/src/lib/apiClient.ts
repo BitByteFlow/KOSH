@@ -116,9 +116,6 @@ export class ApiClient {
 		endpoint: string,
 		method: HttpMethod,
 	): Promise<ApiResponse<T>> {
-		const contentType = response.headers.get("content-type");
-		const isJson = contentType?.includes("application/json");
-
 		let data: ApiResponse<T>;
 
 		try {

@@ -1,7 +1,6 @@
 import {
 	useQuery,
 	useInfiniteQuery,
-	useMutation,
 	useQueryClient,
 } from "@tanstack/react-query";
 import { productsApi } from "../services/products.api";
@@ -41,7 +40,7 @@ export const useInfiniteProductSearch = (
 		queryFn: ({ pageParam = 1 }) =>
 			productsApi.search({ ...params, page: pageParam as number }),
 		initialPageParam: 1,
-		getNextPageParam: (lastPage, allPages) => {
+		getNextPageParam: (lastPage) => {
 			const nextPage = lastPage.page + 1;
 			return nextPage <= lastPage.totalPages ? nextPage : undefined;
 		},

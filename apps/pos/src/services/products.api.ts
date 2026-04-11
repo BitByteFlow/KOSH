@@ -6,20 +6,6 @@ import type {
 	ProductVariantResponse,
 } from "../types/api";
 
-interface ApiProductResponse {
-	success: boolean;
-	message: string;
-	data: Product[];
-	meta?: {
-		page: number;
-		limit: number;
-		total: number;
-		totalPages: number;
-		hasNext: boolean;
-		hasPrev: boolean;
-	};
-}
-
 export const productsApi = {
 	search: async (params: ProductFilterParams): Promise<ProductListResponse> => {
 		const response = await apiClient.get<Product[]>(
