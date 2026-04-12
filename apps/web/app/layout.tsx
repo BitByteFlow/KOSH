@@ -4,6 +4,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/lib/query/providers";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -32,6 +34,8 @@ export default function RootLayout({
 				<ErrorBoundary>
 					<Providers>{children}</Providers>
 				</ErrorBoundary>
+				<Analytics />
+				<SpeedInsights />
 			</body>
 		</html>
 	);
