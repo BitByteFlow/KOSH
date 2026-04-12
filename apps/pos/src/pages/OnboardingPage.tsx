@@ -31,7 +31,8 @@ const validateStoreId = async (
 		});
 
 		const json = await response.json();
-		if (json?.success && json?.store) {
+		console.log("resonse", json)
+		if (json?.success) {
 			return {
 				valid: true,
 			};

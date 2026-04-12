@@ -147,7 +147,6 @@ export class StoreJoinRequestService {
 		input: HandleJoinRequestInput,
 		requesterId: string,
 	): Promise<StoreJoinRequestResponse> {
-		console.log("this si requst input", input);
 		const store = await this.database.prisma.store.findUnique({
 			where: { id: input.storeId },
 		});

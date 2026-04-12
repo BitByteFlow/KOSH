@@ -25,7 +25,6 @@ export class ProductController {
 		@Param("barcode") barcode: string,
 	) {
 		const storeId = req.storeId;
-		console.log("barcode:", barcode);
 		return this.productService.getVariantByBarcode(storeId, barcode);
 	}
 }

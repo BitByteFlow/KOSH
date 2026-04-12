@@ -8,7 +8,7 @@ import { SentryExceptionFilter, SentryModule } from "./common/observability";
 import type { INestApplication } from "@nestjs/common";
 import compression from "compression";
 
-// SentryModule.init();
+SentryModule.init();
 
 function setupSecurity(app: INestApplication, configService: ConfigService) {
 	app.use(
@@ -46,7 +46,6 @@ function setupSecurity(app: INestApplication, configService: ConfigService) {
 	const allowedOrigins = configService.get<string>("ALLOWED_ORIGINS") || [
 		"http://localhost:3000",
 	];
-	console.log("allowedOrigins", allowedOrigins);
 
 	app.enableCors({
 		origin: (
@@ -89,12 +88,12 @@ async function bootstrap() {
 
 	app.use(compression());
 	app.useGlobalPipes(new ZodValidationPipe());
-	// app.useGlobalFilters(new SentryExceptionFilter());
+	app.useGlobalFilters(new SentryExceptionFilter());
 
 	app.enableShutdownHooks();
 	try {
 		const port = configService.get("PORT");
-		await app.listen(port, "0.0.0.0");
+		await app.listen(port);
 		console.log(`Application is running on: http://localhost:${port}`);
 	} catch (error) {
 		console.error("❌ Failed to start application:", error);
