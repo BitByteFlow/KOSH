@@ -9,6 +9,7 @@ import {
 } from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import Loading from "./components/Loading";
+import { PageViewTracker } from "./components/PageViewTracker";
 
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
@@ -21,6 +22,7 @@ const DailyTransactionsPage = lazy(
 function App() {
 	return (
 		<BrowserRouter>
+			<PageViewTracker />
 			<AuthProvider>
 				<Toaster
 					position="top-center"
