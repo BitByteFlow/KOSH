@@ -93,7 +93,7 @@ async function bootstrap() {
 	app.enableShutdownHooks();
 	try {
 		const port = configService.get("PORT");
-		await app.listen(port);
+		await app.listen(port, "0.0.0.0");
 		console.log(`Application is running on: http://localhost:${port}`);
 	} catch (error) {
 		console.error("❌ Failed to start application:", error);
