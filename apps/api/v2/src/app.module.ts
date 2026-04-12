@@ -41,6 +41,7 @@ import type { Request } from "express";
 		GraphQLModule.forRoot<ApolloDriverConfig>({
 			driver: ApolloDriver,
 			autoSchemaFile: true,
+			introspection: process.env.NODE_ENV !== "production",
 			sortSchema: true,
 			subscriptions: {
 				"graphql-ws": true,
