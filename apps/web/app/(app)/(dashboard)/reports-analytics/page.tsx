@@ -9,6 +9,18 @@ import {
 } from "@/services/reportsAnalytics.service"
 import ReportAnalyticsPage from "@/modules/reports/pages/ReportAnalyticsPage"
 import React from "react"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+	title: "Reports & Analytics",
+	description:
+		"Analyze sales trends, view detailed analytics reports, and gain insights into your business performance.",
+	openGraph: {
+		title: "Reports & Analytics - Kosh",
+		description:
+			"Analyze sales trends, view detailed analytics reports, and gain insights into your business performance.",
+	},
+}
 
 const page = () => {
 	const { startDate, endDate } = getDateRange("This Month")

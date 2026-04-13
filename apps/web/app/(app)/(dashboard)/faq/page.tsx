@@ -1,6 +1,18 @@
 import { FAQHero } from "@/modules/faq/components/Hero";
 import { FAQCategory } from "@/modules/faq/components/Category";
 import { FAQFooter } from "@/modules/faq/components/Footer";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+	title: "FAQ",
+	description:
+		"Find answers to common questions about Kosh features, security, and inventory management.",
+	openGraph: {
+		title: "FAQ - Kosh",
+		description:
+			"Find answers to common questions about Kosh features, security, and inventory management.",
+	},
+};
 
 const faqData = [
 	{

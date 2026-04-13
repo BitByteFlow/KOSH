@@ -9,7 +9,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
 
-const GetStartedPage = () => {
+export function GetStartedPage() {
 	const [isLoading, setIsLoading] = useState(false);
 
 	const handleGoogleSignIn = async () => {

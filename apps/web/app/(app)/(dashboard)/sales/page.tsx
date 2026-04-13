@@ -4,6 +4,18 @@ import { CreateSaleSheet } from "@/modules/sales/components/CreateSaleSheet";
 import SalesMetrics from "@/modules/sales/components/SalesMetrics";
 import { gql } from "@/gql";
 import { PreloadQuery } from "@/lib/graphql/apolloServer";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+	title: "Sales",
+	description:
+		"Manage your daily sales, view transaction history, create new invoices, and track revenue.",
+	openGraph: {
+		title: "Sales - Kosh",
+		description:
+			"Manage your daily sales, view transaction history, create new invoices, and track revenue.",
+	},
+};
 
 const GET_SALES_DATA = gql(`
 	query getSalesData{

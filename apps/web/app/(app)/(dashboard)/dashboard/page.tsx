@@ -5,6 +5,18 @@ import { WithdrawCashModal } from "@/modules/dashboard/components/WithdrawCashMo
 import DailyBalanceMetrics from "@/modules/dashboard/components/DailyBalanceMetrics";
 import { PreloadQuery } from "@/lib/graphql/apolloServer";
 import { gql } from "@/gql";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+	title: "Dashboard",
+	description:
+		"View your daily sales metrics, track cash flow, and monitor business performance in real-time.",
+	openGraph: {
+		title: "Dashboard - Kosh",
+		description:
+			"View your daily sales metrics, track cash flow, and monitor business performance in real-time.",
+	},
+};
 
 const DASHBOARD_METRICS = gql(`
 	query dashboardMetrics($page: Int, $limit: Int, $sortBy: String, $sortOrder: String){

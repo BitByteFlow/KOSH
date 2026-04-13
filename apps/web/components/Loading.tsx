@@ -9,6 +9,8 @@ const Loading = () => {
 				width={160}
 				height={160}
 				className="w-40 h-40 animate-pulse"
+				loading="eager"
+				priority
 			/>
 		</div>
 	);

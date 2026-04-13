@@ -1,6 +1,18 @@
 import { gql } from "@/gql"
 import { PreloadQuery } from "@/lib/graphql/apolloServer"
 import InventoryPage from "@/modules/inventory/pages/InventoryPage"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+	title: "Inventory",
+	description:
+		"Manage your product inventory, track stock levels, and organize items by categories.",
+	openGraph: {
+		title: "Inventory - Kosh",
+		description:
+			"Manage your product inventory, track stock levels, and organize items by categories.",
+	},
+}
 
 const GET_INVENTORY_DATA = gql(`
 	query GetInventoryPage ($filterInput: ProductFilterInput!) {
