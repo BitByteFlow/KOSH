@@ -97,9 +97,9 @@ const POSIllustration = () => {
 
 			<div className="space-y-3">
 				{[
-					{ name: "Coffee", price: "$12" },
-					{ name: "Cold Drinks", price: "$18" },
-					{ name: "Snacks", price: "$9" },
+					{ name: "Coffee", price: "Rs. 120" },
+					{ name: "Cold Drinks", price: "Rs.150" },
+					{ name: "Snacks", price: "Rs. 100" },
 				].map((item) => (
 					<div
 						key={item.name + item.price}
@@ -121,7 +121,7 @@ const POSIllustration = () => {
 			<div className="flex items-center justify-between border-t border-gray-300 pt-4">
 				<span className="text-sm font-medium">Total</span>
 
-				<span className="text-lg text-primary font-semibold">$39</span>
+				<span className="text-lg text-primary font-semibold">Rs. 39</span>
 			</div>
 		</Card>
 	);
@@ -138,7 +138,7 @@ const AnalyticsIllustration = () => {
 					<div>
 						<div className="text-sm font-semibold">Monthly Revenue</div>
 
-						<div className="mt-1 text-xl font-semibold">RS. 24,320</div>
+						<div className="mt-1 text-xl font-semibold">Rs. 24,320</div>
 					</div>
 
 					<div className="bg-green-100 text-green-700 rounded-full px-2 py-1 text-xs font-medium">
@@ -192,15 +192,15 @@ const FinanceIllustration = () => {
 				{[
 					{
 						label: "Revenue",
-						value: "$18,420",
+						value: "Rs. 18,420",
 					},
 					{
 						label: "Expenses",
-						value: "$7,240",
+						value: "Rs. 7,240",
 					},
 					{
 						label: "Net Profit",
-						value: "$11,180",
+						value: "Rs. 11,180",
 					},
 				].map((item) => (
 					<div
