@@ -6,7 +6,7 @@ const proxy = (req: NextRequest) => {
 	if (
 		path.startsWith("/api") ||
 		path.startsWith("/_next") ||
-		path.includes(".") || // Static files with extensions
+		path.includes(".") ||
 		path === "/favicon.ico" ||
 		path === "/sitemap.xml" ||
 		path === "/robots.txt"
@@ -14,7 +14,7 @@ const proxy = (req: NextRequest) => {
 		return NextResponse.next();
 	}
 
-	const publicRoutes = ["/auth/get-started", "/"];
+	const publicRoutes = new Set(["/", "/auth/get-started"]);
 
 	const token =
 		req.cookies.get("next-auth.session-token")?.value ||
@@ -25,10 +25,7 @@ const proxy = (req: NextRequest) => {
 		return NextResponse.redirect(new URL("/dashboard", req.url));
 	}
 
-	if (
-		!publicRoutes.some((route) => path.startsWith(route)) &&
-		!isAuthenticated
-	) {
+	if (!publicRoutes.has(path) && !isAuthenticated) {
 		const loginUrl = new URL("/auth/get-started", req.url);
 		loginUrl.searchParams.set("callbackUrl", encodeURIComponent(path));
 		return NextResponse.redirect(loginUrl);
