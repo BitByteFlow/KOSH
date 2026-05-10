@@ -7,6 +7,7 @@ import { Sparkle } from "lucide-react";
 import Features from "@/components/Features";
 import TestimonialSection from "@/components/Testimonials";
 import CTASection from "@/components/CTA";
+import FooterSection from "@/components/Footer";
 
 export default function HeroSection() {
 	return (
@@ -79,6 +80,7 @@ export default function HeroSection() {
 			<Features />
 			<TestimonialSection />
 			<CTASection />
+			<FooterSection />
 		</>
 	);
 }
