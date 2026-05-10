@@ -5,6 +5,8 @@ import Image from "next/image";
 import { HeroHeader } from "@/components/Header";
 import { Sparkle } from "lucide-react";
 import Features from "@/components/Features";
+import TestimonialSection from "@/components/Testimonials";
+import CTASection from "@/components/CTA";
 
 export default function HeroSection() {
 	return (
@@ -75,6 +77,8 @@ export default function HeroSection() {
 				</section>
 			</main>
 			<Features />
+			<TestimonialSection />
+			<CTASection />
 		</>
 	);
 }
