@@ -4,6 +4,7 @@ import { Button } from "@kosh/ui/components/button";
 import Image from "next/image";
 import { HeroHeader } from "@/components/Header";
 import { Sparkle } from "lucide-react";
+import Features from "@/components/Features";
 
 export default function HeroSection() {
 	return (
@@ -73,6 +74,7 @@ export default function HeroSection() {
 					</div>
 				</section>
 			</main>
+			<Features />
 		</>
 	);
 }
