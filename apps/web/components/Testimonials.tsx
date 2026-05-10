@@ -3,39 +3,90 @@ import {
 	AvatarFallback,
 	AvatarImage,
 } from "@kosh/ui/components/avatar";
+import { Card } from "@kosh/ui/components/card";
 import { Quote } from "lucide-react";
 
 export default function TestimonialSection() {
 	return (
-		<section>
-			<div className="bg-muted py-24">
-				<div className="mx-auto w-full max-w-2xl px-6 text-center">
-					<div className="max-w-xl">
-						<Quote className="fill-background stroke-background mx-auto size-8 drop-shadow-sm" />
-						<blockquote className="mt-6">
-							<p className="text-foreground text-xl">
-								Using Tailark has been like unlocking a secret design
-								superpower. It's the perfect fusion of simplicity and
-								versatility, enabling us to create UIs that are as stunning as
-								they are user-friendly.
-							</p>
-							<footer className="mt-6 flex flex-col items-center justify-center">
-								<Avatar className="ring-foreground/10 size-12 border border-transparent shadow ring-1">
-									<AvatarImage
-										src="https://avatars.githubusercontent.com/u/68236786?v=4"
-										alt="Théo Balick"
-									/>
-									<AvatarFallback>T</AvatarFallback>
-								</Avatar>
-								<cite className="text-foreground mt-2 text-lg font-medium">
-									Théo Balick
-								</cite>
-								<span className="text-muted-foreground">@theo_b</span>
-							</footer>
-						</blockquote>
-					</div>
+		<section className="py-24">
+			<div className="mx-auto max-w-6xl px-6">
+				<div className="mx-auto max-w-2xl text-center">
+					<h2 className="text-4xl font-semibold text-foreground">
+						Trusted by growing businesses
+					</h2>
+
+					<p className="text-muted-foreground mt-4">
+						Businesses use KOSH to simplify operations, manage inventory, and
+						improve daily workflows.
+					</p>
+				</div>
+
+				<div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+					<Testimonial
+						name="Aarav Sharma"
+						username="@aaravretail"
+						image="https://avatars.githubusercontent.com/u/68236786?v=4"
+						content="KOSH made our billing and inventory workflow significantly faster and easier to manage."
+					/>
+
+					<Testimonial
+						name="Roshan Shrestha"
+						username="@roshanmart"
+						image="https://avatars.githubusercontent.com/u/31113941?v=4"
+						content="The analytics dashboard gives us a much clearer understanding of our business performance."
+					/>
+
+					<Testimonial
+						name="Kiran Nepali"
+						username="@kiranstore"
+						image="https://avatars.githubusercontent.com/u/47919550?v=4"
+						content="Managing multiple stores became much simpler after switching to KOSH."
+					/>
+
+					<Testimonial
+						name="Suraj"
+						username="@newstore"
+						image="https://avatars.githubusercontent.com/u/99137927?v=4"
+						content="Managing multiple stores became much simpler after switching to KOSH."
+					/>
 				</div>
 			</div>
 		</section>
+	);
+}
+
+function Testimonial({
+	name,
+	username,
+	image,
+	content,
+}: {
+	name: string;
+	username: string;
+	image: string;
+	content: string;
+}) {
+	return (
+		<Card className="p-6 border-border">
+			<Quote className="text-primary size-5" />
+
+			<p className="text-muted-foreground text-sm leading-6">{content}</p>
+
+			<div className="mt-6 flex items-center gap-3">
+				<Avatar className="size-11 border">
+					<AvatarImage
+						src={image}
+						alt={name}
+					/>
+					<AvatarFallback>{name.charAt(0)}</AvatarFallback>
+				</Avatar>
+
+				<div>
+					<div className="text-sm font-medium text-foreground">{name}</div>
+
+					<div className="text-muted-foreground text-sm">{username}</div>
+				</div>
+			</div>
+		</Card>
 	);
 }
