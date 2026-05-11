@@ -4,11 +4,11 @@ import Image from "next/image";
 const links = [
 	{
 		title: "Features",
-		href: "#",
+		href: "#features",
 	},
 	{
 		title: "Solution",
-		href: "#",
+		href: "#solutions",
 	},
 	// {
 	// 	title: "Customers",
@@ -20,17 +20,17 @@ const links = [
 	// },
 	{
 		title: "Help",
-		href: "#",
+		href: "#help",
 	},
 	{
 		title: "About",
-		href: "#",
+		href: "#about",
 	},
 ];
 
 export default function FooterSection() {
 	return (
-		<footer className="bg-muted py-16">
+		<footer className="bg-black/90 py-16">
 			<div className="mx-auto max-w-5xl px-6">
 				<Link
 					href="/"

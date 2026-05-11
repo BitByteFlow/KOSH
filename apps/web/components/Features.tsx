@@ -12,7 +12,7 @@ import {
 
 export default function FeaturesSection() {
 	return (
-		<section>
+		<section id="features">
 			<div className="py-24">
 				<div className="mx-auto w-full max-w-5xl px-6">
 					<div>

@@ -45,7 +45,7 @@ export default function HeroSection() {
 										size="lg"
 									>
 										<Link href="/auth/get-started">
-											<span className="text-nowrap">Start Building</span>
+											<span className="text-nowrap">Start Free</span>
 										</Link>
 									</Button>
 									<Button
