@@ -8,7 +8,7 @@ import { Quote } from "lucide-react";
 
 export default function TestimonialSection() {
 	return (
-		<section className="py-24">
+		<section className="py-24 bg-gray-50">
 			<div className="mx-auto max-w-6xl px-6">
 				<div className="mx-auto max-w-2xl text-center">
 					<h2 className="text-4xl font-semibold text-foreground">
