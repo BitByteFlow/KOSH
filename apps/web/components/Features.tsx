@@ -17,7 +17,7 @@ export default function FeaturesSection() {
 				<div className="mx-auto w-full max-w-5xl px-6">
 					<div>
 						<h2 className="text-foreground max-w-2xl text-balance text-4xl font-semibold">
-							Everything you need to run modern business operations
+							Everything you need to run <span className="text-primary">modern business</span> operations
 						</h2>
 						<p className="text-muted-foreground mt-4 max-w-2xl text-lg">
 							KOSH helps businesses manage billing, inventory, analytics, and
