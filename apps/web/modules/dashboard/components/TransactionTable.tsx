@@ -208,25 +208,25 @@ export function TransactionTable() {
 						<Table>
 							<TableHeader className="bg-muted/50">
 								<TableRow className="border-b border-border transition-colors">
-									<TableHead className="text-left text-base font-semibold text-foreground">
+									<TableHead className="text-left text-sm font-semibold text-foreground">
 										Transaction Date
 									</TableHead>
-									<TableHead className="text-left text-base font-semibold text-foreground">
+									<TableHead className="text-left text-sm font-semibold text-foreground">
 										Transaction Type
 									</TableHead>
-									<TableHead className="text-right text-base font-semibold text-foreground">
+									<TableHead className="text-right text-sm font-semibold text-foreground">
 										Amount
 									</TableHead>
-									<TableHead className="text-left text-base font-semibold text-foreground">
+									<TableHead className="text-left text-sm font-semibold text-foreground">
 										Note
 									</TableHead>
-									<TableHead className="text-left text-base font-semibold text-foreground">
+									<TableHead className="text-left text-sm font-semibold text-foreground">
 										Created At
 									</TableHead>
-									<TableHead className="text-left text-base font-semibold text-foreground">
+									<TableHead className="text-left text-sm font-semibold text-foreground">
 										Updated At
 									</TableHead>
-									<TableHead className="text-center text-base font-semibold text-foreground">
+									<TableHead className="text-center text-sm font-semibold text-foreground">
 										Actions
 									</TableHead>
 								</TableRow>

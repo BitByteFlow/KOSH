@@ -306,7 +306,7 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 								<Button
 									onClick={handleAddToCart}
 									disabled={!selectedVariant}
-									className="w-full h-14 rounded-2xl font-bold text-base shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 bg-linear-to-r from-primary to-primary/90"
+									className="w-full h-14 rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 bg-linear-to-r from-primary to-primary/90"
 									size="lg"
 								>
 									{selectedVariant ? (

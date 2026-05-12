@@ -64,20 +64,20 @@ export function MetricCard({
 
 			<div className="relative z-10 flex flex-col gap-y-4">
 				<div className="flex items-start justify-between">
-					<p className={cn("text-xl font-medium tracking-tighter mt-1", secondaryTextColor)}>
+					<p className={cn("text-sm font-medium tracking-tighter mt-1", secondaryTextColor)}>
 						{label}
 					</p>
 					<div className="transition-transform hover:scale-110">
 						{Icon && (
-							<div className={cn("flex h-12 w-12 items-center justify-center rounded-full", iconWrapperClassName)}>
-								<Icon className={cn("h-6 w-6", iconColor)} />
+							<div className={cn("flex h-10 w-10 items-center justify-center rounded-full", iconWrapperClassName)}>
+								<Icon className={cn("h-4 w-4", iconColor)} />
 							</div>
 						)}
 					</div>
 				</div>
 
 				<div>
-					<h3 className={cn("text-2xl lg:text-3xl font-bold tracking-tighter tabular-nums", primaryTextColor)}>
+					<h3 className={cn("text-2xl font-bold tracking-tighter tabular-nums", primaryTextColor)}>
 						{value}
 					</h3>
 				</div>
@@ -96,7 +96,7 @@ export function MetricCard({
 							</div>
 						)}
 						{sublabel && (
-							<span className={cn("text-lg font-medium", secondaryTextColor)}>
+							<span className={cn("text-sm font-medium", secondaryTextColor)}>
 								{sublabel}
 							</span>
 						)}

@@ -191,7 +191,7 @@ export function AddProductModal() {
 							</h3>
 
 							<div className="grid gap-2">
-								<Label htmlFor="name" className="text-base font-medium">
+								<Label htmlFor="name" className="text-sm font-medium">
 									Product Name
 								</Label>
 								<Input

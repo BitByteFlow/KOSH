@@ -82,9 +82,9 @@ export const WithdrawCashModal = () => {
 		>
 			<DialogTrigger asChild>
 				<Button
-					size="lg"
+					size="sm"
 					variant="ghost"
-					className="text-base hover rounded-xl shadow-lg shadow-secondary/20 transition-all hover:scale-105 active:scale-95 hover:cursor-pointer"
+					className="text-sm hover rounded-xl shadow-lg shadow-secondary/20 transition-all hover:scale-105 active:scale-95 hover:cursor-pointer"
 				>
 					Withdraw Cash
 				</Button>
@@ -105,7 +105,7 @@ export const WithdrawCashModal = () => {
 					<div className="grid gap-2">
 						<label
 							htmlFor="type"
-							className="text-base font-medium leading-none"
+							className="text-sm font-medium leading-none"
 						>
 							Transaction Type
 						</label>
@@ -118,7 +118,7 @@ export const WithdrawCashModal = () => {
 									onValueChange={field.onChange}
 									disabled={isSubmitting}
 								>
-									<SelectTrigger className="w-full h-12 text-base">
+									<SelectTrigger className="w-full h-12 text-sm">
 										<SelectValue placeholder="Select type" />
 									</SelectTrigger>
 									<SelectContent>
@@ -138,7 +138,7 @@ export const WithdrawCashModal = () => {
 					<div className="grid gap-2">
 						<label
 							htmlFor="amount"
-							className="text-base font-medium leading-none"
+							className="text-sm font-medium leading-none"
 						>
 							Amount
 						</label>
@@ -148,14 +148,14 @@ export const WithdrawCashModal = () => {
 							step="0.01"
 							placeholder="0.00"
 							disabled={isSubmitting}
-							className="h-12 text-base"
+							className="h-12 text-sm"
 							{...register("amount", { required: true, min: 0.01 })}
 						/>
 					</div>
 					<div className="grid gap-2">
 						<label
 							htmlFor="note"
-							className="text-base font-medium leading-none"
+							className="text-sm font-medium leading-none"
 						>
 							Note (Optional)
 						</label>
@@ -163,7 +163,7 @@ export const WithdrawCashModal = () => {
 							id="note"
 							placeholder="Description"
 							disabled={isSubmitting}
-							className="h-12 text-base"
+							className="h-12 text-sm"
 							{...register("note")}
 						/>
 					</div>

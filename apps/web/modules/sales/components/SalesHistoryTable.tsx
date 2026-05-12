@@ -204,12 +204,12 @@ export function SalesHistoryTable() {
 				<Table>
 					<TableHeader className="bg-muted/50">
 						<TableRow className="border-border">
-							<TableHead className="w-30 text-base font-semibold text-foreground">Invoice</TableHead>
-							<TableHead className="text-base font-semibold text-foreground">Date</TableHead>
-							<TableHead className="text-center text-base font-semibold text-foreground">Items</TableHead>
-							<TableHead className="text-base font-semibold text-foreground">Payment</TableHead>
-							<TableHead className="text-right text-base font-semibold text-foreground">Total</TableHead>
-							<TableHead className="text-right text-base font-semibold text-foreground">Profit</TableHead>
+							<TableHead className="w-30 text-sm font-semibold text-foreground">Invoice</TableHead>
+							<TableHead className="text-sm font-semibold text-foreground">Date</TableHead>
+							<TableHead className="text-center text-sm font-semibold text-foreground">Items</TableHead>
+							<TableHead className="text-sm font-semibold text-foreground">Payment</TableHead>
+							<TableHead className="text-right text-sm font-semibold text-foreground">Total</TableHead>
+							<TableHead className="text-right text-sm font-semibold text-foreground">Profit</TableHead>
 							<TableHead className="w-12.5"></TableHead>
 						</TableRow>
 					</TableHeader>

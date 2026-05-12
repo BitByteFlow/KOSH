@@ -23,7 +23,7 @@ export default function CTASection() {
 					<Button
 						asChild
 						size="lg"
-						className="bg-primary hover:bg-primary/80 text-white px-7 h-12 rounded-xl text-base font-semibold shadow-lg shadow-purple-200 transition-transform active:scale-95"
+						className="bg-primary hover:bg-primary/80 text-white px-7 h-12 rounded-xl text-sm font-semibold shadow-lg shadow-purple-200 transition-transform active:scale-95"
 					>
 						<Link href="/auth/get-started" className="flex items-center gap-2">
 							Start Free
@@ -35,7 +35,7 @@ export default function CTASection() {
 						asChild
 						variant="outline"
 						size="lg"
-						className="border-slate-200 bg-white/80 px-7 h-12 rounded-xl text-base font-semibold backdrop-blur-sm hover:bg-slate-50 transition-all"
+						className="border-slate-200 bg-white/80 px-7 h-12 rounded-xl text-sm font-semibold backdrop-blur-sm hover:bg-slate-50 transition-all"
 					>
 						<Link href="#" className="flex items-center gap-2">
 							<Calendar className="size-4 opacity-70" strokeWidth={2.5} />

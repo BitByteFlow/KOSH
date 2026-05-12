@@ -62,7 +62,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
 				/>
 				<Input
 					placeholder="Search products by name or SKU..."
-					className="pl-11 h-12 text-base rounded-xl border-slate-200"
+					className="pl-11 h-12 text-sm rounded-xl border-slate-200"
 					value={searchTerm}
 					onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 						setSearchTerm(e.target.value);
@@ -125,7 +125,7 @@ const ProductSearch: React.FC<ProductSearchProps> = ({
 												<p className="text-xs text-slate-400 font-medium">
 													Price
 												</p>
-												<p className="text-base font-black text-slate-900">
+												<p className="text-sm font-black text-slate-900">
 													Rs.
 													{Math.min(
 														...product.variants.map((v: any) => v.sellingPrice),

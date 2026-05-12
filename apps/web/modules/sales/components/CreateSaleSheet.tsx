@@ -216,7 +216,7 @@ function ProductSearchSelector({
 										<Package className="h-5 w-5" />
 									</div>
 									<div className="flex-1 min-w-0">
-										<p className="font-bold truncate text-base">
+										<p className="font-bold truncate text-sm">
 											{p.productName}
 										</p>
 										<div className="flex items-center gap-2">
@@ -365,9 +365,9 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 		>
 			<SheetTrigger asChild>
 				{children || (
-					<Button className="py-6 flex items-center gap-2 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 hover:cursor-pointer">
+					<Button className="py-4 flex items-center gap-2 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 hover:cursor-pointer">
 						<Plus className="h-6 w-6" />
-						<span className="text-base font-semibold">New Sale</span>
+						<span className="text-sm font-semibold">New Sale</span>
 					</Button>
 				)}
 			</SheetTrigger>
@@ -378,7 +378,7 @@ export function CreateSaleSheet({ children }: { children?: React.ReactNode }) {
 							<ShoppingCart className="h-6 w-6 text-primary" />
 							Create Sale
 						</SheetTitle>
-						<SheetDescription className="text-base">
+						<SheetDescription className="text-sm">
 							Add items to generate a new invoice and update your records.
 						</SheetDescription>
 					</SheetHeader>

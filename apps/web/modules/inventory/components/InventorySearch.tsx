@@ -132,7 +132,7 @@ const InventorySearch = memo(
 					<ProductSheet
 						product={null}
 						trigger={
-							<Button className="text-base flex items-center gap-2 h-10 px-4 hover:cursor-pointer">
+							<Button className="text-sm flex items-center gap-2 h-10 px-4 hover:cursor-pointer">
 								<Plus className="w-4 h-4" />
 								<span className="text-white">Add Product</span>
 							</Button>
@@ -146,7 +146,7 @@ const InventorySearch = memo(
 								variant="outline"
 								size="sm"
 								className={cn(
-									"text-base flex items-center gap-2 h-10 px-4 bg-transparent border-border hover:bg-muted/50",
+									"text-sm flex items-center gap-2 h-10 px-4 bg-transparent border-border hover:bg-muted/50",
 									activeCategoryId && "border-primary text-primary bg-primary/5",
 								)}
 							>
@@ -204,7 +204,7 @@ const InventorySearch = memo(
 								variant="outline"
 								size="sm"
 								className={cn(
-									"text-base flex items-center gap-2 h-10 px-4 bg-transparent border-border hover:bg-muted/50",
+									"text-sm flex items-center gap-2 h-10 px-4 bg-transparent border-border hover:bg-muted/50",
 									activeStatus && "border-primary text-primary bg-primary/5",
 								)}
 							>
@@ -243,7 +243,7 @@ const InventorySearch = memo(
 						onClick={handleGenerateBarcodes}
 						disabled={selectedCount === 0}
 						className={cn(
-							"text-base flex items-center gap-2 h-10 px-4 bg-transparent border-border",
+							"text-sm flex items-center gap-2 h-10 px-4 bg-transparent border-border",
 							selectedCount > 0 && "border-success text-success bg-success/5",
 						)}
 					>

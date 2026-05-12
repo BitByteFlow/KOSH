@@ -77,7 +77,7 @@ const NotificationDropdown = () => {
 				className="w-95 p-0 overflow-hidden border-border"
 			>
 				<div className="flex items-center justify-between px-4 py-3 border-b bg-muted/50">
-					<h3 className="font-semibold text-base tracking-tight">
+					<h3 className="font-semibold text-sm tracking-tight">
 						Notifications
 					</h3>
 					{unreadCount > 0 && (

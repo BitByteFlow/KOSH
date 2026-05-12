@@ -60,7 +60,7 @@ const Dashboard = async () => {
 			<section className="flex-1 overflow-y-auto p-4 md:p-8">
 				<div className="space-y-8">
 					<section>
-						<div className="flex items-center justify-between mb-8">
+						<div className="flex items-center justify-between flex-col sm:flex-row mb-8 gap-2">
 							<div>
 								<h2 className="text-3xl font-bold pb-1 tracking-tighter">Today's Sales Metrics</h2>
 								<p className="text-muted-foreground tracking-tight">

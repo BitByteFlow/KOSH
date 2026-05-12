@@ -19,17 +19,26 @@ export function AnalyticsMetricCard({
 					<p className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
 						{label}
 					</p>
-					<p className="text-3xl font-bold text-foreground tabular-nums">{value.toFixed(2)}</p>
+					<p className="text-2xl font-bold text-foreground tabular-nums">
+						{value.toFixed(2)}
+					</p>
 					{subtitle && (
-						<p className="text-xs text-muted-foreground font-medium">{subtitle}</p>
+						<p className="text-xs text-muted-foreground font-medium">
+							{subtitle}
+						</p>
 					)}
 				</div>
 				{trend !== undefined && (
-					<div className={cn("flex items-center gap-1 text-sm px-2 py-0.5 rounded-full bg-muted/50", trendColor)}>
+					<div
+						className={cn(
+							"flex items-center gap-1 text-sm px-2 py-0.5 rounded-full bg-muted/50",
+							trendColor,
+						)}
+					>
 						{isPositive ? (
-							<ArrowUp className="h-3 w-3 stroke-[3]" />
+							<ArrowUp className="h-3 w-3 stroke-3" />
 						) : (
-							<ArrowDown className="h-3 w-3 stroke-[3]" />
+							<ArrowDown className="h-3 w-3 stroke-3" />
 						)}
 						<span className="font-bold">{trend}%</span>
 					</div>

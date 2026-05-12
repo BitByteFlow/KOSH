@@ -113,7 +113,15 @@ const DashboardSidebar = () => {
 		>
 			<SidebarHeader className="gap-4">
 				<div className="flex items-center group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:gap-0 group-data-[state=collapsed]:px-0">
-					<Image src="/logo.svg" alt="Logo" width={32} height={32} className="h-8 w-8" loading="eager" priority />
+					<Image
+						src="/logo.svg"
+						alt="Logo"
+						width={32}
+						height={32}
+						className="h-8 w-8"
+						loading="eager"
+						priority
+					/>
 					<div className="overflow-hidden max-w-50 opacity-100 group-data-[state=collapsed]:max-w-0 group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-[max-width,opacity] duration-200 ease-linear">
 						<span className="text-xl italic font-semibold tracking-tight text-foreground whitespace-nowrap ml-1">
 							Kosh
@@ -154,7 +162,7 @@ const DashboardSidebar = () => {
 												}`}
 											>
 												<span
-													className={`${isActive ? "text-primary text-base" : "text-base"} whitespace-nowrap`}
+													className={`${isActive ? "text-primary" : ""} text-sm whitespace-nowrap`}
 												>
 													{item.title}
 												</span>
@@ -198,7 +206,7 @@ const DashboardSidebar = () => {
 												}`}
 											>
 												<span
-													className={`${isActive ? "text-primary text-base" : "text-base"} whitespace-nowrap`}
+													className={`${isActive ? "text-primary" : ""} text-sm whitespace-nowrap`}
 												>
 													{item.title}
 												</span>

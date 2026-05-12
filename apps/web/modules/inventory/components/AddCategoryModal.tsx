@@ -77,7 +77,7 @@ export function AddCategoryModal({ trigger }: AddCategoryModalProps) {
 					<Button
 						variant="outline"
 						size="sm"
-						className="text-base flex items-center gap-2 hover:cursor-pointer"
+						className="text-sm flex items-center gap-2 hover:cursor-pointer"
 					>
 						<Plus className="w-4 h-4" />
 						Add Category

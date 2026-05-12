@@ -98,7 +98,7 @@ const TransactionRow = React.memo(
 				</TableCell>
 				<TableCell className="text-right pr-6">
 					<div className="flex items-center justify-end gap-3">
-						<span className="text-base font-bold text-slate-900">
+						<span className="text-sm font-bold text-slate-900">
 							Rs. {transaction.total.toFixed(2)}
 						</span>
 						<div className="p-1 rounded-md opacity-0 group-hover:opacity-100 bg-white border border-slate-200 transition-all shadow-sm">

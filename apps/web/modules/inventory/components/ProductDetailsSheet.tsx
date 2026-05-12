@@ -76,10 +76,9 @@ export function ProductDetailsSheet({
 							</div>
 						</div>
 
-						{/* Variants Section */}
 						<div className="space-y-4">
 							<div className="flex items-center justify-between pb-2 border-b border-gray-100">
-								<h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+								<h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
 									Variants
 									<span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
 										{product.variantCount}
