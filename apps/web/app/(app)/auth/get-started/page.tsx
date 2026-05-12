@@ -15,7 +15,7 @@ export function GetStartedPage() {
 	const handleGoogleSignIn = async () => {
 		try {
 			setIsLoading(true);
-			await signIn("google", { callbackUrl: "/dashboard" });
+			await signIn("google", { callbackUrl: "/bash" });
 		} catch (error) {
 			console.error("Sign in error:", error);
 			toast.error("Failed to sign in. Please try again.");
@@ -32,9 +32,9 @@ export function GetStartedPage() {
 						href="/"
 						className="flex items-center gap-2 group"
 					>
-						<Image 
-							src="/logo.svg" 
-							alt="Kosh Logo" 
+						<Image
+							src="/logo.svg"
+							alt="Kosh Logo"
 							width={40}
 							height={40}
 							className="h-10 w-10"
@@ -133,8 +133,9 @@ export function GetStartedPage() {
 								{[30, 45, 40, 60, 85, 55, 95].map((h) => (
 									<div
 										key={`bar-${h}`}
-										className={`flex-1 rounded-lg transition-all duration-1000 ease-in-out ${h === 95 ? "bg-green-500" : "bg-gray-100"
-											}`}
+										className={`flex-1 rounded-lg transition-all duration-1000 ease-in-out ${
+											h === 95 ? "bg-green-500" : "bg-gray-100"
+										}`}
 										style={{ height: `${h}%` }}
 									/>
 								))}
@@ -154,6 +155,6 @@ export function GetStartedPage() {
 			</div>
 		</div>
 	);
-};
+}
 
 export default GetStartedPage;
