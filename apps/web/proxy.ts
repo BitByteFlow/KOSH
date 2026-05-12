@@ -1,33 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const publicRoutes = ["/", "/about", "/auth/get-started"];
+
 const proxy = (req: NextRequest) => {
-	const path = req.nextUrl.pathname;
+	const { pathname } = req.nextUrl;
 
-	if (
-		path.startsWith("/api") ||
-		path.startsWith("/_next") ||
-		path.includes(".") ||
-		path === "/favicon.ico" ||
-		path === "/sitemap.xml" ||
-		path === "/robots.txt"
-	) {
-		return NextResponse.next();
-	}
+	const isPublicRoute = publicRoutes.some((route) => {
+		if (route === "/") {
+			return pathname === "/";
+		}
 
-	const publicRoutes = new Set(["/", "/about", "/auth/get-started"]);
+		return pathname.startsWith(route);
+	});
 
 	const token =
+		req.cookies.get("__Secure-next-auth.session-token")?.value ||
 		req.cookies.get("next-auth.session-token")?.value ||
+		req.cookies.get("__Secure-authjs.session-token")?.value ||
 		req.cookies.get("authjs.session-token")?.value;
+
 	const isAuthenticated = !!token;
 
-	if (path.startsWith("/auth/get-started") && isAuthenticated) {
+	if (pathname.startsWith("/auth/get-started") && isAuthenticated) {
 		return NextResponse.redirect(new URL("/dashboard", req.url));
 	}
 
-	if (!publicRoutes.has(path) && !isAuthenticated) {
+	if (!isPublicRoute && !isAuthenticated) {
 		const loginUrl = new URL("/auth/get-started", req.url);
-		loginUrl.searchParams.set("callbackUrl", encodeURIComponent(path));
+
+		loginUrl.searchParams.set("callbackUrl", pathname);
+
 		return NextResponse.redirect(loginUrl);
 	}
 
@@ -37,7 +39,5 @@ const proxy = (req: NextRequest) => {
 export default proxy;
 
 export const config = {
-	matcher: [
-		"/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
-	],
+	matcher: ["/((?!api|_next|.*\\..*).*)"],
 };

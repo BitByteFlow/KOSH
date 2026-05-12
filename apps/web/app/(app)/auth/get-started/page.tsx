@@ -15,7 +15,7 @@ export function GetStartedPage() {
 	const handleGoogleSignIn = async () => {
 		try {
 			setIsLoading(true);
-			await signIn("google", { callbackUrl: "/bash" });
+			await signIn("google", { callbackUrl: "/dashboard" });
 		} catch (error) {
 			console.error("Sign in error:", error);
 			toast.error("Failed to sign in. Please try again.");
