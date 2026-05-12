@@ -1,135 +1,100 @@
-# Turborepo starter
+> [!NOTE]
+> **Video Tutorial:** A step-by-step video guide for KOSH operations is currently being processed and will be linked here shortly.
 
-This Turborepo starter is maintained by the Turborepo core team.
+# Kosh - Modern inventory system and POS platform
 
-## Using this example
+Kosh is a comprehensive monorepo containing the Kosh API, Web interface, and Point of Sale (POS) system.
 
-Run the following command:
+## Getting Started
 
-```sh
-npx create-turbo@latest
+Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
+
+### Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+*   **Node.js**: Version 18 or higher.
+*   **Bun**: Recommended package manager for this project. [Install Bun](https://bun.sh/docs/installation).
+*   **PostgreSQL**: A running PostgreSQL instance.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/kosh.git
+cd kosh
 ```
 
-## What's inside?
+### 2. Install dependencies
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+```bash
+bun install
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### 3. Environment Setup
 
+You need to set up environment variables for the different applications. Copy the `.env.example` files to `.env` in the respective directories and update the values.
+
+#### API (v2)
+```bash
+cp apps/api/v2/.env.example apps/api/v2/.env
 ```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+Update `DATABASE_URL` and `JWT_SECRET` in `apps/api/v2/.env`.
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+#### POS
+```bash
+cp apps/pos/.env.example apps/pos/.env
 ```
+Update `VITE_API_URL` and `VITE_GOOGLE_CLIENT_ID` in `apps/pos/.env`.
 
-### Develop
+### 4. Database Setup
 
-To develop all apps and packages, run the following command:
+The project uses Prisma for database management. You need to generate the Prisma client and push the schema to your database.
 
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+```bash
+cd packages/db && bun run generate && cd ../..
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### 5. Running the project
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+Start the development environment using Turbo:
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```bash
+bun dev
 ```
 
-### Remote Caching
+This will start all applications in development mode:
+*   **Web**: [http://localhost:3000](http://localhost:3000)
+*   **API**: [http://localhost:3001](http://localhost:3001)
+*   **POS**: [http://localhost:5173](http://localhost:5173)
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+## Architecture
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+Kosh is built as a monorepo using [Turborepo](https://turbo.build/repo).
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+- **`apps/web`**: The main web application built with [Next.js](https://nextjs.org).
+- **`apps/api/v1` & `apps/api/v2`**: RESTful APIs built with [NestJS](https://nestjs.com).
+- **`apps/pos`**: Point of Sale interface built with [React](https://reactjs.org) and [Vite](https://vitejs.dev).
+- **`packages/db`**: Shared database package containing the Prisma schema and client.
+- **`packages/ui`**: Shared UI component library.
+- **`packages/validation`**: Shared validation schemas (Zod).
+- **`packages/typescript-config`**: Shared TypeScript configurations.
+- **`packages/eslint-config`**: Shared ESLint configurations.
 
-```
-cd my-turborepo
+## Development
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+### Adding a new package or app
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
+Use the workspace commands to add dependencies:
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+```bash
+bun add <package-name> --filter <workspace-name>
 ```
 
-## Useful Links
+### Formatting and Linting
 
-Learn more about the power of Turborepo:
+We use [Biome](https://biomejs.dev) for formatting and linting.
 
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+```bash
+bun run format
+bun run lint
+```
