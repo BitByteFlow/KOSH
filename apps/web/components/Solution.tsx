@@ -9,7 +9,7 @@ import {
 
 export default function SolutionSection() {
 	return (
-		<section className="py-24">
+		<section className="py-24" id="solution">
 			<div className="mx-auto max-w-6xl px-6">
 				<div className="grid gap-16 lg:grid-cols-2 lg:items-center">
 					<div>

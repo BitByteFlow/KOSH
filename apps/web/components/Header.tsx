@@ -9,7 +9,7 @@ import Image from "next/image";
 
 const menuItems = [
 	{ name: "Features", href: "/#features" },
-	{ name: "Solution", href: "#link" },
+	{ name: "Solution", href: "/#solution" },
 	{ name: "About", href: "/about" },
 ];
 
