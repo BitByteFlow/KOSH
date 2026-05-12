@@ -8,7 +8,7 @@ const links = [
 	},
 	{
 		title: "Solution",
-		href: "/#solutions",
+		href: "/#solution",
 	},
 	// {
 	// 	title: "Customers",
