@@ -7,14 +7,15 @@ import Image from "next/image";
 const HeroSection = () => (
 	<main>
 		<section className="relative overflow-hidden border-e-foreground before:absolute before:inset-1 before:h-[calc(100%-8rem)] before:rounded-2xl sm:before:inset-2 md:before:rounded-[2rem] lg:before:h-[calc(100%-14rem)]">
-			{/* Background Gradient */}
-			<div className="absolute inset-0 -z-10">
+
+					<div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(50,65,255,0.12),transparent_60%)]" />
+			{/* <div className="absolute inset-0 -z-10">
 				<div className="absolute left-1/2 top-20 h-full w-125 -translate-x-1/2 rounded-full bg-[#3241ff]/20 blur-3xl" />
 
 				<div className="absolute left-1/3 top-40 h-75 w-75 rounded-full bg-[#5561ff]/15 blur-3xl" />
 
 				<div className="absolute bottom-0 right-1/4 h-62.5 w-62.5 rounded-full bg-[#2328b3]/10 blur-3xl" />
-			</div>
+			</div> */}
 
 			<div className="py-20 md:py-36">
 				<div className="relative z-10 mx-auto max-w-5xl px-6 text-center">
@@ -36,8 +37,8 @@ const HeroSection = () => (
 							<span className="font-medium">Introducing KOSH</span>
 						</Link>
 
-						<h1 className="mx-auto mt-8 max-w-3xl text-balance text-4xl font-bold tracking-tight sm:text-5xl">
-							Run Your Business Faster with KOSH
+						<h1 className="mx-auto mt-8 max-w-3xl text-balance text-4xl font-bold tracking-tight sm:text-6xl">
+							Run Your Business Faster with <span className="text-primary italic">KOSH</span>
 						</h1>
 
 						<p className="text-muted-foreground mx-auto my-6 max-w-xl text-balance text-xl font-semibold">

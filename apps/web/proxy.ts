@@ -14,7 +14,7 @@ const proxy = (req: NextRequest) => {
 		return NextResponse.next();
 	}
 
-	const publicRoutes = new Set(["/", "/auth/get-started"]);
+	const publicRoutes = new Set(["/", "/about", "/auth/get-started"]);
 
 	const token =
 		req.cookies.get("next-auth.session-token")?.value ||

@@ -5,6 +5,7 @@ import TestimonialSection from "@/components/Testimonials";
 import CTASection from "@/components/CTA";
 import FooterSection from "@/components/Footer";
 import HeroComponent from "@/components/Hero";
+import SolutionSection from "@/components/Solution";
 
 export default function HeroSection() {
 	return (
@@ -12,6 +13,7 @@ export default function HeroSection() {
 			<HeroHeader />
 			<HeroComponent />
 			<Features />
+			<SolutionSection />
 			<TestimonialSection />
 			<CTASection />
 			<FooterSection />

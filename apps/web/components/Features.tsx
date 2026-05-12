@@ -121,7 +121,7 @@ const POSIllustration = () => {
 			<div className="flex items-center justify-between border-t border-gray-300 pt-4">
 				<span className="text-sm font-medium">Total</span>
 
-				<span className="text-lg text-primary font-semibold">Rs. 39</span>
+				<span className="text-lg text-primary font-semibold">Rs. 370</span>
 			</div>
 		</Card>
 	);

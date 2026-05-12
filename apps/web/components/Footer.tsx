@@ -4,11 +4,11 @@ import Image from "next/image";
 const links = [
 	{
 		title: "Features",
-		href: "#features",
+		href: "/#features",
 	},
 	{
 		title: "Solution",
-		href: "#solutions",
+		href: "/#solutions",
 	},
 	// {
 	// 	title: "Customers",
@@ -20,11 +20,11 @@ const links = [
 	// },
 	{
 		title: "Help",
-		href: "#help",
+		href: "/help",
 	},
 	{
 		title: "About",
-		href: "#about",
+		href: "/about",
 	},
 ];
 

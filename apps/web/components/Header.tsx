@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 const menuItems = [
-	{ name: "Features", href: "#features" },
+	{ name: "Features", href: "/#features" },
 	{ name: "Solution", href: "#link" },
-	{ name: "About", href: "#link" },
+	{ name: "About", href: "/about" },
 ];
 
 export const HeroHeader = () => {
